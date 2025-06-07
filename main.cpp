@@ -10,8 +10,9 @@
 
 int main()
 {
-    auto window = std::make_shared<sf::RenderWindow>(sf::VideoMode({1280u, 720u}), "game");
-
+    auto window = std::make_shared<sf::RenderWindow>(sf::VideoMode::getDesktopMode(), "game",sf::Style::Default,sf::State::Fullscreen);
+    window->setMouseCursorVisible(false);
+    
     StateStack stack;
 
     stack.pushState(std::make_unique<MainMenu>(stack, *window));
