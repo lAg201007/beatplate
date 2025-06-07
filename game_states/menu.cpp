@@ -3,7 +3,7 @@
 
 MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window), Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
-    Title("assets/sprites/main_menu/title.png",640,360,225,104)
+    Title("assets/sprites/main_menu/title.png",600,360,225,104)
 {
 }
 
