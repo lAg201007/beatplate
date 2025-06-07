@@ -34,6 +34,11 @@ void MainMenu::update(sf::Time dt) {
     Cursor.sprite->setPosition({mouse_pos.x,mouse_pos.y});
 
     TitleTween.update(dt.asSeconds());
+
+    if (!TitleTween.isActive()) {
+        TitleTween.reset();
+        TitleTween.play();
+    }
 }
 
 void MainMenu::render() {
