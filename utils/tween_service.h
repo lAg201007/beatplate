@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <functional>
 #include <algorithm>
+#include <cmath>
 
 class Tween {
 public:
@@ -14,7 +15,7 @@ public:
 
 
     // Tipos de tween
-    enum class Type { Position, Scale, Rotation };
+    enum class Type { Position, Scale, Rotation, Transparency };
 
     // Inicializadores
     void initPosition(const sf::Vector2f& start, const sf::Vector2f& end) {
@@ -33,6 +34,12 @@ public:
         type = Type::Rotation;
         startRot = start;
         endRot = end;
+    }
+
+    void initTransparency(float start, float end) {
+        type = Type::Transparency;
+        startTransparency = start;
+        endTransparency = end;
     }
 
     void update(float dt) {
@@ -57,6 +64,12 @@ public:
                 float angle = lerp(startRot, endRot, easedT);
                 sprite.setRotation(sf::degrees(angle));
                 break;
+            }
+            case Type::Transparency: {
+                float tweenTransparency = lerp(startTransparency, endTransparency, easedT);
+                int transparency = static_cast<int>(std::round(tweenTransparency * 255.0f));
+                sf::Color color = sprite.getColor(); color.a = transparency;
+                sprite.setColor(color);
             }
         }
 
@@ -106,6 +119,7 @@ private:
     sf::Vector2f startPos, endPos;
     float startScale, endScale;
     float startRot, endRot;
+    float startTransparency, endTransparency;
 
     // Função de interpolação genérica
     template<typename T>

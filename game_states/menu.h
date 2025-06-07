@@ -16,4 +16,5 @@ private:
     Button Title;
     sf::Vector2i mouse_pos;
     Tween TitleTween;
+    Tween TitleTransparencyTween;
 };

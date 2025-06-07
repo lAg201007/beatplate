@@ -8,10 +8,13 @@ float elapsed = 0.0f;
 MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window), Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
     Title("assets/sprites/main_menu/title.png",600,360,225,104),
-    TitleTween(*Title.sprite,0.5f,Tween::linear)
+    TitleTween(*Title.sprite,0.5f,Tween::linear),
+    TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear)
 {
     TitleTween.initScale(1.0f,1.1f);
     TitleTween.play();
+    TitleTransparencyTween.initTransparency(0.0f,1.0f);
+    TitleTransparencyTween.play();
 }
 
 void MainMenu::handleEvent(const sf::Event& event) {
@@ -34,15 +37,18 @@ void MainMenu::update(sf::Time dt) {
     Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
 
     TitleTween.update(dt.asSeconds());
+    TitleTransparencyTween.update(dt.asSeconds());
 
     if (!TitleTween.isActive()) {
         TitleTween.reset();
         TitleTween.play();
     }
+
+    std::cout << Title.sprite->getScale().x << " , " << Title.sprite->getScale().y << std::endl;
 }
 
 void MainMenu::render() {
     mWindow.clear(sf::Color::White);
-    mWindow.draw(*Cursor.sprite);
     mWindow.draw(*Title.sprite);
+    mWindow.draw(*Cursor.sprite);
 }
