@@ -2,7 +2,8 @@
 #include <SFML/Window/Mouse.hpp>
 
 MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
-    : State(stack, window), Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f)
+    : State(stack, window), Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
+    Title("assets/sprites/main_menu/title.png",640,360,225,104)
 {
 }
 
@@ -28,4 +29,5 @@ void MainMenu::update(sf::Time dt) {
 void MainMenu::render() {
     mWindow.clear(sf::Color::White);
     mWindow.draw(*Cursor.sprite);
+    mWindow.draw(*Title.sprite);
 }

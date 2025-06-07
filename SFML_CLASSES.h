@@ -72,3 +72,30 @@ public:
 };
 
 #endif 
+#ifndef BUTTON
+#define BUTTON
+
+class Button : public Object {
+public:
+    Button(std::string imgfile, float startXpos, float startYpos,
+           int originX = 0, int originY = 0,
+           float scaleX = 1, float scaleY = 1)
+        : Object(imgfile, startXpos, startYpos, originX, originY, scaleX, scaleY) {}
+
+    bool isHovered(sf::RenderWindow& window) {
+        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+        sf::FloatRect bounds = sprite->getGlobalBounds();
+        return bounds.contains(static_cast<sf::Vector2f>(mousePos));
+    }
+
+    bool DetectButtonClick(sf::RenderWindow& window, const sf::Event& event) {
+        if (auto* mouseEvent = event.getIf<sf::Event::MouseButtonPressed>()) {
+            if (mouseEvent->button == sf::Mouse::Button::Left && isHovered(window)) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+#endif

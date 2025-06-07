@@ -12,5 +12,6 @@ public:
 
 private:
     Object Cursor;
+    Button Title;
     sf::Vector2i mouse_pos;
 };
