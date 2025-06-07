@@ -13,6 +13,7 @@ public:
 
 private:
     Object Cursor;
+    Object background;
     Button Title;
     sf::Vector2i mouse_pos;
     Tween TitleTween;

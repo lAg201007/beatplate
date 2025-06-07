@@ -10,7 +10,7 @@
 
 int main()
 {
-    auto window = std::make_shared<sf::RenderWindow>(sf::VideoMode::getDesktopMode(), "game",sf::Style::Default,sf::State::Fullscreen);
+    auto window = std::make_shared<sf::RenderWindow>(sf::VideoMode::getDesktopMode(),"beatplate", sf::State::Fullscreen);
     window->setMouseCursorVisible(false);
     
     StateStack stack;

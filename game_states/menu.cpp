@@ -6,8 +6,11 @@ std::vector<std::function<void(float)>> tweens;
 float elapsed = 0.0f;
 
 MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
-    : State(stack, window), Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
+    : State(stack, window),
+    Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
     Title("assets/sprites/main_menu/title.png",600,360,225,104),
+    background("assets/sprites/main_menu/background.png",100,100,364,205),
+
     TitleTween(*Title.sprite,0.5f,Tween::linear),
     TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear)
 {
@@ -43,12 +46,11 @@ void MainMenu::update(sf::Time dt) {
         TitleTween.reset();
         TitleTween.play();
     }
-
-    std::cout << Title.sprite->getScale().x << " , " << Title.sprite->getScale().y << std::endl;
 }
 
 void MainMenu::render() {
     mWindow.clear(sf::Color::White);
+    mWindow.draw(*background.sprite);
     mWindow.draw(*Title.sprite);
     mWindow.draw(*Cursor.sprite);
 }
