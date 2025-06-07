@@ -13,3 +13,6 @@
 *.app
 
 *.bin
+
+.vscode/
+Makefile
