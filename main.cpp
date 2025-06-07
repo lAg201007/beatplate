@@ -3,7 +3,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
-#include "SFML_CLASSES.h"
+#include "utils/SFML_CLASSES.h"
 
 #include "game_states/menu.h"
 #include "state_stack.h"

@@ -1,6 +1,7 @@
 #pragma once
 #include "game_state.h"
-#include "../SFML_CLASSES.h"
+#include "../utils/SFML_CLASSES.h"
+#include "../utils/tween_service.h"
 
 class MainMenu : public State {
 public:
@@ -14,4 +15,5 @@ private:
     Object Cursor;
     Button Title;
     sf::Vector2i mouse_pos;
+    Tween TitleTween;
 };
