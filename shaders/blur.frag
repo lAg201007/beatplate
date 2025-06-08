@@ -1,27 +1,21 @@
-uniform sampler2D u_texture;
-uniform float resolution;
-uniform float radius;
-uniform vec2 dir;
-
-void main() {
-    vec2 tc = gl_TexCoord[0].xy;
-    vec4 sum = vec4(0.0);
-
-    float blur = radius / resolution;
-    float hstep = dir.x;
-    float vstep = dir.y;
-
-    sum += texture2D(u_texture, vec2(tc.x - 4.0*blur*hstep, tc.y - 4.0*blur*vstep)) * 0.0162162162;
-    sum += texture2D(u_texture, vec2(tc.x - 3.0*blur*hstep, tc.y - 3.0*blur*vstep)) * 0.0540540541;
-    sum += texture2D(u_texture, vec2(tc.x - 2.0*blur*hstep, tc.y - 2.0*blur*vstep)) * 0.1216216216;
-    sum += texture2D(u_texture, vec2(tc.x - 1.0*blur*hstep, tc.y - 1.0*blur*vstep)) * 0.1945945946;
-
-    sum += texture2D(u_texture, vec2(tc.x, tc.y)) * 0.2270270270;
-
-    sum += texture2D(u_texture, vec2(tc.x + 1.0*blur*hstep, tc.y + 1.0*blur*vstep)) * 0.1945945946;
-    sum += texture2D(u_texture, vec2(tc.x + 2.0*blur*hstep, tc.y + 2.0*blur*vstep)) * 0.1216216216;
-    sum += texture2D(u_texture, vec2(tc.x + 3.0*blur*hstep, tc.y + 3.0*blur*vstep)) * 0.0540540541;
-    sum += texture2D(u_texture, vec2(tc.x + 4.0*blur*hstep, tc.y + 4.0*blur*vstep)) * 0.0162162162;
-
-    gl_FragColor = gl_Color * sum;
+in vec2 pos;                    // screen position <-1,+1>
+out vec4 gl_FragColor;          // fragment output color
+uniform sampler2D txr;          // texture to blur
+uniform float xs,ys;            // texture resolution
+uniform float r;                // blur radius
+//---------------------------------------------------------------------------
+void main()
+    {
+    float x,y,xx,yy,rr=r*r,dx,dy,w,w0;
+    w0=0.3780/pow(r,1.975);
+    vec2 p;
+    vec4 col=vec4(0.0,0.0,0.0,0.0);
+    for (dx=1.0/xs,x=-r,p.x=0.5+(pos.x*0.5)+(x*dx);x<=r;x++,p.x+=dx){ xx=x*x;
+     for (dy=1.0/ys,y=-r,p.y=0.5+(pos.y*0.5)+(y*dy);y<=r;y++,p.y+=dy){ yy=y*y;
+      if (xx+yy<=rr)
+        {
+        w=w0*exp((-xx-yy)/(2.0*rr));
+        col+=texture2D(txr,p)*w;
+        }}}
+    gl_FragColor=col;
 }

@@ -16,7 +16,6 @@ private:
     Object background;
     Button Title;
     sf::Vector2i mouse_pos;
-    sf::Shader blurShader;
     Tween TitleTween;
     Tween TitleTransparencyTween;
 };
