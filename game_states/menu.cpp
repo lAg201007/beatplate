@@ -46,6 +46,7 @@ void MainMenu::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
 
     Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
+
     TitleTween.update(dt.asSeconds());
     TitleTransparencyTween.update(dt.asSeconds());
 
@@ -56,8 +57,8 @@ void MainMenu::update(sf::Time dt) {
 }
 
 void MainMenu::render() {
-    mWindow.clear(sf::Color::White);
-    ShaderUtils::drawRadialBlurSprite(mWindow,background,100.0f);
+    mWindow.clear(sf::Color::Transparent);
+    ShaderUtils::drawVerticalBlurSprite(mWindow,background);
     mWindow.draw(*Title.sprite);
     mWindow.draw(*Cursor.sprite);
 }

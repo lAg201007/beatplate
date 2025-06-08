@@ -1,21 +1,35 @@
-in vec2 pos;                    // screen position <-1,+1>
-out vec4 gl_FragColor;          // fragment output color
-uniform sampler2D txr;          // texture to blur
-uniform float xs,ys;            // texture resolution
-uniform float r;                // blur radius
-//---------------------------------------------------------------------------
-void main()
-    {
-    float x,y,xx,yy,rr=r*r,dx,dy,w,w0;
-    w0=0.3780/pow(r,1.975);
-    vec2 p;
-    vec4 col=vec4(0.0,0.0,0.0,0.0);
-    for (dx=1.0/xs,x=-r,p.x=0.5+(pos.x*0.5)+(x*dx);x<=r;x++,p.x+=dx){ xx=x*x;
-     for (dy=1.0/ys,y=-r,p.y=0.5+(pos.y*0.5)+(y*dy);y<=r;y++,p.y+=dy){ yy=y*y;
-      if (xx+yy<=rr)
-        {
-        w=w0*exp((-xx-yy)/(2.0*rr));
-        col+=texture2D(txr,p)*w;
-        }}}
-    gl_FragColor=col;
+#version 120
+
+uniform sampler2D image;
+uniform vec2 resolution;
+uniform float blurStrength;
+uniform bool horizontal;
+
+const float offset[3] = float[](0.0, 1.3846153846, 3.2307692308);
+const float weight[3] = float[](0.2270270270, 0.3162162162, 0.0702702703);
+
+void main() {
+    vec2 texCoord = gl_FragCoord.xy / resolution;
+
+    vec4 color = texture2D(image, texCoord) * weight[0];
+
+    if (horizontal) {
+        for (int i = 1; i < 3; ++i) {
+            // deslocamento no eixo X para blur horizontal
+            vec2 scaledOffset = vec2(offset[i] * blurStrength / resolution.x, 0.0);
+
+            color += texture2D(image, texCoord + scaledOffset) * weight[i];
+            color += texture2D(image, texCoord - scaledOffset) * weight[i];
+        }
+    } else {
+        for (int i = 1; i < 3; ++i) {
+            // deslocamento no eixo Y para blur vertical
+            vec2 scaledOffset = vec2(0.0, offset[i] * blurStrength / resolution.y);
+
+            color += texture2D(image, texCoord + scaledOffset) * weight[i];
+            color += texture2D(image, texCoord - scaledOffset) * weight[i];
+        }
+    }
+
+    gl_FragColor = color;
 }

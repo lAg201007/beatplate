@@ -6,48 +6,45 @@
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
 #include "../utils/SFML_CLASSES.h"
-
 namespace ShaderUtils {
-    void drawRadialBlurSprite(sf::RenderWindow& mWindow, Object obj, float radius) 
+    void drawVerticalBlurSprite(sf::RenderWindow& mWindow, Object obj)
     {
         const sf::Vector2u winSize = mWindow.getSize();
 
-        sf::Shader radialBlurShader;
-        if (!radialBlurShader.loadFromFile("shaders/radial_blur.frag", sf::Shader::Type::Fragment)) {
-            std::cerr << "Erro ao carregar shader radial_blur.frag" << std::endl;
+        // Carregar o shader
+        sf::Shader blurShader;
+        if (!blurShader.loadFromFile("shaders/blur.frag", sf::Shader::Type::Fragment)) {
+            std::cerr << "Erro ao carregar shader blur.frag" << std::endl;
             return;
         }
 
-        // Render o objeto para uma textura
+        // Criar RenderTextures para passes
         sf::RenderTexture sceneRT({winSize.x, winSize.y});
+        sf::RenderTexture blurRT({winSize.x, winSize.y});
+
+        // Desenhar objeto original em sceneRT
         sceneRT.clear(sf::Color::Transparent);
         sceneRT.draw(*obj.sprite);
         sceneRT.display();
 
-        // Configura uniforms
-        radialBlurShader.setUniform("txr", sceneRT.getTexture());
-        radialBlurShader.setUniform("xs", static_cast<float>(winSize.x));
-        radialBlurShader.setUniform("ys", static_cast<float>(winSize.y));
-        radialBlurShader.setUniform("r", radius);
+        // Configurar quad para desenhar fullscreen (usando Sprite facilita)
+        sf::Sprite sceneSprite(sceneRT.getTexture());
+        sf::Sprite blurSprite(blurRT.getTexture());
 
-        // Prepara um quad que cobre a tela inteira (coords de -1 a 1)
-        sf::VertexArray screenQuad(sf::PrimitiveType::TriangleStrip, 4);
-        screenQuad[0].position = sf::Vector2f(-1.f, -1.f);
-        screenQuad[1].position = sf::Vector2f(+1.f, -1.f);
-        screenQuad[2].position = sf::Vector2f(-1.f, +1.f);
-        screenQuad[3].position = sf::Vector2f(+1.f, +1.f);
+        // Passo 1: blur horizontal (sceneRT -> blurRT)
+        blurShader.setUniform("image", sceneRT.getTexture());
+        blurShader.setUniform("resolution", sf::Glsl::Vec2(winSize));
+        blurShader.setUniform("blurStrength", 3.0f);
+        blurShader.setUniform("horizontal", true);
 
-        // Passa a mesma posição como atributo "pos"
-        screenQuad[0].texCoords = sf::Vector2f(-1.f, -1.f);
-        screenQuad[1].texCoords = sf::Vector2f(+1.f, -1.f);
-        screenQuad[2].texCoords = sf::Vector2f(-1.f, +1.f);
-        screenQuad[3].texCoords = sf::Vector2f(+1.f, +1.f);
+        blurRT.clear(sf::Color::Transparent);
+        blurRT.draw(sceneSprite, &blurShader);
+        blurRT.display();
 
-        // Renderiza com o shader
-        sf::RenderStates states;
-        states.shader = &radialBlurShader;
+        // Passo 2: blur vertical (blurRT -> janela)
+        blurShader.setUniform("image", blurRT.getTexture());
+        blurShader.setUniform("horizontal", false);
 
-        mWindow.draw(screenQuad, states);
+        mWindow.draw(blurSprite, &blurShader);
     }
-
 }
