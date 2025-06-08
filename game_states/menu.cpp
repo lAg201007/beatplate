@@ -1,3 +1,4 @@
+
 #include "menu.h"
 #include <SFML/Window/Mouse.hpp>
 #include "../utils/tween_service.h"
@@ -14,6 +15,10 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     TitleTween(*Title.sprite,0.5f,Tween::linear),
     TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear)
 {
+    if (!blurShader.loadFromFile("shaders/blur.frag",sf::Shader::Type::Fragment)) {
+        std::cerr << "Erro ao carregar shader!" << std::endl;
+    }
+
     TitleTween.initScale(1.0f,1.1f);
     TitleTween.play();
     TitleTransparencyTween.initTransparency(0.0f,1.0f);
@@ -33,7 +38,6 @@ void MainMenu::handleEvent(const sf::Event& event) {
                 mWindow.close();
             }
         }
-
     }
 
     else if (event.is<sf::Event::Closed>()) {
@@ -56,7 +60,12 @@ void MainMenu::update(sf::Time dt) {
 
 void MainMenu::render() {
     mWindow.clear(sf::Color::White);
-    mWindow.draw(*background.sprite);
+
+    blurShader.setUniform("texture", sf::Shader::CurrentTexture);
+    blurShader.setUniform("radius", 8.0f);
+    blurShader.setUniform("direction", sf::Vector2f(1.0f,0.0f));
+
+    mWindow.draw(*background.sprite, &blurShader);
     mWindow.draw(*Title.sprite);
     mWindow.draw(*Cursor.sprite);
 }
