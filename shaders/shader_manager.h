@@ -34,7 +34,7 @@ namespace ShaderUtils {
         // Passo 1: blur horizontal (sceneRT -> blurRT)
         blurShader.setUniform("image", sceneRT.getTexture());
         blurShader.setUniform("resolution", sf::Glsl::Vec2(winSize));
-        blurShader.setUniform("blurStrength", 3.0f);
+        blurShader.setUniform("blurStrength", 5.0f);
         blurShader.setUniform("horizontal", true);
 
         blurRT.clear(sf::Color::Transparent);
