@@ -19,4 +19,5 @@ private:
     sf::Shader blurShader;
     Tween TitleTween;
     Tween TitleTransparencyTween;
+    ValueTween BackgroundBlurTween;
 };

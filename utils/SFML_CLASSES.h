@@ -12,6 +12,7 @@ public:
     std::shared_ptr<sf::Texture> spriteTexture;
     std::shared_ptr<sf::Sprite> sprite;
     std::string filePath;
+    float blurredStrength = 0.0f;
 
     Object(std::string imgfile, float startXpos, float startYpos, int originX = 0, int originY = 0, float scaleX = 1, float scaleY = 1) : filePath(imgfile) {
         spriteTexture = std::make_shared<sf::Texture>();

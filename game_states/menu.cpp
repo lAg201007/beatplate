@@ -14,12 +14,14 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     background("assets/sprites/main_menu/background.png",0,0),
 
     TitleTween(*Title.sprite,0.5f,Tween::linear),
-    TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear)
+    TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear),
+    BackgroundBlurTween(0.0f,5.0f,3.0f,Tween::linear)
 {
     TitleTween.initScale(1.0f,1.1f);
     TitleTween.play();
     TitleTransparencyTween.initTransparency(0.0f,1.0f);
     TitleTransparencyTween.play();
+    BackgroundBlurTween.play();
 
     sf::Vector2u windowSize = window.getSize();                
     sf::Vector2u textureSize = background.sprite->getTexture().getSize();
@@ -49,6 +51,7 @@ void MainMenu::update(sf::Time dt) {
 
     TitleTween.update(dt.asSeconds());
     TitleTransparencyTween.update(dt.asSeconds());
+    BackgroundBlurTween.update(dt.asSeconds());
 
     if (!TitleTween.isActive()) {
         TitleTween.reset();
@@ -58,7 +61,8 @@ void MainMenu::update(sf::Time dt) {
 
 void MainMenu::render() {
     mWindow.clear(sf::Color::Transparent);
-    ShaderUtils::drawVerticalBlurSprite(mWindow,background);
+
+    ShaderUtils::drawVerticalBlurSprite(mWindow,background, BackgroundBlurTween.getValue());
     mWindow.draw(*Title.sprite);
     mWindow.draw(*Cursor.sprite);
 }

@@ -128,4 +128,54 @@ private:
     }
 };
 
+class ValueTween {
+public:
+    using EasingFunc = std::function<float(float)>;
+
+    ValueTween(float start, float end, float duration, EasingFunc easing = Tween::linear)
+        : startValue(start), endValue(end), duration(duration),
+          easing(easing), elapsed(0.f), active(true), currentValue(start) {}
+
+    void update(float dt) {
+        if (!active) return;
+
+        elapsed += dt;
+        float t = std::min(elapsed / duration, 1.f);
+        float easedT = easing(t);
+
+        currentValue = lerp(startValue, endValue, easedT);
+
+        if (elapsed >= duration) {
+            active = false;
+        }
+    }
+
+    void reset() {
+        elapsed = 0.f;
+        active = true;
+        currentValue = startValue;
+    }
+
+    void play() { active = true; }
+    void pause() { active = false; }
+
+    bool isActive() const { return active; }
+
+    float getValue() const { return currentValue; }
+
+private:
+    float startValue;
+    float endValue;
+    float currentValue;
+    float duration;
+    float elapsed;
+    bool active;
+    EasingFunc easing;
+
+    static float lerp(float a, float b, float t) {
+        return a + (b - a) * t;
+    }
+};
+
 #endif
+
