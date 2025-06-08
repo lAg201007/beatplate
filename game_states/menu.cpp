@@ -59,13 +59,32 @@ void MainMenu::update(sf::Time dt) {
 }
 
 void MainMenu::render() {
+    const sf::Vector2u winSize = mWindow.getSize();
+
+    sf::RenderTexture sceneRT({winSize.x, winSize.y});
+    sceneRT.clear(sf::Color::White);
+    sceneRT.draw(*background.sprite);
+    sceneRT.display();
+
+    sf::RenderTexture horizontalBlurRT({winSize.x, winSize.y});
+    blurShader.setUniform("u_texture", sceneRT.getTexture());
+    blurShader.setUniform("radius", 100.0f);
+    blurShader.setUniform("resolution", static_cast<float>(winSize.x)); 
+    blurShader.setUniform("dir", sf::Vector2f(1.0f, 0.0f));
+    sf::Sprite horizontalPass(sceneRT.getTexture());
+
+    horizontalBlurRT.clear();
+    horizontalBlurRT.draw(horizontalPass, &blurShader);
+    horizontalBlurRT.display();
+
+    blurShader.setUniform("u_texture", horizontalBlurRT.getTexture());
+    blurShader.setUniform("resolution", static_cast<float>(winSize.y));
+    blurShader.setUniform("dir", sf::Vector2f(0.0f, 1.0f));
+    sf::Sprite finalBlur(horizontalBlurRT.getTexture());
+
     mWindow.clear(sf::Color::White);
+    mWindow.draw(finalBlur, &blurShader); 
 
-    blurShader.setUniform("texture", sf::Shader::CurrentTexture);
-    blurShader.setUniform("radius", 8.0f);
-    blurShader.setUniform("direction", sf::Vector2f(1.0f,0.0f));
-
-    mWindow.draw(*background.sprite, &blurShader);
     mWindow.draw(*Title.sprite);
     mWindow.draw(*Cursor.sprite);
 }
