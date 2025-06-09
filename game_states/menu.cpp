@@ -1,12 +1,11 @@
-
 #include "menu.h"
+#include "song_select.h"
+#include "../state_stack.h"        
 #include <SFML/Window/Mouse.hpp>
 #include "../utils/tween_service.h"
 #include "../shaders/shader_manager.h"
 #include "../utils/utilities.h"
-
-std::vector<std::function<void(float)>> tweens;
-float elapsed = 0.0f;
+#include "../utils/tween_storage.h"
 
 MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window),
@@ -78,7 +77,7 @@ void MainMenu::update(sf::Time dt) {
     }
 
     if (Title.DetectButtonClick(mWindow)) {
-        
+        mStack.pushState(std::make_unique<SongSelect>(mStack,mWindow));
     } 
 }
 

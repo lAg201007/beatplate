@@ -11,7 +11,7 @@ public:
     using EasingFunc = std::function<float(float)>;
 
     Tween(sf::Sprite& sprite, float duration, EasingFunc easing = linear)
-    : sprite(sprite), duration(duration), easing(easing), elapsed(0.f), active(true), type(Type::Position) {}
+    : sprite(sprite), duration(duration), easing(easing), elapsed(0.f), active(false), type(Type::Position) {}
 
 
     // Tipos de tween
@@ -22,28 +22,24 @@ public:
         type = Type::Position;
         startPos = start;
         endPos = end;
-        active = false;
     }
 
     void initScale(float start, float end) {
         type = Type::Scale;
         startScale = start;
         endScale = end;
-        active = false;
     }
 
     void initRotation(float start, float end) {
         type = Type::Rotation;
         startRot = start;
         endRot = end;
-        active = false;
     }
 
     void initTransparency(float start, float end) {
         type = Type::Transparency;
         startTransparency = start;
         endTransparency = end;
-        active = false;
     }
 
     void update(float dt) {
@@ -138,7 +134,7 @@ public:
 
     ValueTween(float start, float end, float duration, EasingFunc easing = Tween::linear)
         : startValue(start), endValue(end), duration(duration),
-          easing(easing), elapsed(0.f), active(true), currentValue(start) {}
+          easing(easing), elapsed(0.f), active(false), currentValue(start) {}
 
     void update(float dt) {
         if (!active) return;
