@@ -28,6 +28,8 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
     float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
     background.sprite->setScale({scaleX, scaleY});
+
+    menu_step = 1;
 }
 
 void MainMenu::handleEvent(const sf::Event& event) {
@@ -39,9 +41,10 @@ void MainMenu::handleEvent(const sf::Event& event) {
         }
     }
 
-    else if (event.is<sf::Event::Closed>()) {
+    if (event.is<sf::Event::Closed>()) {
         mWindow.close();
     }
+
 }
 
 void MainMenu::update(sf::Time dt) {
@@ -57,9 +60,20 @@ void MainMenu::update(sf::Time dt) {
         TitleTween.reset();
         TitleTween.play();
     }
+
+    if (Title.DetectButtonClick(mWindow)) {
+        if (menu_step == 1) {
+            menu_step = 2;
+            std::cout << "passo 2" << std::endl;
+        }
+        else if (menu_step == 2) {
+            menu_step = 1;
+            std::cout << "passo 1" << std::endl;
+        }
+    } 
 }
 
-void MainMenu::render() {
+void MainMenu::render() {   
     mWindow.clear(sf::Color::Transparent);
 
     ShaderUtils::drawVerticalBlurSprite(mWindow,background, BackgroundBlurTween.getValue());

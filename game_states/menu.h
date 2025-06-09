@@ -20,4 +20,5 @@ private:
     Tween TitleTween;
     Tween TitleTransparencyTween;
     ValueTween BackgroundBlurTween;
+    int menu_step;
 };

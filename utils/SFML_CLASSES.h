@@ -88,15 +88,18 @@ public:
         sf::FloatRect bounds = sprite->getGlobalBounds();
         return bounds.contains(static_cast<sf::Vector2f>(mousePos));
     }
-
-    bool DetectButtonClick(sf::RenderWindow& window, const sf::Event& event) {
-        if (auto* mouseEvent = event.getIf<sf::Event::MouseButtonPressed>()) {
-            if (mouseEvent->button == sf::Mouse::Button::Left && isHovered(window)) {
-                return true;
-            }
+    bool DetectButtonClick(sf::RenderWindow &window) {
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !Pressed && isHovered(window)) {
+            Pressed = true;
+            return true;
         }
+        else if (Pressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            Pressed = false;
+        }        
         return false;
     }
+private:
+    bool Pressed = false;
 };
 
 #endif
