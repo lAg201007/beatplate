@@ -19,8 +19,11 @@ private:
     sf::Shader blurShader;
     Tween TitleTween;
     Tween TitleTransparencyTween;
-    Tween TitleMenuClickPositionTween;
-    Tween TitleBackClickPositionTween;
+    ValueTween StartTextTransparencyTween;
     sf::Vector2f TitlePosition;
-    int menu_step;
+    sf::Font Arial;
+    sf::Text StartGameText;
+    sf::Color textColor;
+    float textTransparencyValue;
+
 };

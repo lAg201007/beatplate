@@ -3,6 +3,7 @@
 #include <SFML/Window/Mouse.hpp>
 #include "../utils/tween_service.h"
 #include "../shaders/shader_manager.h"
+#include "../utils/utilities.h"
 
 std::vector<std::function<void(float)>> tweens;
 float elapsed = 0.0f;
@@ -15,18 +16,22 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
 
     TitleTween(*Title.sprite,0.5f,Tween::linear),
     TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear),
-    TitleMenuClickPositionTween(*Title.sprite,0.5f,Tween::easeOutQuad),
-    TitleBackClickPositionTween(*Title.sprite,1.0f,Tween::easeOutQuad)
+    StartTextTransparencyTween(0.0f,1.0f,3.0f),
+    StartGameText(Arial),
+    textColor(StartGameText.getFillColor())
 {
     TitlePosition = Title.sprite->getPosition();
-
     TitleTween.initScale(1.0f,1.1f);
     TitleTransparencyTween.initTransparency(0.0f,1.0f);
-
-    TitleMenuClickPositionTween.initPosition(Title.sprite->getPosition(),TitlePosition + sf::Vector2f({0,-150}));
-    TitleBackClickPositionTween.initPosition(Title.sprite->getPosition(),TitlePosition);
-
     TitleTransparencyTween.play();
+
+    if (!Arial.openFromFile("assets/fonts/Montserrat-SemiBold.ttf")) {
+        std::cerr << "não foi possivel carregar a fonte Montserrat-SemiBold.ttf" << std::endl;
+    }
+
+    StartGameText.setString("Press the Title Button to Play");
+    StartGameText.setCharacterSize(20);
+    StartGameText.setPosition(TitlePosition + sf::Vector2f({-100,80}));
 
     sf::Vector2u windowSize = window.getSize();                
     sf::Vector2u textureSize = background.sprite->getTexture().getSize();
@@ -34,7 +39,10 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
     background.sprite->setScale({scaleX, scaleY});
 
-    menu_step = 1;
+    taskDelay(3500, [this]() {
+        StartTextTransparencyTween.play();
+    });
+
 }
 
 void MainMenu::handleEvent(const sf::Event& event) {
@@ -54,13 +62,15 @@ void MainMenu::handleEvent(const sf::Event& event) {
 
 void MainMenu::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
-
     Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
+
+    textTransparencyValue = StartTextTransparencyTween.getValue();
+    textColor.a = static_cast<int>(std::round(textTransparencyValue * 255.0f));
+    StartGameText.setFillColor(textColor);
 
     TitleTween.update(dt.asSeconds());
     TitleTransparencyTween.update(dt.asSeconds());
-    TitleMenuClickPositionTween.update(dt.asSeconds());
-    TitleBackClickPositionTween.update(dt.asSeconds());
+    StartTextTransparencyTween.update(dt.asSeconds());
 
     if (!TitleTween.isActive()) {
         TitleTween.reset();
@@ -68,22 +78,7 @@ void MainMenu::update(sf::Time dt) {
     }
 
     if (Title.DetectButtonClick(mWindow)) {
-        if (!TitleMenuClickPositionTween.isActive() && !TitleBackClickPositionTween.isActive()) {
-            if (menu_step == 1) {
-                TitleMenuClickPositionTween.initPosition(Title.sprite->getPosition(), TitlePosition + sf::Vector2f(0, -150));
-                TitleMenuClickPositionTween.reset();
-                TitleMenuClickPositionTween.play();
-
-                menu_step = 2;
-            }
-            else if (menu_step == 2) {
-                TitleBackClickPositionTween.initPosition(Title.sprite->getPosition(), TitlePosition);
-                TitleBackClickPositionTween.reset();
-                TitleBackClickPositionTween.play();
-
-                menu_step = 1;
-            } 
-        }   
+        
     } 
 }
 
@@ -92,5 +87,6 @@ void MainMenu::render() {
 
     ShaderUtils::drawVerticalBlurSprite(mWindow,background, 5.0f);
     mWindow.draw(*Title.sprite);
+    mWindow.draw(StartGameText);
     mWindow.draw(*Cursor.sprite);
 }
