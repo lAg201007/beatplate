@@ -15,13 +15,18 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
 
     TitleTween(*Title.sprite,0.5f,Tween::linear),
     TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear),
-    BackgroundBlurTween(0.0f,5.0f,3.0f,Tween::linear)
+    TitleMenuClickPositionTween(*Title.sprite,0.5f,Tween::easeOutQuad),
+    TitleBackClickPositionTween(*Title.sprite,1.0f,Tween::easeOutQuad)
 {
+    TitlePosition = Title.sprite->getPosition();
+
     TitleTween.initScale(1.0f,1.1f);
-    TitleTween.play();
     TitleTransparencyTween.initTransparency(0.0f,1.0f);
+
+    TitleMenuClickPositionTween.initPosition(Title.sprite->getPosition(),TitlePosition + sf::Vector2f({0,-150}));
+    TitleBackClickPositionTween.initPosition(Title.sprite->getPosition(),TitlePosition);
+
     TitleTransparencyTween.play();
-    BackgroundBlurTween.play();
 
     sf::Vector2u windowSize = window.getSize();                
     sf::Vector2u textureSize = background.sprite->getTexture().getSize();
@@ -54,21 +59,26 @@ void MainMenu::update(sf::Time dt) {
 
     TitleTween.update(dt.asSeconds());
     TitleTransparencyTween.update(dt.asSeconds());
-    BackgroundBlurTween.update(dt.asSeconds());
+    TitleMenuClickPositionTween.update(dt.asSeconds());
+    TitleBackClickPositionTween.update(dt.asSeconds());
 
-    if (!TitleTween.isActive()) {
+    if (!TitleTween.isActive() && menu_step == 1) {
         TitleTween.reset();
         TitleTween.play();
     }
 
     if (Title.DetectButtonClick(mWindow)) {
-        if (menu_step == 1) {
-            menu_step = 2;
-            std::cout << "passo 2" << std::endl;
-        }
-        else if (menu_step == 2) {
-            menu_step = 1;
-            std::cout << "passo 1" << std::endl;
+        if (!TitleMenuClickPositionTween.isActive() && !TitleBackClickPositionTween.isActive()){
+            if (menu_step == 1) {
+                menu_step = 2;
+                TitleMenuClickPositionTween.play();
+                TitleBackClickPositionTween.reset();
+            }
+            else if (menu_step == 2) {
+                menu_step = 1;
+                TitleBackClickPositionTween.play();
+                TitleMenuClickPositionTween.reset();
+            }
         }
     } 
 }
@@ -76,7 +86,7 @@ void MainMenu::update(sf::Time dt) {
 void MainMenu::render() {   
     mWindow.clear(sf::Color::Transparent);
 
-    ShaderUtils::drawVerticalBlurSprite(mWindow,background, BackgroundBlurTween.getValue());
+    ShaderUtils::drawVerticalBlurSprite(mWindow,background, 5.0f);
     mWindow.draw(*Title.sprite);
     mWindow.draw(*Cursor.sprite);
 }

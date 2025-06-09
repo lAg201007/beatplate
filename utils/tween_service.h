@@ -22,24 +22,28 @@ public:
         type = Type::Position;
         startPos = start;
         endPos = end;
+        active = false;
     }
 
     void initScale(float start, float end) {
         type = Type::Scale;
         startScale = start;
         endScale = end;
+        active = false;
     }
 
     void initRotation(float start, float end) {
         type = Type::Rotation;
         startRot = start;
         endRot = end;
+        active = false;
     }
 
     void initTransparency(float start, float end) {
         type = Type::Transparency;
         startTransparency = start;
         endTransparency = end;
+        active = false;
     }
 
     void update(float dt) {

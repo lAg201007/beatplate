@@ -19,6 +19,8 @@ private:
     sf::Shader blurShader;
     Tween TitleTween;
     Tween TitleTransparencyTween;
-    ValueTween BackgroundBlurTween;
+    Tween TitleMenuClickPositionTween;
+    Tween TitleBackClickPositionTween;
+    sf::Vector2f TitlePosition;
     int menu_step;
 };
