@@ -62,24 +62,28 @@ void MainMenu::update(sf::Time dt) {
     TitleMenuClickPositionTween.update(dt.asSeconds());
     TitleBackClickPositionTween.update(dt.asSeconds());
 
-    if (!TitleTween.isActive() && menu_step == 1) {
+    if (!TitleTween.isActive()) {
         TitleTween.reset();
         TitleTween.play();
     }
 
     if (Title.DetectButtonClick(mWindow)) {
-        if (!TitleMenuClickPositionTween.isActive() && !TitleBackClickPositionTween.isActive()){
+        if (!TitleMenuClickPositionTween.isActive() && !TitleBackClickPositionTween.isActive()) {
             if (menu_step == 1) {
-                menu_step = 2;
+                TitleMenuClickPositionTween.initPosition(Title.sprite->getPosition(), TitlePosition + sf::Vector2f(0, -150));
+                TitleMenuClickPositionTween.reset();
                 TitleMenuClickPositionTween.play();
-                TitleBackClickPositionTween.reset();
+
+                menu_step = 2;
             }
             else if (menu_step == 2) {
-                menu_step = 1;
+                TitleBackClickPositionTween.initPosition(Title.sprite->getPosition(), TitlePosition);
+                TitleBackClickPositionTween.reset();
                 TitleBackClickPositionTween.play();
-                TitleMenuClickPositionTween.reset();
-            }
-        }
+
+                menu_step = 1;
+            } 
+        }   
     } 
 }
 
