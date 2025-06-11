@@ -4,21 +4,23 @@
 #include "../utils/tween_service.h"
 #include <iostream>
 #include <fstream>
-#include "libs/json.hpp"
+#include "../libs/json.hpp"
 
 class SongSlot {
 public:
+    static sf::Font Montserrat;
+
     std::string SongName;
     std::string Artist;
     std::string Mapper;
+    std::string FolderLocation;
     int Difficulty;
 
-    sf::Font Montserrat;
     sf::Text SongNameLabel;
     sf::Text ArtistLabel;
     sf::Text MapperLabel;
     sf::Text DificultyLabel;
-    Object SongButton;
+    Button SongButton;
 
     sf::Vector2f Position;
 
@@ -28,14 +30,11 @@ public:
     ArtistLabel(Montserrat), 
     MapperLabel(Montserrat), 
     DificultyLabel(Montserrat), 
-    SongButton("assets/sprites/song_select/song_select_button.png",Position.x,Position.y,512,512,0.5f,0.5f)
+    SongButton("assets/sprites/song_select/song_select_button.png",Position.x,Position.y,512,512,0.25f,0.25f)
 
     {
-        if (!Montserrat.openFromFile("assets/fonts/Montserrat-SemiBold.ttf")) {
-            std::cerr << "não foi possivel carregar a fonte Montserrat-SemiBold.ttf" << std::endl;
-        }
-
-        std::ifstream dataFile(SongFolder + "/data.json");
+        FolderLocation = SongFolder;
+        std::ifstream dataFile(FolderLocation + "/data.json");
         nlohmann::json data;
         dataFile >> data;
 
@@ -51,14 +50,30 @@ public:
         ArtistLabel.setCharacterSize(11);
 
         MapperLabel.setString(Mapper);
-        MapperLabel.setCharacterSize(8);
+        MapperLabel.setCharacterSize(11);
 
         DificultyLabel.setString(std::to_string(Difficulty));
         DificultyLabel.setCharacterSize(30);
+
+        SetButtonAndWidjetsRelativePosition(startPos);
     }
 
     void SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
+        Position = newPos;
 
+        SongButton.sprite->setPosition(Position + sf::Vector2f({50,0}));
+        ArtistLabel.setPosition(Position + sf::Vector2f({0,5}));
+        DificultyLabel.setPosition(Position + sf::Vector2f({-30,-20}));
+        SongNameLabel.setPosition(Position + sf::Vector2f({0,-20}));
+        MapperLabel.setPosition(Position + sf::Vector2f({60,5}));
+    }
+
+    void renderButton(sf::RenderWindow& window) {
+        window.draw(*SongButton.sprite);
+        window.draw(SongNameLabel);
+        window.draw(ArtistLabel);
+        window.draw(MapperLabel);
+        window.draw(DificultyLabel);
     }
 };
 
@@ -71,5 +86,5 @@ public:
     void render() override;
 
 private:
- 
+    SongSlot testSlot;
 };
