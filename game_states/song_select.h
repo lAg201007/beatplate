@@ -82,9 +82,13 @@ public:
     sf::Vector2f ListPosition;
     std::vector<std::shared_ptr<SongSlot>> ButtonVector;
     std::shared_ptr<SongSlot> SelectedSlot;
+    Object select_slot_background;
+
     int button_offset = 70;
 
-    SongList(std::string path, sf::Vector2f list_position) {
+    SongList(std::string path, sf::Vector2f list_position, sf::RenderWindow &window)
+    : select_slot_background("assets/sprites/main_menu/background.png",0,0)
+        {
         ListPosition = list_position;
         try {
             for (const auto& entry : std::filesystem::directory_iterator(path)) {
@@ -98,6 +102,19 @@ public:
         } catch (const std::filesystem::filesystem_error& e) {
             std::cerr << "Erro: " << e.what() << std::endl;
         }
+
+        sf::Texture backgroundtexture;
+        if (!backgroundtexture.loadFromFile(SelectedSlot->FolderLocation + "/background.png")) {
+            std::cerr << "N�o foi poss�vel carregar a imagem " << std::endl;
+        }
+
+        select_slot_background.sprite->setTexture(backgroundtexture,true);
+        
+        sf::Vector2u windowSize = window.getSize();                
+        sf::Vector2u textureSize = select_slot_background.sprite->getTexture().getSize();
+        float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
+        float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
+        select_slot_background.sprite->setScale({scaleX, scaleY});
     }
 
     void updateSlotPositions() {
@@ -118,6 +135,7 @@ public:
     }
 
     void RenderList(sf::RenderWindow& window) {
+        window.draw(*select_slot_background.sprite);
         for (auto slot : ButtonVector) {
             slot->renderButton(window);
         }
