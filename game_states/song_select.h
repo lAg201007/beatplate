@@ -79,25 +79,47 @@ public:
 
 class SongList {
 public:
-    std::string ListPosition;
-    std::vector<SongSlot> ButtonVector;
+    sf::Vector2f ListPosition;
+    std::vector<std::shared_ptr<SongSlot>> ButtonVector;
+    std::shared_ptr<SongSlot> SelectedSlot;
+    int button_offset = 70;
 
-    SongList(std::string path) {
+    SongList(std::string path, sf::Vector2f list_position) {
+        ListPosition = list_position;
         try {
             for (const auto& entry : std::filesystem::directory_iterator(path)) {
                 if (entry.is_directory()) {
-                    SongSlot newSlot(entry.path().string(),{200,200});
-                    ButtonVector.push_back(newSlot);
+                    auto slot = std::make_shared<SongSlot>(entry.path().string(), sf::Vector2f{200, 200});
+                    ButtonVector.push_back(slot);
                 }
             }
+            SelectedSlot = ButtonVector.back(); 
+            updateSlotPositions();
         } catch (const std::filesystem::filesystem_error& e) {
             std::cerr << "Erro: " << e.what() << std::endl;
         }
     }
 
+    void updateSlotPositions() {
+        auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
+        if (it != ButtonVector.end()) {
+            int index = std::distance(ButtonVector.begin(), it);
+
+            ButtonVector[index]->SetButtonAndWidjetsRelativePosition(ListPosition);
+
+            for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
+                ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+            }
+
+            for (int i = index + 1, offset = 1; i < ButtonVector.size(); ++i, ++offset) {
+                ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+            }
+        }
+    }
+
     void RenderList(sf::RenderWindow& window) {
-        for (SongSlot slot : ButtonVector) {
-            slot.renderButton(window);
+        for (auto slot : ButtonVector) {
+            slot->renderButton(window);
         }
     }
 };

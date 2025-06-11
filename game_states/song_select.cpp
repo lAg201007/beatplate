@@ -10,7 +10,7 @@ sf::Font SongSlot::Montserrat;
 
 SongSelect::SongSelect(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window),
-    List("assets/songs")
+    List("assets/songs", {974,232})
 {
     if (!SongSlot::Montserrat.openFromFile("assets/fonts/Montserrat-SemiBold.ttf")) {
         std::cerr << "não foi possível carregar a fonte Montserrat-SemiBold.ttf" << std::endl;
@@ -22,7 +22,7 @@ void SongSelect::handleEvent(const sf::Event& event) {
 }
 
 void SongSelect::update(sf::Time dt) {
-
+    
 }
 
 void SongSelect::render() {   
