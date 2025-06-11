@@ -4,6 +4,7 @@
 #include "../utils/tween_service.h"
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include "../libs/json.hpp"
 
 class SongSlot {
@@ -31,7 +32,6 @@ public:
     MapperLabel(Montserrat), 
     DificultyLabel(Montserrat), 
     SongButton("assets/sprites/song_select/song_select_button.png",Position.x,Position.y,512,512,0.25f,0.25f)
-
     {
         FolderLocation = SongFolder;
         std::ifstream dataFile(FolderLocation + "/data.json");
@@ -77,6 +77,31 @@ public:
     }
 };
 
+class SongList {
+public:
+    std::string ListPosition;
+    std::vector<SongSlot> ButtonVector;
+
+    SongList(std::string path) {
+        try {
+            for (const auto& entry : std::filesystem::directory_iterator(path)) {
+                if (entry.is_directory()) {
+                    SongSlot newSlot(entry.path().string(),{200,200});
+                    ButtonVector.push_back(newSlot);
+                }
+            }
+        } catch (const std::filesystem::filesystem_error& e) {
+            std::cerr << "Erro: " << e.what() << std::endl;
+        }
+    }
+
+    void RenderList(sf::RenderWindow& window) {
+        for (SongSlot slot : ButtonVector) {
+            slot.renderButton(window);
+        }
+    }
+};
+
 class SongSelect : public State {
 public:
     SongSelect(StateStack& stack, sf::RenderWindow& window);
@@ -86,5 +111,5 @@ public:
     void render() override;
 
 private:
-    SongSlot testSlot;
+    SongList List;
 };
