@@ -132,6 +132,34 @@ public:
             for (int i = index + 1, offset = 1; i < ButtonVector.size(); ++i, ++offset) {
                 ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
             }
+
+            if (!select_slot_background.spriteTexture->loadFromFile(SelectedSlot->FolderLocation + "/background.png")) {
+                std::cerr << "N�o foi poss�vel carregar a imagem " << std::endl;
+            }
+
+            select_slot_background.sprite->setTexture(*select_slot_background.spriteTexture);
+        }
+    }
+
+    void scrollListUpByOne() {
+        auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
+        if (it != ButtonVector.end()) {
+            int index = std::distance(ButtonVector.begin(), it);
+            if (index + 1 != ButtonVector.size()) {
+                SelectedSlot = ButtonVector[index + 1];
+            }
+            updateSlotPositions();        
+        }
+    }
+
+    void scrollListDownByOne() {
+         auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
+        if (it != ButtonVector.end()) {
+            int index = std::distance(ButtonVector.begin(), it);
+            if (index > 0) {
+                SelectedSlot = ButtonVector[index - 1];
+            }   
+            updateSlotPositions();     
         }
     }
 
