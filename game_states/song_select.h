@@ -2,10 +2,11 @@
 #include "game_state.h"
 #include "../utils/SFML_CLASSES.h"
 #include "../utils/tween_service.h"
+#include "../libs/json.hpp"
+#include "../shaders/shader_manager.h"
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include "../libs/json.hpp"
 
 class SongSlot {
 public:
@@ -31,7 +32,7 @@ public:
     ArtistLabel(Montserrat), 
     MapperLabel(Montserrat), 
     DificultyLabel(Montserrat), 
-    SongButton("assets/sprites/song_select/song_select_button.png",Position.x,Position.y,512,512,0.25f,0.25f)
+    SongButton("assets/sprites/song_select/song_select_button.png",Position.x,Position.y,512,512,0.50f,0.25f)
     {
         FolderLocation = SongFolder;
         std::ifstream dataFile(FolderLocation + "/data.json");
@@ -61,11 +62,11 @@ public:
     void SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
         Position = newPos;
 
-        SongButton.sprite->setPosition(Position + sf::Vector2f({50,0}));
-        ArtistLabel.setPosition(Position + sf::Vector2f({0,5}));
-        DificultyLabel.setPosition(Position + sf::Vector2f({-30,-20}));
-        SongNameLabel.setPosition(Position + sf::Vector2f({0,-20}));
-        MapperLabel.setPosition(Position + sf::Vector2f({60,5}));
+        SongButton.sprite->setPosition(Position + sf::Vector2f({80,0}));
+        ArtistLabel.setPosition(Position + sf::Vector2f({-60,5}));
+        DificultyLabel.setPosition(Position + sf::Vector2f({-90,-20}));
+        SongNameLabel.setPosition(Position + sf::Vector2f({-60,-20}));
+        MapperLabel.setPosition(Position + sf::Vector2f({0,5}));
     }
 
     void renderButton(sf::RenderWindow& window) {
@@ -103,12 +104,12 @@ public:
             std::cerr << "Erro: " << e.what() << std::endl;
         }
 
-        sf::Texture backgroundtexture;
-        if (!backgroundtexture.loadFromFile(SelectedSlot->FolderLocation + "/background.png")) {
+        if (!select_slot_background.spriteTexture->loadFromFile(SelectedSlot->FolderLocation + "/background.png")) {
             std::cerr << "N�o foi poss�vel carregar a imagem " << std::endl;
         }
 
-        select_slot_background.sprite->setTexture(backgroundtexture,true);
+        select_slot_background.sprite->setTexture(*select_slot_background.spriteTexture);
+        select_slot_background.blurredStrength = 2.0f;
         
         sf::Vector2u windowSize = window.getSize();                
         sf::Vector2u textureSize = select_slot_background.sprite->getTexture().getSize();
@@ -135,7 +136,7 @@ public:
     }
 
     void RenderList(sf::RenderWindow& window) {
-        window.draw(*select_slot_background.sprite);
+        ShaderUtils::drawVerticalBlurSprite(window,select_slot_background,select_slot_background.blurredStrength);
         for (auto slot : ButtonVector) {
             slot->renderButton(window);
         }
