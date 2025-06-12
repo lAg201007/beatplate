@@ -83,12 +83,14 @@ public:
     sf::Vector2f ListPosition;
     std::vector<std::shared_ptr<SongSlot>> ButtonVector;
     std::shared_ptr<SongSlot> SelectedSlot;
+    sf::RenderWindow& window;
     Object select_slot_background;
 
     int button_offset = 70;
 
-    SongList(std::string path, sf::Vector2f list_position, sf::RenderWindow &window)
-    : select_slot_background("assets/sprites/main_menu/background.png",0,0)
+    SongList(std::string path, sf::Vector2f list_position, sf::RenderWindow &mWindow)
+    : select_slot_background("assets/sprites/main_menu/background.png",0,0),
+     window(mWindow)
         {
         ListPosition = list_position;
         try {
@@ -111,11 +113,7 @@ public:
         select_slot_background.sprite->setTexture(*select_slot_background.spriteTexture);
         select_slot_background.blurredStrength = 2.0f;
         
-        sf::Vector2u windowSize = window.getSize();                
-        sf::Vector2u textureSize = select_slot_background.sprite->getTexture().getSize();
-        float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
-        float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
-        select_slot_background.sprite->setScale({scaleX, scaleY});
+        ResizeSpriteToFitWindow(select_slot_background,window);
     }
 
     void updateSlotPositions() {
@@ -138,6 +136,7 @@ public:
             }
 
             select_slot_background.sprite->setTexture(*select_slot_background.spriteTexture);
+            ResizeSpriteToFitWindow(select_slot_background,window);
         }
     }
 
@@ -145,8 +144,8 @@ public:
         auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
         if (it != ButtonVector.end()) {
             int index = std::distance(ButtonVector.begin(), it);
-            if (index + 1 != ButtonVector.size()) {
-                SelectedSlot = ButtonVector[index + 1];
+            if (index > 0) {
+                SelectedSlot = ButtonVector[index - 1];
             }
             updateSlotPositions();        
         }
@@ -156,11 +155,19 @@ public:
          auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
         if (it != ButtonVector.end()) {
             int index = std::distance(ButtonVector.begin(), it);
-            if (index > 0) {
-                SelectedSlot = ButtonVector[index - 1];
+            if (index + 1 != ButtonVector.size()) {
+                SelectedSlot = ButtonVector[index + 1];
             }   
             updateSlotPositions();     
         }
+    }
+
+    void ResizeSpriteToFitWindow(Object obj, sf::RenderWindow& window) {
+        sf::Vector2u windowSize = window.getSize();                
+        sf::Vector2u textureSize = obj.sprite->getTexture().getSize();
+        float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
+        float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
+        obj.sprite->setScale({scaleX, scaleY});
     }
 
     void RenderList(sf::RenderWindow& window) {

@@ -23,6 +23,9 @@ int main()
     {
         while (auto event = window->pollEvent())
         {
+
+            stack.handleEvent(*event);
+
             if (event->is<sf::Event::Closed>())
                 window->close();
 
