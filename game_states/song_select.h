@@ -27,6 +27,7 @@ public:
 
     ValueTween PositionTweenX;
     ValueTween PositionTweenY;
+    ValueTween SelectedOffsetTween; // New tween for left offset
 
     sf::Vector2f Position;
 
@@ -38,7 +39,8 @@ public:
     DificultyLabel(Montserrat), 
     SongButton("assets/sprites/song_select/song_select_button.png", startPos.x, startPos.y, 512, 512, 0.50f, 0.25f),
     PositionTweenX(startPos.x, startPos.x, 0.5f, Tween::easeOutQuad),
-    PositionTweenY(startPos.y, startPos.y, 0.5f, Tween::easeOutQuad)
+    PositionTweenY(startPos.y, startPos.y, 0.5f, Tween::easeOutQuad),
+    SelectedOffsetTween(0.f, 0.f, 0.5f, Tween::easeOutQuad) // Initialize with no offset
     {
         FolderLocation = SongFolder;
         std::ifstream dataFile(FolderLocation + "/data.json");
@@ -67,12 +69,14 @@ public:
 
     void SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
         Position = newPos;
+        float offset = SelectedOffsetTween.getValue();
+        sf::Vector2f offsetVec = {offset, 0.f};
 
-        SongButton.sprite->setPosition(Position + sf::Vector2f({80,0}));
-        ArtistLabel.setPosition(Position + sf::Vector2f({-60,5}));
-        DificultyLabel.setPosition(Position + sf::Vector2f({-90,-20}));
-        SongNameLabel.setPosition(Position + sf::Vector2f({-60,-20}));
-        MapperLabel.setPosition(Position + sf::Vector2f({0,5}));
+        SongButton.sprite->setPosition(Position + offsetVec + sf::Vector2f({80,0}));
+        ArtistLabel.setPosition(Position + offsetVec + sf::Vector2f({-60,5}));
+        DificultyLabel.setPosition(Position + offsetVec + sf::Vector2f({-90,-20}));
+        SongNameLabel.setPosition(Position + offsetVec + sf::Vector2f({-60,-20}));
+        MapperLabel.setPosition(Position + offsetVec + sf::Vector2f({0,5}));
     }
 
     void setPositionTweened(sf::Vector2f newPos) {
@@ -85,7 +89,8 @@ public:
     void update(float dt) {
         PositionTweenX.update(dt);
         PositionTweenY.update(dt);
-        if (PositionTweenX.isActive() || PositionTweenY.isActive()) {
+        SelectedOffsetTween.update(dt);
+        if (PositionTweenX.isActive() || PositionTweenY.isActive() || SelectedOffsetTween.isActive()) {
             SetButtonAndWidjetsRelativePosition({PositionTweenX.getValue(), PositionTweenY.getValue()});
         }
     }
@@ -158,17 +163,21 @@ public:
         if (it != ButtonVector.end()) {
             int index = std::distance(ButtonVector.begin(), it);
 
+            // Selected slot: move left
             ButtonVector[index]->setPositionTweened(ListPosition);
-            //ButtonVector[index]->SetButtonAndWidjetsRelativePosition(ListPosition);
+            ButtonVector[index]->SelectedOffsetTween = ValueTween(ButtonVector[index]->SelectedOffsetTween.getValue(), -40.f, 0.5f, Tween::easeOutQuad);
+            ButtonVector[index]->SelectedOffsetTween.play();
 
+            // Other slots: move back to normal
             for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
-                //ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
                 ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
+                ButtonVector[i]->SelectedOffsetTween.play();
             }
-
             for (int i = index + 1, offset = 1; i < ButtonVector.size(); ++i, ++offset) {
-                //ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
                 ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
+                ButtonVector[i]->SelectedOffsetTween.play();
             }
 
             if (!select_slot_background.spriteTexture->loadFromFile(SelectedSlot->FolderLocation + "/background.png")) {
