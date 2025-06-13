@@ -27,10 +27,11 @@ public:
     sf::Text DificultyLabel;
     Button SongButton;
 
+    sf::Color originalColor = sf::Color::White;
+
     ValueTween PositionTweenX;
     ValueTween PositionTweenY;
-    ValueTween SelectedOffsetTween; // New tween for left offset
-    ValueTween FlashTween; // Tween para o efeito de flash
+    ValueTween SelectedOffsetTween;
 
     sf::Vector2f Position;
 
@@ -43,8 +44,7 @@ public:
     SongButton("assets/sprites/song_select/song_select_button.png", startPos.x, startPos.y, 512, 512, 0.50f, 0.25f),
     PositionTweenX(startPos.x, startPos.x, 1.0f, Tween::easeOutQuad),
     PositionTweenY(startPos.y, startPos.y, 1.0f, Tween::easeOutQuad),
-    SelectedOffsetTween(0.f, 0.f, 1.0f, Tween::easeOutQuad),
-    FlashTween(0.f, 0.f, 2.5f, Tween::easeOutQuad) 
+    SelectedOffsetTween(0.f, 0.f, 1.0f, Tween::easeOutQuad)
     {
         FolderLocation = SongFolder;
         std::ifstream dataFile(FolderLocation + "/data.json");
@@ -67,6 +67,8 @@ public:
 
         DificultyLabel.setString(std::to_string(Difficulty));
         DificultyLabel.setCharacterSize(30);
+
+        originalColor = SongButton.sprite->getColor();
 
         SetButtonAndWidjetsRelativePosition(startPos);
     }
@@ -94,32 +96,19 @@ public:
         PositionTweenX.update(dt);
         PositionTweenY.update(dt);
         SelectedOffsetTween.update(dt);
-        FlashTween.update(dt);
         if (PositionTweenX.isActive() || PositionTweenY.isActive() || SelectedOffsetTween.isActive()) {
             SetButtonAndWidjetsRelativePosition({PositionTweenX.getValue(), PositionTweenY.getValue()});
         }
     }
 
     void renderButton(sf::RenderWindow& window) {
-        float flash = FlashTween.getValue();
-        sf::Color baseColor = SongButton.sprite->getColor();
-
-        SongButton.sprite->setColor(
-            sf::Color(
-                baseColor.r,
-                baseColor.g,
-                baseColor.b,
-                std::min(255, baseColor.a + static_cast<int>(flash))
-            )
-        );
+        SongButton.sprite->setColor(originalColor);
 
         window.draw(*SongButton.sprite);
         window.draw(SongNameLabel);
         window.draw(ArtistLabel);
         window.draw(MapperLabel);
         window.draw(DificultyLabel);
-
-        SongButton.sprite->setColor(baseColor);
     }
 };
 
@@ -203,8 +192,6 @@ public:
             ButtonVector[index]->setPositionTweened(ListPosition);
             ButtonVector[index]->SelectedOffsetTween = ValueTween(ButtonVector[index]->SelectedOffsetTween.getValue(), -40.f, 0.5f, Tween::easeOutQuad);
             ButtonVector[index]->SelectedOffsetTween.play();
-            ButtonVector[index]->FlashTween = ValueTween(255.f, 0.f, 2.5f, Tween::easeOutQuad);
-            ButtonVector[index]->FlashTween.play();
 
             // Other slots: move back to normal
             for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
