@@ -148,7 +148,7 @@ public:
             if (it != ButtonVector.end()) {
                 int index = std::distance(ButtonVector.begin(), it);
 
-                ButtonVector[index]->SetButtonAndWidjetsRelativePosition(ListPosition);
+                ButtonVector[index]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(-40.f, 0.f));
 
                 for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
                     ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
@@ -263,4 +263,6 @@ public:
 
 private:
     SongList List;
+    float mouseScrollQueueCooldown = 0.0f;
+    std::vector<int> pendingScrolls;
 };

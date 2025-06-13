@@ -33,6 +33,13 @@ void SongSelect::handleEvent(const sf::Event& event) {
         }
     }
 
+    if (const auto mouseWheelScrolled = event.getIf<sf::Event::MouseWheelScrolled>()) {
+        int delta = static_cast<int>(mouseWheelScrolled->delta);
+        for (int i = 0; i < std::abs(delta); ++i) {
+            pendingScrolls.push_back((delta > 0) ? 1 : -1);
+        }
+    }
+
     if (event.is<sf::Event::Closed>()) {
         mWindow.close();
     }
@@ -40,6 +47,31 @@ void SongSelect::handleEvent(const sf::Event& event) {
 
 void SongSelect::update(sf::Time dt) {
     List.updateSlotTweens(dt.asSeconds());
+
+    if (mouseScrollQueueCooldown > 0.f) {
+        mouseScrollQueueCooldown -= dt.asSeconds();
+    }
+    if (mouseScrollQueueCooldown < 0.f) {
+        mouseScrollQueueCooldown = 0.f;
+    }
+
+    if (mouseScrollQueueCooldown <= 0.f && !pendingScrolls.empty()) {
+        int scrollDir = pendingScrolls.front();
+        pendingScrolls.erase(pendingScrolls.begin());
+
+        if (scrollDir > 0) {
+            List.scrollListUpByOne();
+        } else {
+            List.scrollListDownByOne();
+        }
+
+        float baseCooldown = 0.07f;
+        float minCooldown = 0.01f;
+        int maxScrollsForMinCooldown = 5;
+        size_t queueSize = pendingScrolls.size();
+        float t = (queueSize > 0) ? std::min(queueSize, (size_t)maxScrollsForMinCooldown) / (float)maxScrollsForMinCooldown : 0.f;
+        mouseScrollQueueCooldown = baseCooldown * (1.0f - t) + minCooldown * t;
+    }
 }
 
 void SongSelect::render() {   
