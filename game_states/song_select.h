@@ -8,6 +8,8 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <unordered_map>
+#include <cstdint>
 
 class SongSlot {
 public:
@@ -28,6 +30,7 @@ public:
     ValueTween PositionTweenX;
     ValueTween PositionTweenY;
     ValueTween SelectedOffsetTween; // New tween for left offset
+    ValueTween FlashTween; // Tween para o efeito de flash
 
     sf::Vector2f Position;
 
@@ -38,9 +41,10 @@ public:
     MapperLabel(Montserrat), 
     DificultyLabel(Montserrat), 
     SongButton("assets/sprites/song_select/song_select_button.png", startPos.x, startPos.y, 512, 512, 0.50f, 0.25f),
-    PositionTweenX(startPos.x, startPos.x, 0.5f, Tween::easeOutQuad),
-    PositionTweenY(startPos.y, startPos.y, 0.5f, Tween::easeOutQuad),
-    SelectedOffsetTween(0.f, 0.f, 0.5f, Tween::easeOutQuad) // Initialize with no offset
+    PositionTweenX(startPos.x, startPos.x, 1.0f, Tween::easeOutQuad),
+    PositionTweenY(startPos.y, startPos.y, 1.0f, Tween::easeOutQuad),
+    SelectedOffsetTween(0.f, 0.f, 1.0f, Tween::easeOutQuad),
+    FlashTween(0.f, 0.f, 2.5f, Tween::easeOutQuad) 
     {
         FolderLocation = SongFolder;
         std::ifstream dataFile(FolderLocation + "/data.json");
@@ -90,17 +94,32 @@ public:
         PositionTweenX.update(dt);
         PositionTweenY.update(dt);
         SelectedOffsetTween.update(dt);
+        FlashTween.update(dt);
         if (PositionTweenX.isActive() || PositionTweenY.isActive() || SelectedOffsetTween.isActive()) {
             SetButtonAndWidjetsRelativePosition({PositionTweenX.getValue(), PositionTweenY.getValue()});
         }
     }
 
     void renderButton(sf::RenderWindow& window) {
+        float flash = FlashTween.getValue();
+        sf::Color baseColor = SongButton.sprite->getColor();
+
+        SongButton.sprite->setColor(
+            sf::Color(
+                baseColor.r,
+                baseColor.g,
+                baseColor.b,
+                std::min(255, baseColor.a + static_cast<int>(flash))
+            )
+        );
+
         window.draw(*SongButton.sprite);
         window.draw(SongNameLabel);
         window.draw(ArtistLabel);
         window.draw(MapperLabel);
         window.draw(DificultyLabel);
+
+        SongButton.sprite->setColor(baseColor);
     }
 };
 
@@ -114,11 +133,16 @@ public:
 
     int button_offset = 70;
 
+    // Cache de backgrounds
+    static std::unordered_map<std::string, std::shared_ptr<sf::Texture>> BackgroundCache;
+
     SongList(std::string path, sf::Vector2f list_position, sf::RenderWindow &mWindow)
     : select_slot_background("assets/sprites/main_menu/background.png",0,0),
-     window(mWindow)
-        {
+      window(mWindow)
+    {
         ListPosition = list_position;
+        select_slot_background.blurredStrength = 2.0f; // <-- Adicione esta linha
+
         try {
             for (const auto& entry : std::filesystem::directory_iterator(path)) {
                 if (entry.is_directory()) {
@@ -126,7 +150,9 @@ public:
                     ButtonVector.push_back(slot);
                 }
             }
-            SelectedSlot = ButtonVector.back(); 
+            if (!ButtonVector.empty()) {
+                SelectedSlot = ButtonVector[ButtonVector.size() / 2];
+            }
             updateSlotPositions();
 
             auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
@@ -148,14 +174,24 @@ public:
             std::cerr << "Erro: " << e.what() << std::endl;
         }
 
-        if (!select_slot_background.spriteTexture->loadFromFile(SelectedSlot->FolderLocation + "/background.png")) {
-            std::cerr << "N�o foi poss�vel carregar a imagem " << std::endl;
-        }
+        setBackgroundForSelectedSlot();
+    }
 
+    void setBackgroundForSelectedSlot() {
+        std::string bgPath = SelectedSlot->FolderLocation + "/background.png";
+        auto it = BackgroundCache.find(bgPath);
+        if (it != BackgroundCache.end()) {
+            select_slot_background.spriteTexture = it->second;
+        } else {
+            auto tex = std::make_shared<sf::Texture>();
+            if (!tex->loadFromFile(bgPath)) {
+                std::cerr << "Não foi possível carregar a imagem " << bgPath << std::endl;
+            }
+            BackgroundCache[bgPath] = tex;
+            select_slot_background.spriteTexture = tex;
+        }
         select_slot_background.sprite->setTexture(*select_slot_background.spriteTexture);
-        select_slot_background.blurredStrength = 2.0f;
-        
-        ResizeSpriteToFitWindow(select_slot_background,window);
+        ResizeSpriteToFitWindow(select_slot_background, window);
     }
 
     void updateSlotPositions() {
@@ -167,6 +203,8 @@ public:
             ButtonVector[index]->setPositionTweened(ListPosition);
             ButtonVector[index]->SelectedOffsetTween = ValueTween(ButtonVector[index]->SelectedOffsetTween.getValue(), -40.f, 0.5f, Tween::easeOutQuad);
             ButtonVector[index]->SelectedOffsetTween.play();
+            ButtonVector[index]->FlashTween = ValueTween(255.f, 0.f, 2.5f, Tween::easeOutQuad);
+            ButtonVector[index]->FlashTween.play();
 
             // Other slots: move back to normal
             for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
@@ -180,12 +218,7 @@ public:
                 ButtonVector[i]->SelectedOffsetTween.play();
             }
 
-            if (!select_slot_background.spriteTexture->loadFromFile(SelectedSlot->FolderLocation + "/background.png")) {
-                std::cerr << "N�o foi poss�vel carregar a imagem " << std::endl;
-            }
-
-            select_slot_background.sprite->setTexture(*select_slot_background.spriteTexture);
-            ResizeSpriteToFitWindow(select_slot_background,window);
+            setBackgroundForSelectedSlot();
         }
     }
 

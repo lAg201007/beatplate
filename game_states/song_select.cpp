@@ -7,10 +7,11 @@
 #include "../state_stack.h"
 
 sf::Font SongSlot::Montserrat;
+std::unordered_map<std::string, std::shared_ptr<sf::Texture>> SongList::BackgroundCache;
 
 SongSelect::SongSelect(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window),
-    List("assets/songs", {974,232},mWindow)
+    List("assets/songs", {974,432},mWindow)
 {
     if (!SongSlot::Montserrat.openFromFile("assets/fonts/Montserrat-SemiBold.ttf")) {
         std::cerr << "não foi possível carregar a fonte Montserrat-SemiBold.ttf" << std::endl;
