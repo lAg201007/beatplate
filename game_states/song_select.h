@@ -4,6 +4,7 @@
 #include "../utils/tween_service.h"
 #include "../libs/json.hpp"
 #include "../shaders/shader_manager.h"
+#include "../utils/tween_storage.h"
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -24,6 +25,9 @@ public:
     sf::Text DificultyLabel;
     Button SongButton;
 
+    ValueTween PositionTweenX;
+    ValueTween PositionTweenY;
+
     sf::Vector2f Position;
 
     SongSlot(std::string SongFolder, sf::Vector2f startPos)
@@ -32,7 +36,9 @@ public:
     ArtistLabel(Montserrat), 
     MapperLabel(Montserrat), 
     DificultyLabel(Montserrat), 
-    SongButton("assets/sprites/song_select/song_select_button.png",Position.x,Position.y,512,512,0.50f,0.25f)
+    SongButton("assets/sprites/song_select/song_select_button.png", startPos.x, startPos.y, 512, 512, 0.50f, 0.25f),
+    PositionTweenX(startPos.x, startPos.x, 0.5f, Tween::easeOutQuad),
+    PositionTweenY(startPos.y, startPos.y, 0.5f, Tween::easeOutQuad)
     {
         FolderLocation = SongFolder;
         std::ifstream dataFile(FolderLocation + "/data.json");
@@ -69,6 +75,21 @@ public:
         MapperLabel.setPosition(Position + sf::Vector2f({0,5}));
     }
 
+    void setPositionTweened(sf::Vector2f newPos) {
+        PositionTweenX = ValueTween(Position.x, newPos.x, 0.5f, Tween::easeOutQuad);
+        PositionTweenY = ValueTween(Position.y, newPos.y, 0.5f, Tween::easeOutQuad);
+        PositionTweenX.play();
+        PositionTweenY.play();
+    }
+
+    void update(float dt) {
+        PositionTweenX.update(dt);
+        PositionTweenY.update(dt);
+        if (PositionTweenX.isActive() || PositionTweenY.isActive()) {
+            SetButtonAndWidjetsRelativePosition({PositionTweenX.getValue(), PositionTweenY.getValue()});
+        }
+    }
+
     void renderButton(sf::RenderWindow& window) {
         window.draw(*SongButton.sprite);
         window.draw(SongNameLabel);
@@ -102,6 +123,22 @@ public:
             }
             SelectedSlot = ButtonVector.back(); 
             updateSlotPositions();
+
+            auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
+            if (it != ButtonVector.end()) {
+                int index = std::distance(ButtonVector.begin(), it);
+
+                ButtonVector[index]->SetButtonAndWidjetsRelativePosition(ListPosition);
+
+                for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
+                    ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                }
+
+                for (int i = index + 1, offset = 1; i < ButtonVector.size(); ++i, ++offset) {
+                    ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                }
+            }
+            
         } catch (const std::filesystem::filesystem_error& e) {
             std::cerr << "Erro: " << e.what() << std::endl;
         }
@@ -121,14 +158,17 @@ public:
         if (it != ButtonVector.end()) {
             int index = std::distance(ButtonVector.begin(), it);
 
-            ButtonVector[index]->SetButtonAndWidjetsRelativePosition(ListPosition);
+            ButtonVector[index]->setPositionTweened(ListPosition);
+            //ButtonVector[index]->SetButtonAndWidjetsRelativePosition(ListPosition);
 
             for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
-                ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                //ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
             }
 
             for (int i = index + 1, offset = 1; i < ButtonVector.size(); ++i, ++offset) {
-                ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                //ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
             }
 
             if (!select_slot_background.spriteTexture->loadFromFile(SelectedSlot->FolderLocation + "/background.png")) {
@@ -137,6 +177,12 @@ public:
 
             select_slot_background.sprite->setTexture(*select_slot_background.spriteTexture);
             ResizeSpriteToFitWindow(select_slot_background,window);
+        }
+    }
+
+    void updateSlotTweens(float dt) {
+        for (auto& slot : ButtonVector) {
+            slot->update(dt);
         }
     }
 

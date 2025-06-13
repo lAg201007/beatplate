@@ -38,7 +38,7 @@ void SongSelect::handleEvent(const sf::Event& event) {
 }
 
 void SongSelect::update(sf::Time dt) {
-    
+    List.updateSlotTweens(dt.asSeconds());
 }
 
 void SongSelect::render() {   
