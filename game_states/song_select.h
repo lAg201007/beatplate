@@ -32,6 +32,8 @@ public:
     ValueTween PositionTweenX;
     ValueTween PositionTweenY;
     ValueTween SelectedOffsetTween;
+    ValueTween WhiteIntensityTween;
+    float whiteIntensity = 0.f;
 
     sf::Vector2f Position;
 
@@ -44,7 +46,9 @@ public:
     SongButton("assets/sprites/song_select/song_select_button.png", startPos.x, startPos.y, 512, 512, 0.50f, 0.25f),
     PositionTweenX(startPos.x, startPos.x, 1.0f, Tween::easeOutQuad),
     PositionTweenY(startPos.y, startPos.y, 1.0f, Tween::easeOutQuad),
-    SelectedOffsetTween(0.f, 0.f, 1.0f, Tween::easeOutQuad)
+    SelectedOffsetTween(0.f, 0.f, 1.0f, Tween::easeOutQuad),
+    WhiteIntensityTween(255.f, 0.f, 0.3f, Tween::easeOutQuad),
+    whiteIntensity(0.f)
     {
         FolderLocation = SongFolder;
         std::ifstream dataFile(FolderLocation + "/data.json");
@@ -96,15 +100,20 @@ public:
         PositionTweenX.update(dt);
         PositionTweenY.update(dt);
         SelectedOffsetTween.update(dt);
+        WhiteIntensityTween.update(dt);
+        whiteIntensity = WhiteIntensityTween.getValue();
         if (PositionTweenX.isActive() || PositionTweenY.isActive() || SelectedOffsetTween.isActive()) {
             SetButtonAndWidjetsRelativePosition({PositionTweenX.getValue(), PositionTweenY.getValue()});
         }
     }
 
     void renderButton(sf::RenderWindow& window) {
-        SongButton.sprite->setColor(originalColor);
-
-        window.draw(*SongButton.sprite);
+        if (WhiteIntensityTween.isActive()) {
+            ShaderUtils::drawSpriteWithWhiteMaskShader(window, *SongButton.sprite, 255);
+        }   
+        else {
+            window.draw(*SongButton.sprite);
+        }
         window.draw(SongNameLabel);
         window.draw(ArtistLabel);
         window.draw(MapperLabel);
@@ -192,6 +201,10 @@ public:
             ButtonVector[index]->setPositionTweened(ListPosition);
             ButtonVector[index]->SelectedOffsetTween = ValueTween(ButtonVector[index]->SelectedOffsetTween.getValue(), -40.f, 0.5f, Tween::easeOutQuad);
             ButtonVector[index]->SelectedOffsetTween.play();
+
+            // Ativa o tween de whiteIntensity
+            ButtonVector[index]->WhiteIntensityTween = ValueTween(255.f, 0.f, 0.3f, Tween::easeOutQuad);
+            ButtonVector[index]->WhiteIntensityTween.play();
 
             // Other slots: move back to normal
             for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {

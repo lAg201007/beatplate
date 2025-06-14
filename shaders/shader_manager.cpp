@@ -6,7 +6,7 @@ namespace ShaderUtils {
 
         // Carregar o shader
         sf::Shader blurShader;
-        if (!blurShader.loadFromFile("shaders/blur.frag", sf::Shader::Type::Fragment)) {
+        if (!blurShader.loadFromFile("shaders/frag/blur.frag", sf::Shader::Type::Fragment)) {
             std::cerr << "Erro ao carregar shader blur.frag" << std::endl;
             return;
         }
@@ -43,15 +43,24 @@ namespace ShaderUtils {
 
     void drawSpriteWithWhiteMaskShader(sf::RenderWindow& window, sf::Sprite sprite, int WhiteIntensity) {
         sf::Shader whiteMaskShader;
-        if (!whiteMaskShader.loadFromFile("shaders/white_mask.frag", sf::Shader::Type::Fragment)) {
-            std::cerr << "Erro ao carregar shader white_mask.frag" << std::endl;
+        const sf::Vector2u winSize = window.getSize();
+        if (!whiteMaskShader.loadFromFile("shaders/frag/white_flash.frag", sf::Shader::Type::Fragment)) {
+            std::cerr << "Erro ao carregar shader white_flash.frag" << std::endl;
             return;
         }
 
-        whiteMaskShader.setUniform("whiteMultiplier", static_cast<float>(WhiteIntensity));
-        whiteMaskShader.setUniform("image", sprite.getTexture());
-        whiteMaskShader.setUniform("resolution", sf::Glsl::Vec2(window.getSize()));
+        sf::RenderTexture renderTexture({winSize.x, winSize.y});
 
-        window.draw(sprite, &whiteMaskShader);
+        renderTexture.clear(sf::Color::Transparent);
+        renderTexture.draw(sprite);
+        renderTexture.display();
+
+        sf::Sprite renderSprite(renderTexture.getTexture());
+
+        whiteMaskShader.setUniform("WhiteMultiplier", static_cast<float>(WhiteIntensity));
+        whiteMaskShader.setUniform("image", renderSprite.getTexture());
+        whiteMaskShader.setUniform("resolution", sf::Glsl::Vec2(winSize));
+
+        window.draw(renderSprite, &whiteMaskShader);
     }
 }
