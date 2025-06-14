@@ -108,8 +108,8 @@ public:
     }
 
     void renderButton(sf::RenderWindow& window) {
-        if (WhiteIntensityTween.isActive()) {
-            ShaderUtils::drawSpriteWithWhiteMaskShader(window, *SongButton.sprite, 255);
+        if (WhiteIntensityTween.isActive() || whiteIntensity > 0.f) {
+            ShaderUtils::drawSpriteWithWhiteMaskShader(window, *SongButton.sprite, static_cast<uint8_t>(whiteIntensity));
         }   
         else {
             window.draw(*SongButton.sprite);
@@ -203,7 +203,7 @@ public:
             ButtonVector[index]->SelectedOffsetTween.play();
 
             // Ativa o tween de whiteIntensity
-            ButtonVector[index]->WhiteIntensityTween = ValueTween(255.f, 0.f, 0.3f, Tween::easeOutQuad);
+            ButtonVector[index]->WhiteIntensityTween = ValueTween(255.f, 50.f, 0.6f, Tween::easeOutQuad);
             ButtonVector[index]->WhiteIntensityTween.play();
 
             // Other slots: move back to normal
@@ -211,11 +211,22 @@ public:
                 ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
                 ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
                 ButtonVector[i]->SelectedOffsetTween.play();
+
+                 if (ButtonVector[i]->whiteIntensity > 0.f) { // <-- Verifica se o valor é maior que 0 antes de aplicar o tween
+                    ButtonVector[i]->WhiteIntensityTween = ValueTween(ButtonVector[i]->WhiteIntensityTween.getValue(), 0.f, 0.3f, Tween::easeOutQuad);
+                    ButtonVector[i]->WhiteIntensityTween.play();
+                }
             }
             for (int i = index + 1, offset = 1; i < ButtonVector.size(); ++i, ++offset) {
                 ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
                 ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
                 ButtonVector[i]->SelectedOffsetTween.play();
+
+                if (ButtonVector[i]->whiteIntensity > 0.f) { // <-- Verifica se o valor é maior que 0 antes de aplicar o tween
+                    ButtonVector[i]->WhiteIntensityTween = ValueTween(ButtonVector[i]->WhiteIntensityTween.getValue(), 0.f, 0.3f, Tween::easeOutQuad);
+                    ButtonVector[i]->WhiteIntensityTween.play();
+                }
+              
             }
 
             setBackgroundForSelectedSlot();
