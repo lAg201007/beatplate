@@ -40,4 +40,18 @@ namespace ShaderUtils {
 
         mWindow.draw(blurSprite, &blurShader);
     }
+
+    void drawSpriteWithWhiteMaskShader(sf::RenderWindow& window, sf::Sprite sprite, int WhiteIntensity) {
+        sf::Shader whiteMaskShader;
+        if (!whiteMaskShader.loadFromFile("shaders/white_mask.frag", sf::Shader::Type::Fragment)) {
+            std::cerr << "Erro ao carregar shader white_mask.frag" << std::endl;
+            return;
+        }
+
+        whiteMaskShader.setUniform("whiteMultiplier", static_cast<float>(WhiteIntensity));
+        whiteMaskShader.setUniform("image", sprite.getTexture());
+        whiteMaskShader.setUniform("resolution", sf::Glsl::Vec2(window.getSize()));
+
+        window.draw(sprite, &whiteMaskShader);
+    }
 }
