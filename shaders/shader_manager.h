@@ -7,5 +7,6 @@
 #include <SFML/System.hpp>
 #include "../utils/SFML_CLASSES.h"
 namespace ShaderUtils {
-    void drawVerticalBlurSprite(sf::RenderWindow& mWindow, Object obj, float BlurStrength);
+    void drawVerticalBlurSprite(sf::RenderWindow& mWindow, sf::Sprite sprite, float BlurStrength);
+    void drawSpriteWithWhiteMaskShader(sf::RenderWindow& window, sf::Sprite sprite, int WhiteIntensity);
 }

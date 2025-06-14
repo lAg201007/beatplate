@@ -1,7 +1,7 @@
 #include "shader_manager.h"
 
 namespace ShaderUtils {
-    void drawVerticalBlurSprite(sf::RenderWindow& mWindow, Object obj, float BlurStrength) {
+    void drawVerticalBlurSprite(sf::RenderWindow& mWindow, sf::Sprite sprite, float BlurStrength) {
         const sf::Vector2u winSize = mWindow.getSize();
 
         // Carregar o shader
@@ -17,7 +17,7 @@ namespace ShaderUtils {
 
         // Desenhar objeto original em sceneRT
         sceneRT.clear(sf::Color::Transparent);
-        sceneRT.draw(*obj.sprite);
+        sceneRT.draw(sprite);
         sceneRT.display();
 
         // Configurar quad para desenhar fullscreen (usando Sprite facilita)

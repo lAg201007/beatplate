@@ -246,7 +246,7 @@ public:
     }
 
     void RenderList(sf::RenderWindow& window) {
-        ShaderUtils::drawVerticalBlurSprite(window,select_slot_background,select_slot_background.blurredStrength);
+        ShaderUtils::drawVerticalBlurSprite(window,*select_slot_background.sprite,select_slot_background.blurredStrength);
         for (auto slot : ButtonVector) {
             slot->renderButton(window);
         }

@@ -84,7 +84,7 @@ void MainMenu::update(sf::Time dt) {
 void MainMenu::render() {   
     mWindow.clear(sf::Color::Transparent);
 
-    ShaderUtils::drawVerticalBlurSprite(mWindow,background, 5.0f);
+    ShaderUtils::drawVerticalBlurSprite(mWindow,*background.sprite, 5.0f);
     mWindow.draw(*Title.sprite);
     mWindow.draw(StartGameText);
     mWindow.draw(*Cursor.sprite);
