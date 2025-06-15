@@ -12,7 +12,9 @@
 #include <unordered_map>
 #include <cstdint>
 
-class SongSlot {
+class SongList;
+
+class SongSlot : public std::enable_shared_from_this<SongSlot> {
 public:
     static sf::Font Montserrat;
 
@@ -109,6 +111,8 @@ public:
             SetButtonAndWidjetsRelativePosition({PositionTweenX.getValue(), PositionTweenY.getValue()});
         }
     }
+
+    void clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::shared_ptr<SongSlot>& selectedSlot, SongList& list);
 
     void renderButton(sf::RenderWindow& window) {
         if (WhiteIntensityTween.isActive() || whiteIntensity > 0.f) {
@@ -264,6 +268,13 @@ public:
         }
     }
 
+    void selectSlotByIndex(int index) {
+        if (index >= 0 && index < ButtonVector.size()) {
+            SelectedSlot = ButtonVector[index];
+            updateSlotPositions();
+        }
+    }
+
     void ResizeSpriteToFitWindow(Object obj, sf::RenderWindow& window) {
         sf::Vector2u windowSize = window.getSize();                
         sf::Vector2u textureSize = obj.sprite->getTexture().getSize();
@@ -297,6 +308,8 @@ public:
 
 private:
     SongList List;
+    Object Cursor;
+    sf::Vector2i mouse_pos;
     float mouseScrollQueueCooldown = 0.0f;
     std::vector<int> pendingScrolls;
 };
