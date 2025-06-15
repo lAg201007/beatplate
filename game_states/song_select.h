@@ -5,6 +5,7 @@
 #include "../libs/json.hpp"
 #include "../shaders/shader_manager.h"
 #include "../utils/tween_storage.h"
+#include "../utils/utilities.h"
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -75,6 +76,8 @@ public:
         originalColor = SongButton.sprite->getColor();
 
         SetButtonAndWidjetsRelativePosition(startPos);
+
+        WhiteIntensityTween.reset();
     }
 
     void SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
