@@ -275,6 +275,13 @@ public:
     void RenderList(sf::RenderWindow& window) {
         ShaderUtils::drawVerticalBlurSprite(window,*select_slot_background.sprite,select_slot_background.blurredStrength);
         for (auto slot : ButtonVector) {
+            if (slot->Position.x > window.getSize().x + 100
+                || slot->Position.y > window.getSize().y + 100
+                || slot->Position.x < -100 
+                || slot->Position.y < -100) 
+            {
+                continue; // Skip rendering if the slot is out of bounds
+            }
             slot->renderButton(window);
         }
     }
