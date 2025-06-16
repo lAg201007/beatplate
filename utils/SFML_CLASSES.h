@@ -32,6 +32,20 @@ public:
 
         sprite->setScale({ scaleX, scaleY });
     }
+
+    void debug_DrawRect(sf::RenderWindow& window) {
+        sf::FloatRect bounds = sprite->getGlobalBounds();
+
+        sf::RectangleShape debugRect;
+        debugRect.setPosition(bounds.position); 
+        debugRect.setSize(bounds.size);       
+
+        debugRect.setFillColor(sf::Color::Transparent);
+        debugRect.setOutlineColor(sf::Color::Red);
+        debugRect.setOutlineThickness(1.0f);
+
+        window.draw(debugRect);
+    }
 };
 
 #endif 
@@ -89,17 +103,20 @@ public:
         return bounds.contains(static_cast<sf::Vector2f>(mousePos));
     }
     bool DetectButtonClick(sf::RenderWindow &window) {
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !Pressed && isHovered(window)) {
-            Pressed = true;
+        bool mousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+        bool hovered = isHovered(window);
+
+        // Detecta o clique apenas se o mouse está sobre o botão no momento do "pressionar"
+        if (hovered && mousePressed && !PressedLastFrame) {
+            PressedLastFrame = true;
             return true;
         }
-        else if (Pressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            Pressed = false;
-        }        
+        // Atualiza o estado do botão para o próximo frame
+        PressedLastFrame = mousePressed;
         return false;
     }
 private:
-    bool Pressed = false;
+    bool PressedLastFrame = false;
 };
 
 #endif

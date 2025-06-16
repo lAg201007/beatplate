@@ -46,7 +46,7 @@ public:
     ArtistLabel(Montserrat), 
     MapperLabel(Montserrat), 
     DificultyLabel(Montserrat), 
-    SongButton("assets/sprites/song_select/song_select_button.png", startPos.x, startPos.y, 512, 512, 0.50f, 0.25f),
+    SongButton("assets/sprites/song_select/song_select_button.png", startPos.x, startPos.y, 411, 130, 0.50f, 0.25f),
     PositionTweenX(startPos.x, startPos.x, 1.0f, Tween::easeOutQuad),
     PositionTweenY(startPos.y, startPos.y, 1.0f, Tween::easeOutQuad),
     SelectedOffsetTween(0.f, 0.f, 1.0f, Tween::easeOutQuad),
@@ -233,7 +233,6 @@ public:
                     ButtonVector[i]->WhiteIntensityTween = ValueTween(ButtonVector[i]->WhiteIntensityTween.getValue(), 0.f, 0.3f, Tween::easeOutQuad);
                     ButtonVector[i]->WhiteIntensityTween.play();
                 }
-              
             }
 
             setBackgroundForSelectedSlot();
