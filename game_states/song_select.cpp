@@ -62,7 +62,7 @@ void SongSelect::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
     Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
 
-    List.updateSlotTweens(dt.asSeconds());
+    List.listUpdate(dt.asSeconds());
 
     if (mouseScrollQueueCooldown > 0.f) {
         mouseScrollQueueCooldown -= dt.asSeconds();
