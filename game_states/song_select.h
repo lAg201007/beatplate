@@ -134,11 +134,7 @@ public:
     std::vector<std::shared_ptr<SongSlot>> ButtonVector;
     std::shared_ptr<SongSlot> SelectedSlot;
     sf::RenderWindow& window;
-    Object select_slot_background1;
-    Object select_slot_background2;
-    ValueTween bg1TransparencyTween;
-    ValueTween bg2TransparencyTween;
-    bool bg1Active = true;
+    Object select_slot_background;
 
     int button_offset = 70;
 
@@ -146,16 +142,12 @@ public:
     static std::unordered_map<std::string, std::shared_ptr<sf::Texture>> BackgroundCache;
 
     SongList(std::string path, sf::Vector2f list_position, sf::RenderWindow &mWindow)
-    : select_slot_background1("assets/sprites/main_menu/background.png",0,0)
-    , select_slot_background2("assets/sprites/main_menu/background.png",0,0)
-    , bg1TransparencyTween(255.f, 0.f, 0.6f, Tween::easeOutQuad)
-    , bg2TransparencyTween(0.f, 255.f, 0.6f, Tween::easeOutQuad)
-    , bg1Active(true)
-    , window(mWindow)
+    : select_slot_background("assets/sprites/main_menu/background.png",0,0),
+      window(mWindow)
     {
         ListPosition = list_position;
-        select_slot_background1.blurredStrength = 2.0f;
-        select_slot_background2.blurredStrength = 2.0f;
+        select_slot_background.blurredStrength = 2.0f; // <-- Adicione esta linha
+
         try {
             for (const auto& entry : std::filesystem::directory_iterator(path)) {
                 if (entry.is_directory()) {
@@ -193,49 +185,18 @@ public:
     void setBackgroundForSelectedSlot() {
         std::string bgPath = SelectedSlot->FolderLocation + "/background.png";
         auto it = BackgroundCache.find(bgPath);
-        if (bg1Active) {
-            // Troca a textura do background 2 e faz o tween de transparência
-            if (it != BackgroundCache.end()) {
-                select_slot_background2.spriteTexture = it->second;
-            } else {
-                auto tex = std::make_shared<sf::Texture>();
-                if (!tex->loadFromFile(bgPath)) {
-                    std::cerr << "Não foi possível carregar a imagem " << bgPath << std::endl;
-                }
-                BackgroundCache[bgPath] = tex;
-                select_slot_background2.spriteTexture = tex;
-            }
-            select_slot_background2.sprite->setTexture(*select_slot_background2.spriteTexture);
-            ResizeSpriteToFitWindow(select_slot_background2, window);
-
-            bg2TransparencyTween = ValueTween(0.f, 255.f, 0.6f, Tween::easeOutQuad);
-            bg2TransparencyTween.play();
-            bg1TransparencyTween = ValueTween(255.f, 0.f, 0.6f, Tween::easeOutQuad);
-            bg1TransparencyTween.play();
-
-            bg1Active = false;
+        if (it != BackgroundCache.end()) {
+            select_slot_background.spriteTexture = it->second;
         } else {
-            // Troca a textura do background 1 e faz o tween de transparência
-            if (it != BackgroundCache.end()) {
-                select_slot_background1.spriteTexture = it->second;
-            } else {
-                auto tex = std::make_shared<sf::Texture>();
-                if (!tex->loadFromFile(bgPath)) {
-                    std::cerr << "Não foi possível carregar a imagem " << bgPath << std::endl;
-                }
-                BackgroundCache[bgPath] = tex;
-                select_slot_background1.spriteTexture = tex;
+            auto tex = std::make_shared<sf::Texture>();
+            if (!tex->loadFromFile(bgPath)) {
+                std::cerr << "Não foi possível carregar a imagem " << bgPath << std::endl;
             }
-            select_slot_background1.sprite->setTexture(*select_slot_background1.spriteTexture);
-            ResizeSpriteToFitWindow(select_slot_background1, window);
-
-            bg1TransparencyTween = ValueTween(0.f, 255.f, 0.6f, Tween::easeOutQuad);
-            bg1TransparencyTween.play();
-            bg2TransparencyTween = ValueTween(255.f, 0.f, 0.6f, Tween::easeOutQuad);
-            bg2TransparencyTween.play();
-
-            bg1Active = true;
+            BackgroundCache[bgPath] = tex;
+            select_slot_background.spriteTexture = tex;
         }
+        select_slot_background.sprite->setTexture(*select_slot_background.spriteTexture);
+        ResizeSpriteToFitWindow(select_slot_background, window);
     }
 
     void updateSlotPositions() {
@@ -282,8 +243,6 @@ public:
         for (auto& slot : ButtonVector) {
             slot->update(dt);
         }
-        bg1TransparencyTween.update(dt);
-        bg2TransparencyTween.update(dt);
     }
 
     void scrollListUpByOne() {
@@ -324,18 +283,7 @@ public:
     }
 
     void RenderList(sf::RenderWindow& window) {
-        // Atualiza transparência dos backgrounds
-        sf::Color color1 = select_slot_background1.sprite->getColor();
-        color1.a = static_cast<std::uint8_t>(bg1TransparencyTween.getValue());
-        select_slot_background1.sprite->setColor(color1);
-
-        sf::Color color2 = select_slot_background2.sprite->getColor();
-        color1.a = static_cast<std::uint8_t>(bg2TransparencyTween.getValue());
-        select_slot_background2.sprite->setColor(color2);
-
-        ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background1.sprite, select_slot_background1.blurredStrength);
-        ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background2.sprite, select_slot_background2.blurredStrength);
-
+        ShaderUtils::drawVerticalBlurSprite(window,*select_slot_background.sprite,select_slot_background.blurredStrength);
         for (auto slot : ButtonVector) {
             if (slot->Position.x > window.getSize().x + 100
                 || slot->Position.y > window.getSize().y + 100
