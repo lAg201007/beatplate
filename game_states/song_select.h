@@ -195,6 +195,8 @@ public:
         backgroundTransparencyTweenOut.update(dt);
         updateSlotTweens(dt);
 
+        std::cout << "InActive: " << backgroundTransparencyTweenIn.isActive() << ", OutActive: " << backgroundTransparencyTweenOut.isActive() << ", InValue: " << backgroundTransparencyTweenIn.getValue() << ", OutValue: " << backgroundTransparencyTweenOut.getValue() << std::endl;
+
         if (backgroundTransparencyTweenOut.isActive()) {
             select_slot_background2.sprite->setColor(sf::Color(255, 255, 255, static_cast<int>(backgroundTransparencyTweenOut.getValue() * 255)));
         }
@@ -206,36 +208,35 @@ public:
     void setBackgroundForSelectedSlot() {
         std::string bgPath = SelectedSlot->FolderLocation + "/background.png";
         auto it = BackgroundCache.find(bgPath);
-        // quando for pra fazer o segundo background aparecer por cima
         if (it != BackgroundCache.end()) {
-                if (isActiveBackground1) {
-                    select_slot_background2.spriteTexture = it->second; // carrega a textura no cache
-                }
-                else {
-                    select_slot_background1.spriteTexture = it->second; // carrega a textura no cache
-                }
-        else {
+            if (isActiveBackground1) {
+                select_slot_background2.spriteTexture = it->second;
+            } else {
+                select_slot_background1.spriteTexture = it->second;
+            }
+        } else {
             auto tex = std::make_shared<sf::Texture>();
             if (!tex->loadFromFile(bgPath)) {
                 std::cerr << "Não foi possível carregar a imagem " << bgPath << std::endl;
             }
-            BackgroundCache[bgPath] = tex; // se n tiver no cache, adiciona no cache e carrega 
+            BackgroundCache[bgPath] = tex;
             if (isActiveBackground1)
                 select_slot_background2.spriteTexture = tex;
-            else {
+            else
                 select_slot_background1.spriteTexture = tex;
-            }
         }
         if (isActiveBackground1) {
             select_slot_background2.sprite->setTexture(*select_slot_background2.spriteTexture);
             ResizeSpriteToFitWindow(select_slot_background2, window);
             backgroundTransparencyTweenIn.play(); // da play no tween
+            backgroundTransparencyTweenOut.reset(); backgroundTransparencyTweenOut.pause();
             isActiveBackground1 = false;
         }
         else {
             select_slot_background1.sprite->setTexture(*select_slot_background1.spriteTexture);
             ResizeSpriteToFitWindow(select_slot_background1, window);
             backgroundTransparencyTweenOut.play(); // da play no tween
+            backgroundTransparencyTweenIn.reset(); backgroundTransparencyTweenIn.pause();
             isActiveBackground1 = true;
         }       
     }
