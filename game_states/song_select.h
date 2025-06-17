@@ -143,6 +143,10 @@ public:
 
     int button_offset = 70;
 
+    float BackgroundChangeCooldown = 0.2f;
+    float BackgroundChangeTimer = 0.0f;
+    bool backgroundChangePending = false;
+
     // Cache de backgrounds
     static std::unordered_map<std::string, std::shared_ptr<sf::Texture>> BackgroundCache;
 
@@ -200,6 +204,14 @@ public:
         }
         else if (backgroundTransparencyTweenIn.isActive()) {
             select_slot_background2.sprite->setColor(sf::Color(255, 255, 255, static_cast<int>(std::round(backgroundTransparencyTweenIn.getValue() * 255))));
+        }
+
+        if (backgroundChangePending) {
+            BackgroundChangeTimer += dt;
+            if (BackgroundChangeTimer >= BackgroundChangeCooldown) {
+                setBackgroundForSelectedSlot();
+                backgroundChangePending = false;
+            }
         }
     }
 
@@ -275,7 +287,8 @@ public:
                 }
             }
 
-            setBackgroundForSelectedSlot();
+            BackgroundChangeTimer = 0.0f;
+            backgroundChangePending = true;
         }
     }
 
