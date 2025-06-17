@@ -195,13 +195,11 @@ public:
         backgroundTransparencyTweenOut.update(dt);
         updateSlotTweens(dt);
 
-        std::cout << "InActive: " << backgroundTransparencyTweenIn.isActive() << ", OutActive: " << backgroundTransparencyTweenOut.isActive() << ", InValue: " << backgroundTransparencyTweenIn.getValue() << ", OutValue: " << backgroundTransparencyTweenOut.getValue() << std::endl;
-
         if (backgroundTransparencyTweenOut.isActive()) {
-            select_slot_background2.sprite->setColor(sf::Color(255, 255, 255, static_cast<int>(backgroundTransparencyTweenOut.getValue() * 255)));
+            select_slot_background2.sprite->setColor(sf::Color(255, 255, 255, static_cast<int>(std::round(backgroundTransparencyTweenOut.getValue() * 255))));
         }
         else if (backgroundTransparencyTweenIn.isActive()) {
-            select_slot_background2.sprite->setColor(sf::Color(255, 255, 255, static_cast<int>(backgroundTransparencyTweenIn.getValue() * 255)));
+            select_slot_background2.sprite->setColor(sf::Color(255, 255, 255, static_cast<int>(std::round(backgroundTransparencyTweenIn.getValue() * 255))));
         }
     }
 
@@ -325,11 +323,9 @@ public:
     }
 
     void RenderList(sf::RenderWindow& window) {
-        //ShaderUtils::drawVerticalBlurSprite(window,*select_slot_background.sprite,select_slot_background.blurredStrength);
         ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background1.sprite, select_slot_background1.blurredStrength);
-        if (!isActiveBackground1) {
-            ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background2.sprite, select_slot_background2.blurredStrength);
-        }
+        ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background2.sprite, select_slot_background2.blurredStrength);
+
         for (auto slot : ButtonVector) {
             if (slot->Position.x > window.getSize().x + 100
                 || slot->Position.y > window.getSize().y + 100
