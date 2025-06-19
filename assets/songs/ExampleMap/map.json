@@ -1,0 +1,22 @@
+{
+    "metadata": {
+        "BPM": 120,
+        "PS": 4,
+        "AR": 9,
+        "ACD": 5
+    },
+    "notes": [
+        {
+            "type": "plate",
+            "offset": 1500
+        },
+        {
+            "type": "hold_plate",
+            "offset": 2000,
+            "hold_direction": "left",
+            "hold_clicks": 4,
+            "hold_speed": 1.5
+        }
+       
+    ]
+}
