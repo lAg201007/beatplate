@@ -2,6 +2,7 @@
 #include "game_state.h"
 #include "../utils/SFML_CLASSES.h"
 #include "../utils/tween_service.h"
+#include "../game_logic/notes.h"
 
 class Game : public State {
 public:
@@ -12,6 +13,5 @@ public:
     void render() override;
 
 private:
-
-
+    std::vector<std::shared_ptr<Note>> notes;
 };

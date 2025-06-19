@@ -15,7 +15,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     nlohmann::json data;
     dataFile >> data;
 
-    for (auto& [key, value] : data["metadata"].items()) {
+    for (auto& [key, value] : data["notes"].items()) {
         std::cout << key << ": " << value << "\n";  
     }
 }
