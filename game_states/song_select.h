@@ -29,6 +29,7 @@ public:
     sf::Text MapperLabel;
     sf::Text DificultyLabel;
     Button SongButton;
+    Sound Music;
 
     sf::Color originalColor = sf::Color::White;
 
@@ -47,6 +48,7 @@ public:
     MapperLabel(Montserrat), 
     DificultyLabel(Montserrat), 
     SongButton("assets/sprites/song_select/song_select_button.png", startPos.x, startPos.y, 411, 130, 0.50f, 0.25f),
+    Music(SongFolder + "/song.mp3", 50),
     PositionTweenX(startPos.x, startPos.x, 1.0f, Tween::easeOutQuad),
     PositionTweenY(startPos.y, startPos.y, 1.0f, Tween::easeOutQuad),
     SelectedOffsetTween(0.f, 0.f, 1.0f, Tween::easeOutQuad),
@@ -80,6 +82,7 @@ public:
         SetButtonAndWidjetsRelativePosition(startPos);
 
         WhiteIntensityTween.reset();
+        Music.sound->setLooping(true);
     }
 
     void SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
@@ -256,6 +259,13 @@ public:
         if (it != ButtonVector.end()) {
             int index = std::distance(ButtonVector.begin(), it);
 
+            // Pare a música de todos os slots
+            for (auto& slot : ButtonVector) {
+                slot->Music.sound->stop();
+            }
+            // Dê play na música do slot selecionado
+            ButtonVector[index]->Music.sound->play();
+
             // Selected slot: move left
             ButtonVector[index]->setPositionTweened(ListPosition);
             ButtonVector[index]->SelectedOffsetTween = ValueTween(ButtonVector[index]->SelectedOffsetTween.getValue(), -40.f, 0.5f, Tween::easeOutQuad);
@@ -271,7 +281,7 @@ public:
                 ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
                 ButtonVector[i]->SelectedOffsetTween.play();
 
-                 if (ButtonVector[i]->whiteIntensity > 0.f) { // <-- Verifica se o valor é maior que 0 antes de aplicar o tween
+                if (ButtonVector[i]->whiteIntensity > 0.f) {
                     ButtonVector[i]->WhiteIntensityTween = ValueTween(ButtonVector[i]->WhiteIntensityTween.getValue(), 0.f, 0.3f, Tween::easeOutQuad);
                     ButtonVector[i]->WhiteIntensityTween.play();
                 }
@@ -281,7 +291,7 @@ public:
                 ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
                 ButtonVector[i]->SelectedOffsetTween.play();
 
-                if (ButtonVector[i]->whiteIntensity > 0.f) { // <-- Verifica se o valor é maior que 0 antes de aplicar o tween
+                if (ButtonVector[i]->whiteIntensity > 0.f) {
                     ButtonVector[i]->WhiteIntensityTween = ValueTween(ButtonVector[i]->WhiteIntensityTween.getValue(), 0.f, 0.3f, Tween::easeOutQuad);
                     ButtonVector[i]->WhiteIntensityTween.play();
                 }

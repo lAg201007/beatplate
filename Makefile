@@ -3,10 +3,10 @@ CXX = g++
 CXXFLAGS = -std=c++17 -DSFML_STATIC -Ilibs/SFML-3.0.0/include
 
 # Linker flags (release)
-LDFLAGS = -Llibs/SFML-3.0.0/lib -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopengl32 -lfreetype -lwinmm -lgdi32 -mwindows
+LDFLAGS = -Llibs/SFML-3.0.0/lib -lsfml-audio-s -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopengl32 -lfreetype -lwinmm -lgdi32 -lFLAC -lvorbisfile -lvorbis -logg
 
 # Linker flags (debug, sem -mwindows)
-DEBUG_LDFLAGS = -Llibs/SFML-3.0.0/lib -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopengl32 -lfreetype -lwinmm -lgdi32
+DEBUG_LDFLAGS = -Llibs/SFML-3.0.0/lib -lsfml-audio-s -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopengl32 -lfreetype -lwinmm -lgdi32 -lFLAC -lvorbisfile -lvorbis -logg
 
 # Arquivos fonte
 SRC = main.cpp state_stack.cpp game_logic/note_objects/hold_plate.cpp game_logic/note_objects/plate.cpp game_states/game.cpp game_states/menu.cpp game_states/song_select.cpp shaders/shader_manager.cpp utils/tween_storage.cpp utils/utilities.cpp
