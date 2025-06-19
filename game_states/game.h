@@ -5,7 +5,7 @@
 
 class Game : public State {
 public:
-    Game(StateStack& stack, sf::RenderWindow& window);
+    Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder);
 
     void handleEvent(const sf::Event& event) override;
     void update(sf::Time dt) override;

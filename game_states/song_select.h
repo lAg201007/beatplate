@@ -112,7 +112,7 @@ public:
         }
     }
 
-    void clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::shared_ptr<SongSlot>& selectedSlot, SongList& list);
+    void clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::shared_ptr<SongSlot>& selectedSlot, SongList& list, StateStack& mStack, sf::RenderWindow& mWindow);
 
     void renderButton(sf::RenderWindow& window) {
         if (WhiteIntensityTween.isActive() || whiteIntensity > 0.f) {

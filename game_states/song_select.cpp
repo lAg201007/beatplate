@@ -1,5 +1,6 @@
 #include <SFML/Window/Mouse.hpp>
 #include "song_select.h"
+#include "game.h"
 #include "../utils/tween_service.h"
 #include "../shaders/shader_manager.h"
 #include "../utils/utilities.h"
@@ -19,14 +20,14 @@ SongSelect::SongSelect(StateStack& stack, sf::RenderWindow& window)
     }
 }
 
-void SongSlot::clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::shared_ptr<SongSlot>& selectedSlot, SongList& list) {
+void SongSlot::clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::shared_ptr<SongSlot>& selectedSlot, SongList& list, StateStack& mStack, sf::RenderWindow& mWindow) {
     auto it = std::find(slots.begin(), slots.end(), shared_from_this());
     if (it != slots.end()) {
         if (selectedSlot != *it) {
             selectedSlot = *it;
             list.updateSlotPositions();
         } else {
-            std::cout << "start music" << std::endl;
+            mStack.pushState(std::make_unique<Game>(mStack,mWindow, selectedSlot->FolderLocation));
         }
     }
 }
@@ -91,7 +92,7 @@ void SongSelect::update(sf::Time dt) {
 
     for (auto& slot : List.ButtonVector) {
         if (slot->SongButton.DetectButtonClick(mWindow)) {
-            slot->clicked(List.ButtonVector, List.SelectedSlot, List);
+            slot->clicked(List.ButtonVector, List.SelectedSlot, List, mStack, mWindow);
         }
     }
 }
