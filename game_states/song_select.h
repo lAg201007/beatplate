@@ -79,10 +79,10 @@ public:
 
         originalColor = SongButton.sprite->getColor();
 
-        SetButtonAndWidjetsRelativePosition(startPos);
-
         WhiteIntensityTween.reset();
         Music.sound->setLooping(true);
+
+        SetButtonAndWidjetsRelativePosition(startPos);
     }
 
     void SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
@@ -95,6 +95,10 @@ public:
         DificultyLabel.setPosition(Position + offsetVec + sf::Vector2f({-90,-20}));
         SongNameLabel.setPosition(Position + offsetVec + sf::Vector2f({-60,-20}));
         MapperLabel.setPosition(Position + offsetVec + sf::Vector2f({0,5}));
+
+        fitTextToWidth(SongNameLabel, 330); 
+        fitTextToWidth(ArtistLabel, 300);
+        fitTextToWidth(MapperLabel, 300);
     }
 
     void setPositionTweened(sf::Vector2f newPos) {

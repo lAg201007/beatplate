@@ -18,6 +18,10 @@ SongSelect::SongSelect(StateStack& stack, sf::RenderWindow& window)
     if (!SongSlot::Montserrat.openFromFile("assets/fonts/Montserrat-SemiBold.ttf")) {
         std::cerr << "não foi possível carregar a fonte Montserrat-SemiBold.ttf" << std::endl;
     }
+
+    for (auto& slot : List.ButtonVector) {
+        slot->SetButtonAndWidjetsRelativePosition(slot->Position);
+    }
 }
 
 void SongSlot::clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::shared_ptr<SongSlot>& selectedSlot, SongList& list, StateStack& mStack, sf::RenderWindow& mWindow) {

@@ -10,3 +10,12 @@ void taskDelay(int milliseconds, std::function<void()> callback) {
 }
 
 
+void fitTextToWidth(sf::Text& text, float maxWidth, unsigned int minSize) {
+    unsigned int size = text.getCharacterSize();
+
+    while (text.getLocalBounds().size.x > maxWidth && size > minSize) {
+        size--;
+        text.setCharacterSize(size);
+    }
+}
+

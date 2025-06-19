@@ -7,7 +7,10 @@
 #include <thread>
 #include <chrono>
 #include <functional>
+#include <SFML/Graphics.hpp>
 
 void taskDelay(int milliseconds, std::function<void()> callback);
+
+void fitTextToWidth(sf::Text& text, float maxWidth, unsigned int minSize = 10);
 
 #endif
