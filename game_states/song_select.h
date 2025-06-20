@@ -217,6 +217,10 @@ public:
             BackgroundChangeTimer += dt;
             if (BackgroundChangeTimer >= BackgroundChangeCooldown) {
                 setBackgroundForSelectedSlot();
+                for (auto& slot : ButtonVector) {
+                    slot->Music.sound->stop();
+                }
+                SelectedSlot->Music.sound->play();
                 backgroundChangePending = false;
             }
         }
@@ -262,13 +266,6 @@ public:
         auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
         if (it != ButtonVector.end()) {
             int index = std::distance(ButtonVector.begin(), it);
-
-            // Pare a música de todos os slots
-            for (auto& slot : ButtonVector) {
-                slot->Music.sound->stop();
-            }
-            // Dê play na música do slot selecionado
-            ButtonVector[index]->Music.sound->play();
 
             // Selected slot: move left
             ButtonVector[index]->setPositionTweened(ListPosition);
