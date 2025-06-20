@@ -8,11 +8,13 @@
     "notes": [
         {
             "type": "plate",
-            "offset": 1500
+            "offset": 1500,
+            "xPos": 150
         },
         {
             "type": "hold_plate",
             "offset": 2000,
+            "xPos": 150,
             "hold_direction": "left",
             "hold_clicks": 4,
             "hold_speed": 1.5

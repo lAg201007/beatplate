@@ -14,4 +14,5 @@ public:
 
 private:
     std::vector<std::shared_ptr<Note>> notes;
+    float elapsedTime = 0.0f;
 };

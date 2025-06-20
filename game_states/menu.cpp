@@ -85,7 +85,7 @@ void MainMenu::update(sf::Time dt) {
     StartTextTransparencyTween.update(dt.asSeconds());
 
     if (Title.DetectButtonClick(mWindow)) {
-        mStack.pushState(std::make_unique<SongSelect>(mStack,mWindow));
+        mStack.pushState(std::make_unique<SongSelect>(mStack,mWindow)); 
     } 
 
     // Detecta se tem música tocando

@@ -1,6 +1,7 @@
 #include <SFML/Window/Mouse.hpp>
 #include "song_select.h"
 #include "game.h"
+#include "menu.h"
 #include "../utils/tween_service.h"
 #include "../shaders/shader_manager.h"
 #include "../utils/utilities.h"
@@ -31,6 +32,7 @@ void SongSlot::clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::share
             selectedSlot = *it;
             list.updateSlotPositions();
         } else {
+            mStack.popState();
             mStack.pushState(std::make_unique<Game>(mStack,mWindow, selectedSlot->FolderLocation));
         }
     }
