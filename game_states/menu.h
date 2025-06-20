@@ -17,7 +17,7 @@ private:
     Button Title;
     sf::Vector2i mouse_pos;
     sf::Shader blurShader;
-    Tween TitleTween;
+    std::unique_ptr<Tween> TitleTween; // <-- altere para ponteiro
     Tween TitleTransparencyTween;
     ValueTween StartTextTransparencyTween;
     sf::Vector2f TitlePosition;
@@ -25,5 +25,5 @@ private:
     sf::Text StartGameText;
     sf::Color textColor;
     float textTransparencyValue;
-
+    static int ActualMusicBpm;
 };

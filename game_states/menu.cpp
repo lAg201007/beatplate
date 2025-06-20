@@ -6,6 +6,12 @@
 #include "../shaders/shader_manager.h"
 #include "../utils/utilities.h"
 #include "../utils/tween_storage.h"
+#include "../utils/audio_manager.h"
+#include <filesystem>
+#include <fstream>
+#include "../libs/json.hpp"
+
+int MainMenu::ActualMusicBpm = 0;
 
 MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window),
@@ -13,14 +19,14 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     Title("assets/sprites/main_menu/title.png",600,360,225,104),
     background("assets/sprites/main_menu/background.png",0,0),
 
-    TitleTween(*Title.sprite,0.5f,Tween::linear),
+    TitleTween(std::make_unique<Tween>(*Title.sprite,0.5f,Tween::linear)), // <-- use make_unique
     TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear),
     StartTextTransparencyTween(0.0f,1.0f,3.0f),
     StartGameText(Arial),
     textColor(StartGameText.getFillColor())
 {
     TitlePosition = Title.sprite->getPosition();
-    TitleTween.initScale(1.0f,1.1f);
+    TitleTween->initScale(1.0f,1.1f);
     TitleTransparencyTween.initTransparency(0.0f,1.0f);
     TitleTransparencyTween.play();
 
@@ -67,18 +73,53 @@ void MainMenu::update(sf::Time dt) {
     textColor.a = static_cast<int>(std::round(textTransparencyValue * 255.0f));
     StartGameText.setFillColor(textColor);
 
-    TitleTween.update(dt.asSeconds());
+    if (TitleTween) {
+        TitleTween->update(dt.asSeconds());
+        if (!TitleTween->isActive()) {
+            TitleTween->reset();
+            TitleTween->play();
+        }
+    }
+
     TitleTransparencyTween.update(dt.asSeconds());
     StartTextTransparencyTween.update(dt.asSeconds());
-
-    if (!TitleTween.isActive()) {
-        TitleTween.reset();
-        TitleTween.play();
-    }
 
     if (Title.DetectButtonClick(mWindow)) {
         mStack.pushState(std::make_unique<SongSelect>(mStack,mWindow));
     } 
+
+    // Detecta se tem música tocando
+    if (AudioManager::getInstance().isPlaying()) {
+        std::string musicPath = AudioManager::getInstance().getCurrentMusicPath();
+        if (!musicPath.empty()) {
+            std::filesystem::path path(musicPath);
+            std::string folder = path.parent_path().string();
+
+            // Tenta abrir map.json, se não existir tenta data.json
+            std::ifstream jsonFile(folder + "/map.json");
+            if (jsonFile) {
+                nlohmann::json data;
+                jsonFile >> data;
+                int bpm = data["metadata"].value("BPM", 0); // 0 se não existir
+
+                if (bpm != ActualMusicBpm) {
+                    ActualMusicBpm = bpm;
+                    float tweenTime = (bpm > 0) ? (60.0f / bpm) : 0.5f;
+                    TitleTween = std::make_unique<Tween>(*Title.sprite, tweenTime, Tween::linear);
+                    TitleTween->initScale(1.0f, 1.1f);
+                    TitleTween->play();
+                }
+            }
+        }
+    } else {
+        // Se não tem música, volta para padrão
+        if (ActualMusicBpm != 0) {
+            ActualMusicBpm = 0;
+            TitleTween = std::make_unique<Tween>(*Title.sprite, 0.5f, Tween::linear);
+            TitleTween->initScale(1.0f, 1.1f);
+            TitleTween->play();
+        }
+    }
 }
 
 void MainMenu::render() {   

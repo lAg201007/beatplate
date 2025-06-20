@@ -6,6 +6,7 @@
 #include "../shaders/shader_manager.h"
 #include "../utils/tween_storage.h"
 #include "../utils/utilities.h"
+#include "../utils/audio_manager.h"
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -29,7 +30,6 @@ public:
     sf::Text MapperLabel;
     sf::Text DificultyLabel;
     Button SongButton;
-    Sound Music;
 
     sf::Color originalColor = sf::Color::White;
 
@@ -48,7 +48,6 @@ public:
     MapperLabel(Montserrat), 
     DificultyLabel(Montserrat), 
     SongButton("assets/sprites/song_select/song_select_button.png", startPos.x, startPos.y, 411, 130, 0.50f, 0.25f),
-    Music(SongFolder + "/song.mp3", 50),
     PositionTweenX(startPos.x, startPos.x, 1.0f, Tween::easeOutQuad),
     PositionTweenY(startPos.y, startPos.y, 1.0f, Tween::easeOutQuad),
     SelectedOffsetTween(0.f, 0.f, 1.0f, Tween::easeOutQuad),
@@ -80,7 +79,6 @@ public:
         originalColor = SongButton.sprite->getColor();
 
         WhiteIntensityTween.reset();
-        Music.sound->setLooping(true);
 
         SetButtonAndWidjetsRelativePosition(startPos);
     }
@@ -175,7 +173,21 @@ public:
                 }
             }
             if (!ButtonVector.empty()) {
-                SelectedSlot = ButtonVector[ButtonVector.size() / 2];
+                if (AudioManager::getInstance().isPlaying()) {
+                    auto currentSlot = AudioManager::getInstance().getCurrentSlot();
+                    auto it = std::find_if(ButtonVector.begin(), ButtonVector.end(),
+                        [&](const std::shared_ptr<SongSlot>& slot) {
+                            return currentSlot && slot->FolderLocation == currentSlot->FolderLocation;
+                        });
+                    std::cout << "Current slot: " << (currentSlot ? currentSlot->FolderLocation : "null") << std::endl;
+                    if (it != ButtonVector.end()) {
+                        SelectedSlot = *it;
+                    } else {
+                        SelectedSlot = ButtonVector[ButtonVector.size() / 2];
+                    }
+                } else {
+                    SelectedSlot = ButtonVector[ButtonVector.size() / 2];
+                }  
             }
             updateSlotPositions();
 
@@ -217,10 +229,14 @@ public:
             BackgroundChangeTimer += dt;
             if (BackgroundChangeTimer >= BackgroundChangeCooldown) {
                 setBackgroundForSelectedSlot();
-                for (auto& slot : ButtonVector) {
-                    slot->Music.sound->stop();
+                if (AudioManager::getInstance().isPlaying()) {
+                    if (AudioManager::getInstance().getCurrentMusicPath() != SelectedSlot->FolderLocation + "/song.mp3") {
+                        AudioManager::getInstance().playMusic(SelectedSlot->FolderLocation + "/song.mp3", true, SelectedSlot); 
+                    }
                 }
-                SelectedSlot->Music.sound->play();
+                else {
+                    AudioManager::getInstance().playMusic(SelectedSlot->FolderLocation + "/song.mp3", true, SelectedSlot); 
+                }
                 backgroundChangePending = false;
             }
         }
