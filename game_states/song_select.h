@@ -179,7 +179,6 @@ public:
                         [&](const std::shared_ptr<SongSlot>& slot) {
                             return currentSlot && slot->FolderLocation == currentSlot->FolderLocation;
                         });
-                    std::cout << "Current slot: " << (currentSlot ? currentSlot->FolderLocation : "null") << std::endl;
                     if (it != ButtonVector.end()) {
                         SelectedSlot = *it;
                     } else {
