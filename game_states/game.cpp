@@ -28,7 +28,7 @@ void Game::handleEvent(const sf::Event& event) {
 }
 
 void Game::update(sf::Time dt) {
-    elapsedTime += dt.asMilliseconds();
+    elapsedTime += dt.asMilliseconds(); // agora é float, em segundos
 
     for (auto& note : notes) {
         note->update(elapsedTime);

@@ -18,6 +18,8 @@ int main()
     stack.pushState(std::make_unique<MainMenu>(stack, *window));
 
     sf::Clock clock;
+    float accumulator = 0.0f;
+    const float minDt = 0.001f; // 1 ms em segundos
 
     while (window->isOpen())
     {
@@ -37,8 +39,13 @@ int main()
         }
 
         sf::Time dt = clock.restart();
-        stack.update(dt);
-        
+        accumulator += dt.asSeconds();
+
+        while (accumulator >= minDt) {
+            stack.update(sf::seconds(minDt));
+            accumulator -= minDt;
+        }
+
         window->clear(sf::Color::White);
         stack.render();
         window->display();
