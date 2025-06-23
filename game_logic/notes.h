@@ -32,7 +32,7 @@ public:
 
     virtual ~Note() = default;
 
-    virtual void update(float elapsed) {}
+    virtual void update(float elapsed, float AR) {}
     virtual void start() {}
     virtual void render(sf::RenderWindow& window) {}
 };

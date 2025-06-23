@@ -24,14 +24,16 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
 }
 
 void Game::handleEvent(const sf::Event& event) {
-
+    if (event.is<sf::Event::Closed>()) {
+        mWindow.close();
+    }
 }
 
 void Game::update(sf::Time dt) {
     elapsedTime += dt.asMilliseconds(); // agora é float, em segundos
 
     for (auto& note : notes) {
-        note->update(elapsedTime);
+        note->update(elapsedTime, note->AR); 
     }
 }
 

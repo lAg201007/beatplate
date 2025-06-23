@@ -5,10 +5,11 @@
 class Plate : public Note {
 public:
     Object plateObject;    
+    float AR;
 
-    Plate(int offset, int xPos, const float AR);
+    Plate(int offset, int xPos, float AR);
 
-    void update(float elapsed) override;
+    void update(float elapsed, float AR) override;
     void start() override;
     void render(sf::RenderWindow& window) override;
 

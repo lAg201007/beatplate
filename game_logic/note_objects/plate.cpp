@@ -2,12 +2,12 @@
 #include <algorithm>
 #include <iostream>
 
-Plate::Plate(int offset, int xPos, const float AR)
-	: Note(offset, "plate", xPos),
-	  plateObject("assets/sprites/game/objects/plate.png", xPos, 300, 200, 200, 0.25f, 0.25f)
-	  
+Plate::Plate(int offset, int xPos, float AR)
+	: Note(offset, "plate", xPos, AR),
+	  plateObject("assets/sprites/game/objects/plate.png", xPos, 300, 200, 200, 0.25f, 0.25f),
+	  AR(AR)  
 	{
-		
+
 	};
 
 void Plate::start()
@@ -20,13 +20,16 @@ void Plate::start()
 	}
 }
 
-void Plate::update(float elapsed)
+void Plate::update(float elapsed, float AR)
 {
-	if (AR < 5.0f)
-		approachMs = 1800.0f - 120.0f * AR;
-	else
-		approachMs = 1200.0f - 150.0f * (AR - 5.0f);
-
+	if (AR < 5.0f) {
+        approachMs = 1800.0f - 120.0f * AR;
+    } else if (AR == 5.0f) {
+        approachMs = 1200.0f;
+    } else {
+        approachMs = 1200.0f - 150.0f * (AR - 5.0f);
+	}
+	
 	if (state == NoteState::Waiting && elapsed >= offset - approachMs) {
         start();
     }
