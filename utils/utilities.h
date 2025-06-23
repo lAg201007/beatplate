@@ -11,6 +11,6 @@
 
 void taskDelay(int milliseconds, std::function<void()> callback);
 
-void fitTextToWidth(sf::Text& text, float maxWidth, unsigned int minSize = 10);
+int fitTextToWidth(sf::Text& text, float maxWidth, unsigned int minSize = 10);
 
 #endif

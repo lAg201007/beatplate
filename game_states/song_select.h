@@ -13,6 +13,14 @@
 #include <unordered_map>
 #include <cstdint>
 
+struct SongSlotData {
+    std::string SongName;
+    std::string Artist;
+    std::string Mapper;
+    int Difficulty;
+    std::string FolderLocation;
+};
+
 class SongList;
 
 class SongSlot : public std::enable_shared_from_this<SongSlot> {
@@ -41,7 +49,7 @@ public:
 
     sf::Vector2f Position;
 
-    SongSlot(std::string SongFolder, sf::Vector2f startPos)
+    SongSlot(sf::Vector2f startPos, const SongSlotData& data)
      : 
     SongNameLabel(Montserrat),
     ArtistLabel(Montserrat), 
@@ -54,15 +62,11 @@ public:
     WhiteIntensityTween(255.f, 0.f, 0.3f, Tween::easeOutQuad),
     whiteIntensity(0.f)
     {
-        FolderLocation = SongFolder;
-        std::ifstream dataFile(FolderLocation + "/data.json");
-        nlohmann::json data;
-        dataFile >> data;
-
-        SongName = data["SongName"];
-        Artist = data["Artist"];
-        Mapper = data["Mapper"];
-        Difficulty = data["Difficulty"];
+        FolderLocation = data.FolderLocation;
+        SongName = data.SongName;
+        Artist = data.Artist;
+        Mapper = data.Mapper;
+        Difficulty = data.Difficulty;
 
         SongNameLabel.setString(SongName);
         SongNameLabel.setCharacterSize(20);
@@ -94,9 +98,16 @@ public:
         SongNameLabel.setPosition(Position + offsetVec + sf::Vector2f({-60,-20}));
         MapperLabel.setPosition(Position + offsetVec + sf::Vector2f({0,5}));
 
-        fitTextToWidth(SongNameLabel, 330); 
-        fitTextToWidth(ArtistLabel, 300);
-        fitTextToWidth(MapperLabel, 300);
+
+        if (SongNameLabel.getCharacterSize() != fitTextToWidth(SongNameLabel, 330)) {
+            SongNameLabel.setCharacterSize(fitTextToWidth(SongNameLabel, 330));
+        } 
+        if (ArtistLabel.getCharacterSize() != fitTextToWidth(ArtistLabel, 300)) {
+            ArtistLabel.setCharacterSize(fitTextToWidth(ArtistLabel, 300));
+        }
+        if (MapperLabel.getCharacterSize() != fitTextToWidth(MapperLabel, 300)) {
+            MapperLabel.setCharacterSize(fitTextToWidth(MapperLabel, 300));
+        }
     }
 
     void setPositionTweened(sf::Vector2f newPos) {
@@ -166,11 +177,31 @@ public:
         select_slot_background1.blurredStrength = 2.0f;
         select_slot_background2.blurredStrength = 2.0f;
         try {
+            std::vector<SongSlotData> slotDataList;
             for (const auto& entry : std::filesystem::directory_iterator(path)) {
                 if (entry.is_directory()) {
-                    auto slot = std::make_shared<SongSlot>(entry.path().string(), sf::Vector2f{200, 200});
-                    ButtonVector.push_back(slot);
+                    std::string folder = entry.path().string();
+                    std::ifstream dataFile(folder + "/data.json");
+                    if (!dataFile.is_open()) {
+                        std::cerr << "Não foi possível abrir " << folder << "/data.json" << std::endl;
+                        continue;
+                    }
+                    nlohmann::json jsonData;
+                    dataFile >> jsonData;
+
+                    SongSlotData data;
+                    data.FolderLocation = folder;
+                    data.SongName = jsonData.value("SongName", "");
+                    data.Artist = jsonData.value("Artist", "");
+                    data.Mapper = jsonData.value("Mapper", "");
+                    data.Difficulty = jsonData.value("Difficulty", 0);
+
+                    slotDataList.push_back(data);
                 }
+            }
+            for (const auto& data : slotDataList) {
+                auto slot = std::make_shared<SongSlot>(list_position, data);
+                ButtonVector.push_back(slot);
             }
             if (!ButtonVector.empty()) {
                 if (AudioManager::getInstance().isPlaying()) {
@@ -293,7 +324,9 @@ public:
 
             // Other slots: move back to normal
             for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
-                ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                if (ButtonVector[i]->Position != ListPosition + sf::Vector2f(0.f, offset * button_offset)) {
+                    ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                }
                 ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
                 ButtonVector[i]->SelectedOffsetTween.play();
 
@@ -303,7 +336,9 @@ public:
                 }
             }
             for (int i = index + 1, offset = 1; i < ButtonVector.size(); ++i, ++offset) {
-                ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                if (ButtonVector[i]->Position != ListPosition + sf::Vector2f(0.f, offset * button_offset)) {
+                    ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
+                }
                 ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
                 ButtonVector[i]->SelectedOffsetTween.play();
 
