@@ -13,6 +13,8 @@ public:
     void render() override;
 
 private:
+    Object Cursor;
     std::vector<std::shared_ptr<Note>> notes;
+    sf::Vector2i mouse_pos;
     float elapsedTime = 0.0f;
 };

@@ -10,7 +10,8 @@
 #include <fstream>
 
 Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder)
-    : State(stack, window)
+    : State(stack, window),
+    Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f)
 {
     std::ifstream dataFile(songFolder + "/map.json");
     nlohmann::json data;
@@ -37,7 +38,11 @@ void Game::handleEvent(const sf::Event& event) {
 }
 
 void Game::update(sf::Time dt) {
-    elapsedTime += dt.asMilliseconds(); // agora é float, em segundos
+    mouse_pos = sf::Mouse::getPosition(mWindow);
+    Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),300});
+
+
+    elapsedTime += dt.asMilliseconds(); 
 
     for (auto& note : notes) {
         note->update(elapsedTime); 
@@ -48,4 +53,5 @@ void Game::render() {
     for (const auto& note : notes) {
         note->render(mWindow);
     }
+    mWindow.draw(*Cursor.sprite);
 }
