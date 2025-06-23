@@ -18,7 +18,14 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
 
     for (auto& [key, value] : data["notes"].items()) {
         if (value["type"] == "plate") {
-            notes.push_back(std::make_shared<Plate>(static_cast<int>(value["offset"]), static_cast<int>(value["xPos"]),static_cast<float>(data["metadata"]["AR"])));
+                notes.push_back(std::make_shared<Plate>(mWindow,
+                static_cast<int>(value["offset"]),
+                static_cast<int>(value["xPos"]),
+                static_cast<int>(data["metadata"]["AR"]),
+                static_cast<int>(data["metadata"]["ACD"]),
+                static_cast<int>(data["metadata"]["PS"])
+                )
+            );
         }
     }
 }
@@ -33,7 +40,7 @@ void Game::update(sf::Time dt) {
     elapsedTime += dt.asMilliseconds(); // agora é float, em segundos
 
     for (auto& note : notes) {
-        note->update(elapsedTime, note->AR); 
+        note->update(elapsedTime); 
     }
 }
 

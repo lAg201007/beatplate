@@ -4,12 +4,15 @@
 
 class Plate : public Note {
 public:
-    Object plateObject;    
-    float AR;
+    Button plateObject;  
+    sf::RenderWindow& window;
+    int AR;
+    int ACD;
+    int PS;
 
-    Plate(int offset, int xPos, float AR);
+    Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, int PS);
 
-    void update(float elapsed, float AR) override;
+    void update(float elapsed) override;
     void start() override;
     void render(sf::RenderWindow& window) override;
 

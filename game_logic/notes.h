@@ -5,6 +5,8 @@
 enum class NoteState {
     Waiting,
     Active,
+    Hittable,
+    Hitting,
     Hit,
     Missed
 };
@@ -32,7 +34,7 @@ public:
 
     virtual ~Note() = default;
 
-    virtual void update(float elapsed, float AR) {}
+    virtual void update(float elapsed) {}
     virtual void start() {}
     virtual void render(sf::RenderWindow& window) {}
 };
