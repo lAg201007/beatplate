@@ -2,6 +2,7 @@
 #include "../notes.h"
 #include "../../utils/SFML_CLASSES.h"
 #include <cctype>
+#include "../../utils/tween_service.h"
 
 class Plate : public Note {
 public:
@@ -14,7 +15,7 @@ public:
 
     Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, int PS);
 
-    void update(float elapsed) override;
+    void update(float elapsed, float dt) override;
     void start() override;
     void render(sf::RenderWindow& window) override;
 
@@ -56,4 +57,5 @@ private:
     float hitWindow = 0.0f;
     bool PressedLastFrame = false;
     Object approachCircle;
+    Tween ApproachCircleScaleTween;
 };

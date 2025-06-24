@@ -3,36 +3,35 @@
         "BPM": 240,
         "PS": 4,
         "AR": 9,
-        "ACD": 1
+        "ACD": 8
     },
     "notes": [
-        {
-            "type": "plate",
-            "offset": 2000,
-            "xPos": 150
-        },
-          {
-            "type": "plate",
-            "offset": 2500,
-            "xPos": 160
-        },
-          {
-            "type": "plate",
-            "offset": 3000,
-            "xPos": 170
-        },
-          {
-            "type": "plate",
-            "offset": 3500,
-            "xPos": 160
-        },
-          {
-            "type": "plate",
-            "offset": 4000,
-            "xPos": 130
-        }
-        
-        
-       
+        { "type": "plate", "offset": 2000, "xPos": 150 },
+        { "type": "plate", "offset": 2250, "xPos": 180 },
+        { "type": "plate", "offset": 2500, "xPos": 210 },
+        { "type": "plate", "offset": 2750, "xPos": 240 },
+        { "type": "plate", "offset": 3000, "xPos": 400 },
+        { "type": "plate", "offset": 3250, "xPos": 420 },
+        { "type": "plate", "offset": 3375, "xPos": 440 },
+        { "type": "plate", "offset": 3500, "xPos": 460 },
+        { "type": "plate", "offset": 3625, "xPos": 480 },
+        { "type": "plate", "offset": 3750, "xPos": 500 },
+        { "type": "plate", "offset": 4000, "xPos": 200 },
+        { "type": "plate", "offset": 4500, "xPos": 220 },
+        { "type": "plate", "offset": 4750, "xPos": 250 },
+        { "type": "plate", "offset": 5000, "xPos": 370 },
+        { "type": "plate", "offset": 5125, "xPos": 390 },
+        { "type": "plate", "offset": 5250, "xPos": 410 },
+        { "type": "plate", "offset": 5375, "xPos": 430 },
+        { "type": "plate", "offset": 5500, "xPos": 450 },
+        { "type": "plate", "offset": 5750, "xPos": 600 },
+        { "type": "plate", "offset": 5875, "xPos": 580 },
+        { "type": "plate", "offset": 6000, "xPos": 560 },
+        { "type": "plate", "offset": 6125, "xPos": 540 },
+        { "type": "plate", "offset": 6250, "xPos": 520 },
+        { "type": "plate", "offset": 6500, "xPos": 180 },
+        { "type": "plate", "offset": 6750, "xPos": 200 },
+        { "type": "plate", "offset": 7000, "xPos": 220 },
+        { "type": "plate", "offset": 7250, "xPos": 240 }
     ]
 }

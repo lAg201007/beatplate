@@ -8,6 +8,7 @@ Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, i
 	: Note(offset, "plate", xPos, AR),
 	  plateObject("assets/sprites/game/objects/plate.png", xPos, 300, 200, 200, 0.25f, 0.25f),
 	  approachCircle("assets/sprites/game/objects/plate_approach_circle.png", xPos, 300, 200, 200, 0.25f, 0.25f),
+	  ApproachCircleScaleTween(*approachCircle.sprite, approachMs / 1000.0f),
 	  window(rWindow),
 	  AR(AR),
 	  ACD(ACD),
@@ -21,6 +22,15 @@ Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, i
 		nlohmann::json configData;
 		dataFile >> configData;
 		binds = configData["settings"]["binds"]["game_click"].get<std::vector<std::string>>();
+		ApproachCircleScaleTween.initScale(0.5f,0.05f);
+
+		if (AR < 5) {
+			approachMs = 1800 - 120 * AR;
+		} else if (AR == 5) {
+			approachMs = 1200;
+		} else {
+			approachMs = 1200 - 150 * (AR - 5);
+		}
 	};
 
 void Plate::start()
@@ -30,23 +40,21 @@ void Plate::start()
 		state = NoteState::Active;
 		startTimeMs = offset - approachMs;
 		plateObject.sprite->setPosition({static_cast<float>(xPos), static_cast<float>(StartYPos)});
+		ApproachCircleScaleTween.play();
 	}
 }
 
-void Plate::update(float elapsed)
+void Plate::update(float elapsed, float dt)
 {
-	int AR = this->AR;
-	if (AR < 5) {
-        approachMs = 1800 - 120 * AR;
-    } else if (AR == 5) {
-        approachMs = 1200;
-    } else {
-        approachMs = 1200 - 150 * (AR - 5);
-	}
 	
 	if (state == NoteState::Waiting && elapsed >= offset - approachMs) {
         start();
     }
+
+	if (state == NoteState::Hittable || state == NoteState::Active) {
+		approachCircle.sprite->setPosition(plateObject.sprite->getPosition());
+		ApproachCircleScaleTween.update(dt);
+	}
 
     if (state == NoteState::Active) {
         float progress = (elapsed- startTimeMs) / approachMs;
@@ -57,6 +65,7 @@ void Plate::update(float elapsed)
 			state = NoteState::Hittable;
 		}
     }
+
 	if (state == NoteState::Hittable) {
 		hitWindow = elapsed - offset;
 		float perfectWindow = 80 - 6 * ACD;
@@ -92,5 +101,6 @@ void Plate::render(sf::RenderWindow& window)
 	if (state == NoteState::Active || state == NoteState::Hittable)
 	{
 		window.draw(*plateObject.sprite);
+		window.draw(*approachCircle.sprite);
 	}
 }

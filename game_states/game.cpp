@@ -7,6 +7,7 @@
 #include "../utils/tween_storage.h"
 #include "../state_stack.h"
 #include "../game_logic/note_objects/plate.h"
+#include "../utils/audio_manager.h"
 #include <fstream>
 
 Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder)
@@ -29,6 +30,9 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
             );
         }
     }
+
+    AudioManager::getInstance().pauseMusic();
+    AudioManager::getInstance().playMusic(songFolder + "/song.mp3", false, nullptr);
 }
 
 void Game::handleEvent(const sf::Event& event) {
@@ -45,7 +49,7 @@ void Game::update(sf::Time dt) {
     elapsedTime += dt.asMilliseconds(); 
 
     for (auto& note : notes) {
-        note->update(elapsedTime); 
+        note->update(elapsedTime, dt.asSeconds()); 
     }
 }
 
