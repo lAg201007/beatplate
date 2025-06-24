@@ -1,6 +1,8 @@
 #include "plate.h"
+#include "../../libs/json.hpp"
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 
 Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, int PS)
 	: Note(offset, "plate", xPos, AR),
@@ -10,7 +12,14 @@ Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, i
 	  ACD(ACD),
 	  PS(PS)
 	{
-
+		std::ifstream dataFile("config.json");
+		if (!dataFile.is_open()) {
+			std::cerr << "Não foi possível abrir config.json" << std::endl;
+			return;
+		}
+		nlohmann::json configData;
+		dataFile >> configData;
+		binds = configData["settings"]["binds"]["game_click"].get<std::vector<std::string>>();
 	};
 
 void Plate::start()
@@ -48,9 +57,8 @@ void Plate::update(float elapsed)
 		}
     }
 	if (state == NoteState::Hittable) {
-		
-		if (plateObject.DetectButtonClick(this->window)) {
-
+		if (DetectClickWithBind(this->window)) {
+			state = NoteState::Hitting;
 		}
 	}
 }
