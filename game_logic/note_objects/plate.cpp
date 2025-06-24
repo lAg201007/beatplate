@@ -7,6 +7,7 @@
 Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, int PS)
 	: Note(offset, "plate", xPos, AR),
 	  plateObject("assets/sprites/game/objects/plate.png", xPos, 300, 200, 200, 0.25f, 0.25f),
+	  approachCircle("assets/sprites/game/objects/plate_approach_circle.png", xPos, 300, 200, 200, 0.25f, 0.25f),
 	  window(rWindow),
 	  AR(AR),
 	  ACD(ACD),
@@ -57,7 +58,30 @@ void Plate::update(float elapsed)
 		}
     }
 	if (state == NoteState::Hittable) {
+		hitWindow = elapsed - offset;
+		float perfectWindow = 80 - 6 * ACD;
+		float earlyLateWindow = 140 - 8 * ACD;
+		float tooEarlyLateWindow = 200 - 10 * ACD;
+
+		if (hitWindow > tooEarlyLateWindow) {
+			state = NoteState::Missed;
+			std::cout << "Plate missed!" << " hitwindow: " << hitWindow << ", elapsed: " << elapsed << std::endl;
+		}
+
 		if (DetectClickWithBind(this->window)) {
+			if (std::abs(hitWindow) <= perfectWindow) {
+				hitResult = HitResult::Perfect;
+				std::cout << "Perfect" << std::endl;
+			} else if (std::abs(hitWindow) <= earlyLateWindow) {
+				hitResult = (hitWindow < 0) ? HitResult::PerfectEarly : HitResult::PerfectLate;
+				std::cout << "Early/Late" << std::endl;
+			} else if (std::abs(hitWindow) <= tooEarlyLateWindow) {
+				hitResult = (hitWindow < 0) ? HitResult::TooEarly : HitResult::TooLate;
+				std::cout << "TooEarly/TooLate" << std::endl;
+			} else {
+				std::cout << "Plate missed!" << " hitwindow: " << hitWindow << ", elapsed: " << elapsed << std::endl;
+				state = NoteState::Missed;
+			}
 			state = NoteState::Hitting;
 		}
 	}
@@ -65,7 +89,7 @@ void Plate::update(float elapsed)
 
 void Plate::render(sf::RenderWindow& window)
 {
-	if (state == NoteState::Active || state == NoteState::Hittable || state == NoteState::Hitting)
+	if (state == NoteState::Active || state == NoteState::Hittable)
 	{
 		window.draw(*plateObject.sprite);
 	}

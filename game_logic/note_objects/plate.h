@@ -53,5 +53,7 @@ private:
     int StartYPos = 600;
     float startTimeMs = 0.0f;
     float approachMs = 1200.0f;
+    float hitWindow = 0.0f;
     bool PressedLastFrame = false;
+    Object approachCircle;
 };
