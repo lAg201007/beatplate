@@ -5,7 +5,6 @@
 enum class NoteState {
     Waiting,
     Active,
-    Hittable,
     Hitting,
     Hit,
     Missed

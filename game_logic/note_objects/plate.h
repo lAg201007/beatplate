@@ -22,7 +22,7 @@ public:
     bool DetectHoverX(sf::RenderWindow& window) {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
         sf::FloatRect bounds = plateObject.sprite->getGlobalBounds();
-        return bounds.contains(sf::Vector2f({static_cast<float>(mousePos.x), static_cast<float>(plateObject.sprite->getPosition().y)}));
+        return bounds.contains(sf::Vector2f({static_cast<float>(mousePos.x), 300.0f}));
     }
 
     bool DetectClickWithBind(sf::RenderWindow& window) {
@@ -58,4 +58,6 @@ private:
     bool PressedLastFrame = false;
     Object approachCircle;
     Tween ApproachCircleScaleTween;
+    Tween HitTransparencyTween;
+    Tween HitScaleTween;
 };

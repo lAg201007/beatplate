@@ -8,6 +8,8 @@ Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, i
 	: Note(offset, "plate", xPos, AR),
 	  plateObject("assets/sprites/game/objects/plate.png", xPos, 300, 200, 200, 0.25f, 0.25f),
 	  approachCircle("assets/sprites/game/objects/plate_approach_circle.png", xPos, 300, 200, 200, 0.25f, 0.25f),
+	  HitScaleTween(*plateObject.sprite, 0.1f),
+	  HitTransparencyTween(*plateObject.sprite, 0.1f),
 	  ApproachCircleScaleTween(*approachCircle.sprite, approachMs / 1000.0f),
 	  window(rWindow),
 	  AR(AR),
@@ -33,6 +35,15 @@ Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, i
 		}
 	};
 
+namespace {
+	void StartHit(Tween& tweenT, Tween& tweenS) {
+		tweenT.initTransparency(1.0f, 0.0f);
+		tweenS.initScale(0.25f, 0.30f);
+		tweenT.play();
+		tweenS.play();
+	}
+}
+
 void Plate::start()
 {
 	if (state == NoteState::Waiting)
@@ -51,22 +62,15 @@ void Plate::update(float elapsed, float dt)
         start();
     }
 
-	if (state == NoteState::Hittable || state == NoteState::Active) {
-		approachCircle.sprite->setPosition(plateObject.sprite->getPosition());
-		ApproachCircleScaleTween.update(dt);
-	}
-
     if (state == NoteState::Active) {
         float progress = (elapsed- startTimeMs) / approachMs;
         progress = std::clamp(progress, 0.0f, 1.0f);
         float y = StartYPos + (TargetYPos - StartYPos) * progress;
         plateObject.sprite->setPosition({static_cast<float>(xPos), y});
-		if (progress >= 1.0f) {
-			state = NoteState::Hittable;
-		}
-    }
 
-	if (state == NoteState::Hittable) {
+		approachCircle.sprite->setPosition(plateObject.sprite->getPosition());
+		ApproachCircleScaleTween.update(dt);
+
 		hitWindow = elapsed - offset;
 		float perfectWindow = 80 - 6 * ACD;
 		float earlyLateWindow = 140 - 8 * ACD;
@@ -92,15 +96,28 @@ void Plate::update(float elapsed, float dt)
 				state = NoteState::Missed;
 			}
 			state = NoteState::Hitting;
+			StartHit(HitTransparencyTween, HitScaleTween);
+		}
+    }
+
+	if (state == NoteState::Hitting) {
+		HitScaleTween.update(dt);
+		HitTransparencyTween.update(dt);
+		if (!HitTransparencyTween.isActive() && !HitScaleTween.isActive()) {
+			state == NoteState::Hit;
 		}
 	}
 }
 
 void Plate::render(sf::RenderWindow& window)
 {
-	if (state == NoteState::Active || state == NoteState::Hittable)
+	if (state == NoteState::Active)
 	{
 		window.draw(*plateObject.sprite);
 		window.draw(*approachCircle.sprite);
+	}
+	if (state == NoteState::Hitting)
+	{
+		window.draw(*plateObject.sprite);
 	}
 }
