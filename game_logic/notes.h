@@ -7,7 +7,8 @@ enum class NoteState {
     Active,
     Hitting,
     Hit,
-    Missed
+    Missed,
+    Missing
 };
 
 enum class HitResult {

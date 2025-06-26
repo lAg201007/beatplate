@@ -60,4 +60,6 @@ private:
     Tween ApproachCircleScaleTween;
     Tween HitTransparencyTween;
     Tween HitScaleTween;
+    Tween MissScaleTween;
+    Tween MissTransparencyTween;
 };

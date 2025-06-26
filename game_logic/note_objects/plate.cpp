@@ -10,6 +10,8 @@ Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, i
 	  approachCircle("assets/sprites/game/objects/plate_approach_circle.png", xPos, 300, 200, 200, 0.25f, 0.25f),
 	  HitScaleTween(*plateObject.sprite, 0.1f),
 	  HitTransparencyTween(*plateObject.sprite, 0.1f),
+	  MissScaleTween(*plateObject.sprite, 0.3f),
+	  MissTransparencyTween(*plateObject.sprite, 0.3f),
 	  ApproachCircleScaleTween(*approachCircle.sprite, approachMs / 1000.0f),
 	  window(rWindow),
 	  AR(AR),
@@ -39,6 +41,12 @@ namespace {
 	void StartHit(Tween& tweenT, Tween& tweenS) {
 		tweenT.initTransparency(1.0f, 0.0f);
 		tweenS.initScale(0.25f, 0.30f);
+		tweenT.play();
+		tweenS.play();
+	}
+	void StartMiss(Tween& tweenT, Tween& tweenS) {
+		tweenT.initTransparency(1.0f,0.0f);
+		tweenS.initScale(0.25f,0.20f);
 		tweenT.play();
 		tweenS.play();
 	}
@@ -77,8 +85,9 @@ void Plate::update(float elapsed, float dt)
 		float tooEarlyLateWindow = 200 - 10 * ACD;
 
 		if (hitWindow > tooEarlyLateWindow) {
-			state = NoteState::Missed;
 			std::cout << "Plate missed!" << " hitwindow: " << hitWindow << ", elapsed: " << elapsed << std::endl;
+			state = NoteState::Missing;
+			StartMiss(MissTransparencyTween, MissScaleTween);
 		}
 
 		if (DetectClickWithBind(this->window)) {
@@ -93,7 +102,8 @@ void Plate::update(float elapsed, float dt)
 				std::cout << "TooEarly/TooLate" << std::endl;
 			} else {
 				std::cout << "Plate missed!" << " hitwindow: " << hitWindow << ", elapsed: " << elapsed << std::endl;
-				state = NoteState::Missed;
+				state = NoteState::Missing;
+				StartMiss(MissTransparencyTween, MissScaleTween);
 			}
 			state = NoteState::Hitting;
 			StartHit(HitTransparencyTween, HitScaleTween);
@@ -107,6 +117,14 @@ void Plate::update(float elapsed, float dt)
 			state == NoteState::Hit;
 		}
 	}
+
+	if (state == NoteState::Missing) {
+		MissScaleTween.update(dt);
+		MissTransparencyTween.update(dt);
+		if (!MissScaleTween.isActive() && !MissTransparencyTween.isActive()) {
+			state == NoteState::Missed;
+		}
+	}
 }
 
 void Plate::render(sf::RenderWindow& window)
@@ -116,7 +134,7 @@ void Plate::render(sf::RenderWindow& window)
 		window.draw(*plateObject.sprite);
 		window.draw(*approachCircle.sprite);
 	}
-	if (state == NoteState::Hitting)
+	if (state == NoteState::Hitting || state == NoteState::Missing)
 	{
 		window.draw(*plateObject.sprite);
 	}
