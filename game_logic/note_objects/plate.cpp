@@ -114,7 +114,7 @@ void Plate::update(float elapsed, float dt)
 		HitScaleTween.update(dt);
 		HitTransparencyTween.update(dt);
 		if (!HitTransparencyTween.isActive() && !HitScaleTween.isActive()) {
-			state == NoteState::Hit;
+			state = NoteState::Hit;
 		}
 	}
 
@@ -122,7 +122,7 @@ void Plate::update(float elapsed, float dt)
 		MissScaleTween.update(dt);
 		MissTransparencyTween.update(dt);
 		if (!MissScaleTween.isActive() && !MissTransparencyTween.isActive()) {
-			state == NoteState::Missed;
+			state = NoteState::Missed;
 		}
 	}
 }
