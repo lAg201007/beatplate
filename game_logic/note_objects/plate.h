@@ -57,6 +57,7 @@ private:
     float hitWindow = 0.0f;
     bool PressedLastFrame = false;
     Object approachCircle;
+    Object hitEffect;
     Tween ApproachCircleScaleTween;
     Tween HitTransparencyTween;
     Tween HitScaleTween;
