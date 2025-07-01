@@ -18,6 +18,7 @@ Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, i
 	  HitTransparencyTween(*plateObject.sprite, 0.1f),
 	  MissScaleTween(*plateObject.sprite, 0.3f),
 	  MissTransparencyTween(*plateObject.sprite, 0.3f),
+	  HitEffectTransparencyTween(*hitEffect.sprite, 0.3f),
 	  ApproachCircleScaleTween(*approachCircle.sprite, approachMs / 1000.0f),
 	  window(rWindow),
 	  AR(AR),
@@ -54,15 +55,18 @@ Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, i
 	};
 
 namespace {
-	void StartHit(Tween& tweenT, Tween& tweenS, Object& HitEffect, Object& plate, HitResult hitResult) {
+	void StartHit(Tween& tweenT, Tween& tweenS, Tween& tweenE, Object& HitEffect, Object& plate, HitResult hitResult) {
 		tweenT.initTransparency(1.0f, 0.0f);
 		tweenS.initScale(0.25f, 0.30f);
+
 		tweenT.play();
 		tweenS.play();
+
 
 		switch (hitResult) {
 			case HitResult::Perfect:
 				HitEffect.sprite->setPosition(plate.sprite->getPosition());
+				tweenE.setDuration(0.1f);
 				break;
 			case HitResult::PerfectEarly:
 			case HitResult::PerfectLate:
@@ -73,14 +77,22 @@ namespace {
 			case HitResult::TooLate:
 				HitEffect.sprite->setTexture(tooEarlyLateTexture);
 				HitEffect.sprite->setPosition(plate.sprite->getPosition());
+				tweenE.setDuration(0.6f);
 				break;
 		}
+
+		tweenE.initTransparency(1.0f,0.0f);
+		tweenE.play();
 	}
-	void StartMiss(Tween& tweenT, Tween& tweenS, Object& HitEffect, Object& plate) {
+	void StartMiss(Tween& tweenT, Tween& tweenS, Tween& tweenE, Object& HitEffect, Object& plate) {
 		tweenT.initTransparency(1.0f,0.0f);
 		tweenS.initScale(0.25f,0.20f);
 		tweenT.play();
 		tweenS.play();
+
+		tweenE.setDuration(1.0f);
+		tweenE.initTransparency(1.0f,0.0f);
+		tweenE.play();
 
 		HitEffect.sprite->setTexture(missTexture);
 		HitEffect.sprite->setPosition(plate.sprite->getPosition());
@@ -120,9 +132,8 @@ void Plate::update(float elapsed, float dt)
 		float tooEarlyLateWindow = 200 - 10 * ACD;
 
 		if (hitWindow > tooEarlyLateWindow) {
-			std::cout << "Plate missed!" << " hitwindow: " << hitWindow << ", elapsed: " << elapsed << std::endl;
 			state = NoteState::Missing;
-			StartMiss(MissTransparencyTween, MissScaleTween, hitEffect, plateObject);
+			StartMiss(MissTransparencyTween, MissScaleTween, HitEffectTransparencyTween,hitEffect, plateObject);
 		}
 
 		if (DetectClickWithBind(this->window)) {
@@ -134,16 +145,17 @@ void Plate::update(float elapsed, float dt)
 				hitResult = (hitWindow < 0) ? HitResult::TooEarly : HitResult::TooLate;
 			} else {
 				state = NoteState::Missing;
-				StartMiss(MissTransparencyTween, MissScaleTween, hitEffect, plateObject);
+				StartMiss(MissTransparencyTween, MissScaleTween, HitEffectTransparencyTween, hitEffect, plateObject);
 			}
 			state = NoteState::Hitting;
-			StartHit(HitTransparencyTween, HitScaleTween, hitEffect, plateObject, hitResult);
+			StartHit(HitTransparencyTween, HitScaleTween,HitEffectTransparencyTween, hitEffect, plateObject, hitResult);
 		}
     }
 
 	if (state == NoteState::Hitting) {
 		HitScaleTween.update(dt);
 		HitTransparencyTween.update(dt);
+		HitEffectTransparencyTween.update(dt);
 		if (!HitTransparencyTween.isActive() && !HitScaleTween.isActive()) {
 			state = NoteState::Hit;
 		}
@@ -151,10 +163,15 @@ void Plate::update(float elapsed, float dt)
 
 	if (state == NoteState::Missing) {
 		MissScaleTween.update(dt);
+		HitEffectTransparencyTween.update(dt);
 		MissTransparencyTween.update(dt);
 		if (!MissScaleTween.isActive() && !MissTransparencyTween.isActive()) {
 			state = NoteState::Missed;
 		}
+	}
+
+	if (state == NoteState::Missed || state == NoteState::Hit) {
+		HitEffectTransparencyTween.update(dt);
 	}
 }
 
@@ -169,5 +186,10 @@ void Plate::render(sf::RenderWindow& window)
 	{
 		window.draw(*plateObject.sprite);
 		window.draw(*hitEffect.sprite);
+	}
+	if (state == NoteState::Missed || state == NoteState::Hit) {
+		if (HitEffectTransparencyTween.isActive()) {
+			window.draw(*hitEffect.sprite);
+		}
 	}
 }

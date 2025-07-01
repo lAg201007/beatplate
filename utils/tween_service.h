@@ -95,6 +95,10 @@ public:
         return active;
     }
 
+    void setDuration(float newDuration) {
+        duration = newDuration;
+    }
+
     // Easings padrões
     static float linear(float t) { return t; }
     static float easeInQuad(float t) { return t * t; }

@@ -63,4 +63,5 @@ private:
     Tween HitScaleTween;
     Tween MissScaleTween;
     Tween MissTransparencyTween;
+    Tween HitEffectTransparencyTween;
 };
