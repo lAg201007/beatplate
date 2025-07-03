@@ -139,11 +139,14 @@ void Plate::update(float elapsed, float dt)
 		if (DetectClickWithBind(this->window)) {
 			if (std::abs(hitWindow) <= perfectWindow) {
 				hitResult = HitResult::Perfect;
-			} else if (std::abs(hitWindow) <= earlyLateWindow) {
+			}
+			else if (std::abs(hitWindow) <= earlyLateWindow) {
 				hitResult = (hitWindow < 0) ? HitResult::PerfectEarly : HitResult::PerfectLate;
-			} else if (std::abs(hitWindow) <= tooEarlyLateWindow) {
+			} 
+			else if (std::abs(hitWindow) <= tooEarlyLateWindow) {
 				hitResult = (hitWindow < 0) ? HitResult::TooEarly : HitResult::TooLate;
-			} else {
+			} 
+			else {
 				state = NoteState::Missing;
 				StartMiss(MissTransparencyTween, MissScaleTween, HitEffectTransparencyTween, hitEffect, plateObject);
 			}
@@ -157,14 +160,8 @@ void Plate::update(float elapsed, float dt)
 		HitTransparencyTween.update(dt);
 		HitEffectTransparencyTween.update(dt);
 		if (!HitTransparencyTween.isActive() && !HitScaleTween.isActive()) {
-			if (state == NoteState::Hitting) 
-			{
-				state = NoteState::Hit;
-			}
-			else 
-			{
-				state = NoteState::Missed;
-			}
+			if (state == NoteState::Hitting) { state = NoteState::Hit; }
+			else { state = NoteState::Missed; }
 		}
 	}
 

@@ -17,4 +17,6 @@ private:
     std::vector<std::shared_ptr<Note>> notes;
     sf::Vector2i mouse_pos;
     float elapsedTime = 0.0f;
+    float totalScore = 0.0f;
+    int totalProcessed = 0;
 };

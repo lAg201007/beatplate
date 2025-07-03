@@ -35,6 +35,19 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     AudioManager::getInstance().playMusic(songFolder + "/song.mp3", false, nullptr);
 }
 
+namespace {
+    float getHitScore(HitResult hit) {
+        switch (hit) {
+            case HitResult::Perfect:       return 1.0f;
+            case HitResult::PerfectEarly:
+            case HitResult::PerfectLate:   return 0.8f;
+            case HitResult::TooEarly:
+            case HitResult::TooLate:       return 0.5f;
+            default:                       return 0.0f; // Miss, etc.
+        }
+    }
+}
+
 void Game::handleEvent(const sf::Event& event) {
     if (event.is<sf::Event::Closed>()) {
         mWindow.close();
@@ -45,12 +58,23 @@ void Game::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
     Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),300});
 
-
     elapsedTime += dt.asMilliseconds(); 
 
     for (auto& note : notes) {
         note->update(elapsedTime, dt.asSeconds()); 
     }
+
+    totalScore = 0.0f;
+    totalProcessed = 0;
+
+    for (const auto& note : notes) {
+        if (note->state == NoteState::Hit || note->state == NoteState::Missed) {
+            totalScore += getHitScore(note->hitResult);
+            totalProcessed++;
+        }
+    }
+  
+    float accuracy = (totalProcessed > 0) ? (100.0f * totalScore / totalProcessed) : 100.0f;
 }
 
 void Game::render() {   
