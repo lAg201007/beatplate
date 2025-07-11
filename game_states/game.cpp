@@ -10,9 +10,11 @@
 #include "../utils/audio_manager.h"
 #include <fstream>
 
-Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder)
+Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, Object& background)
     : State(stack, window),
-    Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f)
+      Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
+      songFolder(songFolder),
+      background(background) 
 {
     std::ifstream dataFile(songFolder + "/map.json");
     nlohmann::json data;
@@ -32,7 +34,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     }
 
     AudioManager::getInstance().pauseMusic();
-    AudioManager::getInstance().playMusic(songFolder + "/song.mp3", false, nullptr);
+    resizeSpriteToFitWindow(background, mWindow);
 }
 
 namespace {
@@ -58,7 +60,16 @@ void Game::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
     Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),300});
 
-    elapsedTime += dt.asMilliseconds(); 
+    if (!started) {
+        startDelay -= dt.asSeconds();
+        if (startDelay <= 0.f) {
+            started = true;
+            AudioManager::getInstance().playMusic(songFolder + "/song.mp3", false, nullptr);
+        }
+        return;
+    }
+
+    elapsedTime += dt.asMilliseconds();  
 
     for (auto& note : notes) {
         note->update(elapsedTime, dt.asSeconds()); 
@@ -78,6 +89,7 @@ void Game::update(sf::Time dt) {
 }
 
 void Game::render() {   
+    ShaderUtils::drawVerticalBlurSprite(mWindow, background.sprite, background.blurredStrength);
     for (const auto& note : notes) {
         note->render(mWindow);
     }

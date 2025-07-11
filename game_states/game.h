@@ -6,7 +6,7 @@
 
 class Game : public State {
 public:
-    Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder);
+    Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, Object& background);
 
     void handleEvent(const sf::Event& event) override;
     void update(sf::Time dt) override;
@@ -19,4 +19,8 @@ private:
     float elapsedTime = 0.0f;
     float totalScore = 0.0f;
     int totalProcessed = 0;
+    float startDelay = 2.0f; 
+    bool started = false;
+    std::string songFolder;
+    Object background;
 };

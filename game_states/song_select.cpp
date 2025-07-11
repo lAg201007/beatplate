@@ -33,8 +33,9 @@ void SongSlot::clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::share
             list.updateSlotPositions();
         } else {
             std::string FolderLoc = selectedSlot->FolderLocation;
+            Object Background = (list.isActiveBackground1 ? list.select_slot_background1 : list.select_slot_background2);
             mStack.popState();
-            mStack.pushState(std::make_unique<Game>(mStack, mWindow, FolderLoc)); 
+            mStack.pushState(std::make_unique<Game>(mStack, mWindow, FolderLoc, Background)); 
         }
     }
 }

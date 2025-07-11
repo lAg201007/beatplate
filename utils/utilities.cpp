@@ -9,7 +9,6 @@ void taskDelay(int milliseconds, std::function<void()> callback) {
     }).detach();
 }
 
-
 int fitTextToWidth(sf::Text& text, float maxWidth, unsigned int minSize) {
     unsigned int size = text.getCharacterSize();
     float currentWidth = text.getLocalBounds().size.x;
@@ -24,3 +23,12 @@ int fitTextToWidth(sf::Text& text, float maxWidth, unsigned int minSize) {
     }
     return size;
 }
+
+void ResizeSpriteToFitWindow(Object obj, sf::RenderWindow& window) {
+    sf::Vector2u windowSize = window.getSize();                
+    sf::Vector2u textureSize = obj.sprite->getTexture().getSize();
+    float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
+    float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
+    obj.sprite->setScale({scaleX, scaleY});
+}
+

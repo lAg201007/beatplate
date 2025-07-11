@@ -99,6 +99,10 @@ public:
         duration = newDuration;
     }
 
+    float getProgress() {
+        return std::min(elapsed / duration, 1.f); 
+    }
+
     // Easings padrões
     static float linear(float t) { return t; }
     static float easeInQuad(float t) { return t * t; }

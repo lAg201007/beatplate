@@ -14,8 +14,9 @@ Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, i
 	  plateObject("assets/sprites/game/objects/plate.png", xPos, 300, 200, 200, 0.25f, 0.25f),
 	  approachCircle("assets/sprites/game/objects/plate_approach_circle.png", xPos, 300, 200, 200, 0.25f, 0.25f),
 	  hitEffect("assets/sprites/game/effects/perfect_hit_effect.png", xPos, 300, 200, 200, 0.25f, 0.25f),
-	  HitScaleTween(*plateObject.sprite, 0.1f),
-	  HitTransparencyTween(*plateObject.sprite, 0.1f),
+	  ShatteredPlateTexture("assets/sprites/game/objects/plate_exploded.png"),
+	  HitScaleTween(*plateObject.sprite, 0.2f),
+	  HitTransparencyTween(*plateObject.sprite, 0.2f),
 	  MissScaleTween(*plateObject.sprite, 0.3f),
 	  MissTransparencyTween(*plateObject.sprite, 0.3f),
 	  HitEffectTransparencyTween(*hitEffect.sprite, 0.3f),
@@ -55,13 +56,14 @@ Plate::Plate(sf::RenderWindow& rWindow, int offset, int xPos, int AR, int ACD, i
 	};
 
 namespace {
-	void StartHit(Tween& tweenT, Tween& tweenS, Tween& tweenE, Object& HitEffect, Object& plate, HitResult hitResult) {
+	void StartHit(Texture& newTexture, Tween& tweenT, Tween& tweenS, Tween& tweenE, Object& HitEffect, Object& plate, HitResult hitResult) {
 		tweenT.initTransparency(1.0f, 0.0f);
 		tweenS.initScale(0.25f, 0.30f);
 
+		plate.sprite->setTexture(*newTexture.texture);
+
 		tweenT.play();
 		tweenS.play();
-
 
 		switch (hitResult) {
 			case HitResult::Perfect:
@@ -151,7 +153,7 @@ void Plate::update(float elapsed, float dt)
 				StartMiss(MissTransparencyTween, MissScaleTween, HitEffectTransparencyTween, hitEffect, plateObject);
 			}
 			state = NoteState::Hitting;
-			StartHit(HitTransparencyTween, HitScaleTween,HitEffectTransparencyTween, hitEffect, plateObject, hitResult);
+			StartHit(ShatteredPlateTexture,HitTransparencyTween,HitScaleTween,HitEffectTransparencyTween, hitEffect, plateObject, hitResult);
 		}
     }
 

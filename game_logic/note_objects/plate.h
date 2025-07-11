@@ -64,4 +64,5 @@ private:
     Tween MissScaleTween;
     Tween MissTransparencyTween;
     Tween HitEffectTransparencyTween;
+    Texture ShatteredPlateTexture;
 };

@@ -13,4 +13,6 @@ void taskDelay(int milliseconds, std::function<void()> callback);
 
 int fitTextToWidth(sf::Text& text, float maxWidth, unsigned int minSize = 10);
 
+void ResizeSpriteToFitWindow(sf::Sprite& obj, sf::RenderWindow& window);
+
 #endif
