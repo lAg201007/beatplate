@@ -15,6 +15,7 @@
 #include <thread>
 #include <future>
 
+// Data structure for loading slots
 struct SongSlotData {
     std::string SongName;
     std::string Artist;
@@ -23,6 +24,7 @@ struct SongSlotData {
     std::string FolderLocation;
 };
 
+// Useful Functions
 namespace {
     SongSlotData load_and_return_data(std::string data_folder) {
         std::ifstream dataFile(data_folder + "/data.json");
@@ -56,8 +58,19 @@ namespace {
         }
         return slotDataList;
     }
+
+    std::vector<std::shared_ptr<SongSlot>> createSongSlots(const std::vector<SongSlotData>& slotDataList, sf::Vector2f list_position) {
+        std::vector<std::shared_ptr<SongSlot>> slots;
+        for (const auto& data : slotDataList) {
+            auto slot = std::make_shared<SongSlot>(list_position, data);
+            slots.push_back(slot);
+        }
+        return slots;  
+    }
 }
 
+// Forward declaration
+class SongSelect; 
 class SongList;
 
 class SongSlot : public std::enable_shared_from_this<SongSlot> {
@@ -124,75 +137,17 @@ public:
         SetButtonAndWidjetsRelativePosition(startPos);
     }
 
-    void SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
-        Position = newPos;
-        float offset = SelectedOffsetTween.getValue();
-        sf::Vector2f offsetVec = {offset, 0.f};
-
-        SongButton.sprite->setPosition(Position + offsetVec + sf::Vector2f({80,0}));
-        ArtistLabel.setPosition(Position + offsetVec + sf::Vector2f({-60,5}));
-        DificultyLabel.setPosition(Position + offsetVec + sf::Vector2f({-90,-20}));
-        SongNameLabel.setPosition(Position + offsetVec + sf::Vector2f({-60,-20}));
-        MapperLabel.setPosition(Position + offsetVec + sf::Vector2f({0,5}));
-
-
-        if (SongNameLabel.getCharacterSize() != fitTextToWidth(SongNameLabel, 330)) {
-            SongNameLabel.setCharacterSize(fitTextToWidth(SongNameLabel, 330));
-        } 
-        if (ArtistLabel.getCharacterSize() != fitTextToWidth(ArtistLabel, 300)) {
-            ArtistLabel.setCharacterSize(fitTextToWidth(ArtistLabel, 300));
-        }
-        if (MapperLabel.getCharacterSize() != fitTextToWidth(MapperLabel, 300)) {
-            MapperLabel.setCharacterSize(fitTextToWidth(MapperLabel, 300));
-        }
-    }
-
-    void setPositionTweened(sf::Vector2f newPos) {
-        PositionTweenX = ValueTween(Position.x, newPos.x, 0.5f, Tween::easeOutQuad);
-        PositionTweenY = ValueTween(Position.y, newPos.y, 0.5f, Tween::easeOutQuad);
-        PositionTweenX.play();
-        PositionTweenY.play();
-    }
-
-    void update(float dt) {
-        PositionTweenX.update(dt);
-        PositionTweenY.update(dt);
-        SelectedOffsetTween.update(dt);
-        WhiteIntensityTween.update(dt);
-        whiteIntensity = WhiteIntensityTween.getValue();
-        if (PositionTweenX.isActive() || PositionTweenY.isActive() || SelectedOffsetTween.isActive()) {
-            SetButtonAndWidjetsRelativePosition({PositionTweenX.getValue(), PositionTweenY.getValue()});
-        }
-    }
-
-    void clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::shared_ptr<SongSlot>& selectedSlot, SongList& list, StateStack& mStack, sf::RenderWindow& mWindow);
-
-    void renderButton(sf::RenderWindow& window) {
-        if (WhiteIntensityTween.isActive() || whiteIntensity > 0.f) {
-            ShaderUtils::drawSpriteWithWhiteMaskShader(window, *SongButton.sprite, static_cast<uint8_t>(whiteIntensity));
-        }   
-        else {
-            window.draw(*SongButton.sprite);
-        }
-        window.draw(SongNameLabel);
-        window.draw(ArtistLabel);
-        window.draw(MapperLabel);
-        window.draw(DificultyLabel);
-    }
+    void SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos);
+    void setPositionTweened(sf::Vector2f newPos);
+    void update(float dt);
+    void clicked(
+        std::vector<std::shared_ptr<SongSlot>>& slots, 
+        std::shared_ptr<SongSlot>& selectedSlot, 
+        SongList& list, StateStack& mStack, 
+        sf::RenderWindow& mWindow
+    );
+    void renderButton(sf::RenderWindow& window);
 };
-
-namespace {
-    std::vector<std::shared_ptr<SongSlot>> createSongSlots(const std::vector<SongSlotData>& slotDataList, sf::Vector2f list_position) {
-        std::vector<std::shared_ptr<SongSlot>> slots;
-        for (const auto& data : slotDataList) {
-            auto slot = std::make_shared<SongSlot>(list_position, data);
-            slots.push_back(slot);
-        }
-        return slots;  
-    }
-}
-
-class SongSelect; // Forward declaration
 
 class SongList {
 public:
@@ -264,113 +219,16 @@ public:
         setBackgroundForSelectedSlot();
     }
 
+    // Functions
     void listUpdate(float dt);
-
     void setBackgroundForSelectedSlot();    
-
-    void updateSlotPositions() {
-        auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
-        if (it != ButtonVector.end()) {
-            int index = std::distance(ButtonVector.begin(), it);
-
-            // Selected slot: move left
-            ButtonVector[index]->setPositionTweened(ListPosition);
-            ButtonVector[index]->SelectedOffsetTween = ValueTween(ButtonVector[index]->SelectedOffsetTween.getValue(), -40.f, 0.5f, Tween::easeOutQuad);
-            ButtonVector[index]->SelectedOffsetTween.play();
-
-            // Ativa o tween de whiteIntensity
-            ButtonVector[index]->WhiteIntensityTween = ValueTween(255.f, 50.f, 0.6f, Tween::easeOutQuad);
-            ButtonVector[index]->WhiteIntensityTween.play();
-
-            // Other slots: move back to normal
-            for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
-                if (ButtonVector[i]->Position != ListPosition + sf::Vector2f(0.f, offset * button_offset)) {
-                    ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
-                }
-                ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
-                ButtonVector[i]->SelectedOffsetTween.play();
-
-                if (ButtonVector[i]->whiteIntensity > 0.f) {
-                    ButtonVector[i]->WhiteIntensityTween = ValueTween(ButtonVector[i]->WhiteIntensityTween.getValue(), 0.f, 0.3f, Tween::easeOutQuad);
-                    ButtonVector[i]->WhiteIntensityTween.play();
-                }
-            }
-            for (int i = index + 1, offset = 1; i < ButtonVector.size(); ++i, ++offset) {
-                if (ButtonVector[i]->Position != ListPosition + sf::Vector2f(0.f, offset * button_offset)) {
-                    ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
-                }
-                ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
-                ButtonVector[i]->SelectedOffsetTween.play();
-
-                if (ButtonVector[i]->whiteIntensity > 0.f) {
-                    ButtonVector[i]->WhiteIntensityTween = ValueTween(ButtonVector[i]->WhiteIntensityTween.getValue(), 0.f, 0.3f, Tween::easeOutQuad);
-                    ButtonVector[i]->WhiteIntensityTween.play();
-                }
-            }
-
-            BackgroundChangeTimer = 0.0f;
-            backgroundChangePending = true;
-        }
-    }
-
-    void updateSlotTweens(float dt) {
-        for (auto& slot : ButtonVector) {
-            slot->update(dt);
-        }
-    }
-
-    void scrollListUpByOne() {
-        auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
-        if (it != ButtonVector.end()) {
-            int index = std::distance(ButtonVector.begin(), it);
-            if (index > 0) {
-                SelectedSlot = ButtonVector[index - 1];
-            }
-            updateSlotPositions();        
-        }
-    }
-
-    void scrollListDownByOne() {
-         auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
-        if (it != ButtonVector.end()) {
-            int index = std::distance(ButtonVector.begin(), it);
-            if (index + 1 != ButtonVector.size()) {
-                SelectedSlot = ButtonVector[index + 1];
-            }   
-            updateSlotPositions();     
-        }
-    }
-
-    void selectSlotByIndex(int index) {
-        if (index >= 0 && index < ButtonVector.size()) {
-            SelectedSlot = ButtonVector[index];
-            updateSlotPositions();
-        }
-    }
-
-    void ResizeSpriteToFitWindow(Object& obj, sf::RenderWindow& window) {
-        sf::Vector2u windowSize = window.getSize();                
-        sf::Vector2u textureSize = obj.sprite->getTexture().getSize();
-        float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
-        float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
-        obj.sprite->setScale({scaleX, scaleY});
-    }
-
-    void RenderList(sf::RenderWindow& window) {
-        ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background1.sprite, select_slot_background1.blurredStrength);
-        ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background2.sprite, select_slot_background2.blurredStrength);
-
-        for (auto slot : ButtonVector) {
-            if (slot->Position.x > window.getSize().x + 100
-                || slot->Position.y > window.getSize().y + 100
-                || slot->Position.x < -100 
-                || slot->Position.y < -100) 
-            {
-                continue; // Skip rendering if the slot is out of bounds
-            }
-            slot->renderButton(window);
-        }
-    }
+    void updateSlotPositions();
+    void updateSlotTweens(float dt);
+    void scrollListUpByOne();
+    void scrollListDownByOne();
+    void selectSlotByIndex(int index);
+    void ResizeSpriteToFitWindow(Object& obj, sf::RenderWindow& window);
+    void RenderList(sf::RenderWindow& window);
 };
 
 class SongSelect : public State {
@@ -390,4 +248,5 @@ public:
     sf::Vector2i mouse_pos;
     float mouseScrollQueueCooldown = 0.0f;
     std::vector<int> pendingScrolls;
+    bool pendingPop = false; // Adicione isso na sua classe SongSelect
 };
