@@ -33,8 +33,8 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
         }
     }
 
-    AudioManager::getInstance().pauseMusic();
-    resizeSpriteToFitWindow(background, mWindow);
+    AudioManager::getInstance().pauseMusic();   
+    ResizeSpriteToFitWindow(*background.sprite, mWindow);
 }
 
 namespace {
@@ -89,7 +89,7 @@ void Game::update(sf::Time dt) {
 }
 
 void Game::render() {   
-    ShaderUtils::drawVerticalBlurSprite(mWindow, background.sprite, background.blurredStrength);
+    ShaderUtils::drawVerticalBlurSprite(mWindow, *background.sprite, background.blurredStrength);
     for (const auto& note : notes) {
         note->render(mWindow);
     }

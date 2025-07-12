@@ -12,6 +12,8 @@
 #include <filesystem>
 #include <unordered_map>
 #include <cstdint>
+#include <thread>
+#include <future>
 
 struct SongSlotData {
     std::string SongName;
@@ -20,6 +22,41 @@ struct SongSlotData {
     int Difficulty;
     std::string FolderLocation;
 };
+
+namespace {
+    SongSlotData load_and_return_data(std::string data_folder) {
+        std::ifstream dataFile(data_folder + "/data.json");
+        if (!dataFile.is_open()) {
+            std::cerr << "Não foi possível abrir " << data_folder << "/data.json" << std::endl;
+            return SongSlotData{};
+        }
+        nlohmann::json jsonData;
+        dataFile >> jsonData;
+
+        SongSlotData data;
+        data.FolderLocation = data_folder;
+        data.SongName = jsonData.value("SongName", "");
+        data.Artist = jsonData.value("Artist", "");
+        data.Mapper = jsonData.value("Mapper", "");
+        data.Difficulty = jsonData.value("Difficulty", 0);
+
+        return data;
+    }
+
+    std::vector<SongSlotData> load_song_slot_data(std::string path) {
+        std::vector<SongSlotData> slotDataList;
+        for (const auto& entry : std::filesystem::directory_iterator(path)) {
+            if (entry.is_directory()) {
+                std::string folder = entry.path().string();
+
+                std::future<SongSlotData> data = std::async(std::launch::async, load_and_return_data, folder);
+                
+                slotDataList.push_back(data.get());
+            }
+        }
+        return slotDataList;
+    }
+}
 
 class SongList;
 
@@ -144,6 +181,19 @@ public:
     }
 };
 
+namespace {
+    std::vector<std::shared_ptr<SongSlot>> createSongSlots(const std::vector<SongSlotData>& slotDataList, sf::Vector2f list_position) {
+        std::vector<std::shared_ptr<SongSlot>> slots;
+        for (const auto& data : slotDataList) {
+            auto slot = std::make_shared<SongSlot>(list_position, data);
+            slots.push_back(slot);
+        }
+        return slots;  
+    }
+}
+
+class SongSelect; // Forward declaration
+
 class SongList {
 public:
     sf::Vector2f ListPosition;
@@ -162,12 +212,13 @@ public:
     float BackgroundChangeCooldown = 0.2f;
     float BackgroundChangeTimer = 0.0f;
     bool backgroundChangePending = false;
-
-    // Cache de backgrounds
     static std::unordered_map<std::string, std::shared_ptr<sf::Texture>> BackgroundCache;
 
-    SongList(std::string path, sf::Vector2f list_position, sf::RenderWindow &mWindow)
+    SongSelect* parentSelect = nullptr;
+
+    SongList(std::string path, sf::Vector2f list_position, sf::RenderWindow &mWindow, SongSelect* parent)
     : window(mWindow),
+      parentSelect(parent),
       backgroundTransparencyTweenIn(0.0f, 1.0f, 0.5f),
       backgroundTransparencyTweenOut(1.0f, 0.0f, 0.5f),
       select_slot_background1("assets/sprites/main_menu/background.png",0,0),
@@ -177,32 +228,16 @@ public:
         select_slot_background1.blurredStrength = 2.0f;
         select_slot_background2.blurredStrength = 2.0f;
         try {
+            // carrega os dados dos slots em outro thread
             std::vector<SongSlotData> slotDataList;
-            for (const auto& entry : std::filesystem::directory_iterator(path)) {
-                if (entry.is_directory()) {
-                    std::string folder = entry.path().string();
-                    std::ifstream dataFile(folder + "/data.json");
-                    if (!dataFile.is_open()) {
-                        std::cerr << "Não foi possível abrir " << folder << "/data.json" << std::endl;
-                        continue;
-                    }
-                    nlohmann::json jsonData;
-                    dataFile >> jsonData;
+            std::future<std::vector<SongSlotData>> futureData = std::async(std::launch::async, load_song_slot_data, path);
+            slotDataList = futureData.get();
 
-                    SongSlotData data;
-                    data.FolderLocation = folder;
-                    data.SongName = jsonData.value("SongName", "");
-                    data.Artist = jsonData.value("Artist", "");
-                    data.Mapper = jsonData.value("Mapper", "");
-                    data.Difficulty = jsonData.value("Difficulty", 0);
+            // cria os slots em outro thread
+            std::future<std::vector<std::shared_ptr<SongSlot>>> futureSlots = std::async(std::launch::async, createSongSlots, slotDataList, list_position);
+            ButtonVector = futureSlots.get();
 
-                    slotDataList.push_back(data);
-                }
-            }
-            for (const auto& data : slotDataList) {
-                auto slot = std::make_shared<SongSlot>(list_position, data);
-                ButtonVector.push_back(slot);
-            }
+            //seleciona o slot do meio como padrão
             if (!ButtonVector.empty()) {
                 if (AudioManager::getInstance().isPlaying()) {
                     auto currentSlot = AudioManager::getInstance().getCurrentSlot();
@@ -219,22 +254,8 @@ public:
                     SelectedSlot = ButtonVector[ButtonVector.size() / 2];
                 }  
             }
+
             updateSlotPositions();
-
-            auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
-            if (it != ButtonVector.end()) {
-                int index = std::distance(ButtonVector.begin(), it);
-
-                ButtonVector[index]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(-40.f, 0.f));
-
-                for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
-                    ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
-                }
-
-                for (int i = index + 1, offset = 1; i < ButtonVector.size(); ++i, ++offset) {
-                    ButtonVector[i]->SetButtonAndWidjetsRelativePosition(ListPosition + sf::Vector2f(0.f, offset * button_offset));
-                }
-            }
             
         } catch (const std::filesystem::filesystem_error& e) {
             std::cerr << "Erro: " << e.what() << std::endl;
@@ -243,70 +264,9 @@ public:
         setBackgroundForSelectedSlot();
     }
 
-    void listUpdate(float dt) {
-        backgroundTransparencyTweenIn.update(dt);
-        backgroundTransparencyTweenOut.update(dt);
-        updateSlotTweens(dt);
+    void listUpdate(float dt);
 
-        if (backgroundTransparencyTweenOut.isActive()) {
-            select_slot_background2.sprite->setColor(sf::Color(255, 255, 255, static_cast<int>(std::round(backgroundTransparencyTweenOut.getValue() * 255))));
-        }
-        else if (backgroundTransparencyTweenIn.isActive()) {
-            select_slot_background2.sprite->setColor(sf::Color(255, 255, 255, static_cast<int>(std::round(backgroundTransparencyTweenIn.getValue() * 255))));
-        }
-
-        if (backgroundChangePending) {
-            BackgroundChangeTimer += dt;
-            if (BackgroundChangeTimer >= BackgroundChangeCooldown) {
-                setBackgroundForSelectedSlot();
-                if (AudioManager::getInstance().isPlaying()) {
-                    if (AudioManager::getInstance().getCurrentMusicPath() != SelectedSlot->FolderLocation + "/song.mp3") {
-                        AudioManager::getInstance().playMusic(SelectedSlot->FolderLocation + "/song.mp3", true, SelectedSlot); 
-                    }
-                }
-                else {
-                    AudioManager::getInstance().playMusic(SelectedSlot->FolderLocation + "/song.mp3", true, SelectedSlot); 
-                }
-                backgroundChangePending = false;
-            }
-        }
-    }
-
-    void setBackgroundForSelectedSlot() {
-        std::string bgPath = SelectedSlot->FolderLocation + "/background.png";
-        auto it = BackgroundCache.find(bgPath);
-        if (it != BackgroundCache.end()) {
-            if (isActiveBackground1) {
-                select_slot_background2.spriteTexture = it->second;
-            } else {
-                select_slot_background1.spriteTexture = it->second;
-            }
-        } else {
-            auto tex = std::make_shared<sf::Texture>();
-            if (!tex->loadFromFile(bgPath)) {
-                std::cerr << "Não foi possível carregar a imagem " << bgPath << std::endl;
-            }
-            BackgroundCache[bgPath] = tex;
-            if (isActiveBackground1)
-                select_slot_background2.spriteTexture = tex;
-            else
-                select_slot_background1.spriteTexture = tex;
-        }
-        if (isActiveBackground1) {
-            select_slot_background2.sprite->setTexture(*select_slot_background2.spriteTexture);
-            ResizeSpriteToFitWindow(select_slot_background2, window);
-            backgroundTransparencyTweenIn.play(); // da play no tween
-            backgroundTransparencyTweenOut.reset(); backgroundTransparencyTweenOut.pause();
-            isActiveBackground1 = false;
-        }
-        else {
-            select_slot_background1.sprite->setTexture(*select_slot_background1.spriteTexture);
-            ResizeSpriteToFitWindow(select_slot_background1, window);
-            backgroundTransparencyTweenOut.play(); // da play no tween
-            backgroundTransparencyTweenIn.reset(); backgroundTransparencyTweenIn.pause();
-            isActiveBackground1 = true;
-        }       
-    }
+    void setBackgroundForSelectedSlot();    
 
     void updateSlotPositions() {
         auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
@@ -388,7 +348,7 @@ public:
         }
     }
 
-    void ResizeSpriteToFitWindow(Object obj, sf::RenderWindow& window) {
+    void ResizeSpriteToFitWindow(Object& obj, sf::RenderWindow& window) {
         sf::Vector2u windowSize = window.getSize();                
         sf::Vector2u textureSize = obj.sprite->getTexture().getSize();
         float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
@@ -420,9 +380,12 @@ public:
     void handleEvent(const sf::Event& event) override;
     void update(sf::Time dt) override;
     void render() override;
+    ~SongSelect() override;
 
-private:
-    SongList List;
+    bool isActive = true;
+
+    // Use ponteiro ou unique_ptr para evitar dependência circular
+    std::unique_ptr<SongList> List;
     Object Cursor;
     sf::Vector2i mouse_pos;
     float mouseScrollQueueCooldown = 0.0f;

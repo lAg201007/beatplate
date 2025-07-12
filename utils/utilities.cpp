@@ -1,4 +1,6 @@
 #include "utilities.h"
+#include "SFML_CLASSES.h"
+#include <SFML/Graphics.hpp>
 #include <thread>
 #include <chrono>
 
@@ -24,11 +26,11 @@ int fitTextToWidth(sf::Text& text, float maxWidth, unsigned int minSize) {
     return size;
 }
 
-void ResizeSpriteToFitWindow(Object obj, sf::RenderWindow& window) {
+void ResizeSpriteToFitWindow(sf::Sprite& sprite, sf::RenderWindow& window) {
     sf::Vector2u windowSize = window.getSize();                
-    sf::Vector2u textureSize = obj.sprite->getTexture().getSize();
+    sf::Vector2u textureSize = sprite.getTexture().getSize();
     float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
     float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
-    obj.sprite->setScale({scaleX, scaleY});
+    sprite.setScale({scaleX, scaleY});
 }
 
