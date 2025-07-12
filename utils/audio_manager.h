@@ -35,6 +35,11 @@ public:
         return music.getStatus() == sf::SoundSource::Status::Playing;
     }
 
+    // Retorna o tempo atual da música
+    float getCurrentTime() const {
+        return music.getPlayingOffset().asSeconds();
+    }
+
     // Retorna o caminho do arquivo da música atual
     const std::string& getCurrentMusicPath() const {
         return currentPath;

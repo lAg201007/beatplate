@@ -109,6 +109,14 @@ void SongSelect::update(sf::Time dt) {
             }
         }
         if (!anyTweenActive) {
+                        
+            float musicTime = AudioManager::getInstance().getCurrentTime();
+            std::string musicPath = AudioManager::getInstance().getCurrentMusicPath();
+            AudioManager::getInstance().stopMusic();
+            
+            mStack.sharedState.musicTime = musicTime;
+            mStack.sharedState.musicPath = musicPath;
+
             mStack.popState();
             pendingPop = false;
         }

@@ -120,6 +120,19 @@ void MainMenu::update(sf::Time dt) {
             TitleTween->play();
         }
     }
+
+    // Toca a música salva, se houver, e não estiver tocando nada
+    if (!AudioManager::getInstance().isPlaying() &&
+        !mStack.sharedState.musicPath.empty()) 
+    {
+        AudioManager::getInstance().playMusic(
+            mStack.sharedState.musicPath, 
+            mStack.sharedState.musicTime
+        );
+        // Limpa para não tentar dar play toda vez
+        mStack.sharedState.musicPath.clear();
+        mStack.sharedState.musicTime = 0.f;
+    }
 }
 
 void MainMenu::render() {   
