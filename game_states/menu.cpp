@@ -16,16 +16,23 @@ int MainMenu::ActualMusicBpm = 0;
 MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window),
     Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
-    Title("assets/sprites/main_menu/title.png",600,360,225,104),
+    Title("assets/sprites/main_menu/title.png", 0, 0, 225, 104), // x e y serão definidos depois
     background("assets/sprites/main_menu/background.png",0,0),
 
-    TitleTween(std::make_unique<Tween>(*Title.sprite,0.5f,Tween::linear)), // <-- use make_unique
+    TitleTween(std::make_unique<Tween>(*Title.sprite,0.5f,Tween::linear)),
     TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear),
     StartTextTransparencyTween(0.0f,1.0f,3.0f),
     StartGameText(Arial),
     textColor(StartGameText.getFillColor())
 {
+    // Centraliza o título
+    sf::Vector2u windowSize = window.getSize();
+    sf::FloatRect titleBounds = Title.sprite->getLocalBounds();
+    float titleX = (windowSize.x - titleBounds.size.x) / 2.f;
+    float titleY = (windowSize.y - titleBounds.size.y) / 2.f;
+    Title.sprite->setPosition({titleX, titleY});
     TitlePosition = Title.sprite->getPosition();
+
     TitleTween->initScale(1.0f,1.1f);
     TitleTransparencyTween.initTransparency(0.0f,1.0f);
     TitleTransparencyTween.play();
@@ -38,7 +45,6 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     StartGameText.setCharacterSize(20);
     StartGameText.setPosition(TitlePosition + sf::Vector2f({-100,80}));
 
-    sf::Vector2u windowSize = window.getSize();                
     sf::Vector2u textureSize = background.sprite->getTexture().getSize();
     float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
     float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
@@ -120,19 +126,6 @@ void MainMenu::update(sf::Time dt) {
             TitleTween->initScale(1.0f, 1.1f);
             TitleTween->play();
         }
-    }
-
-    // Toca a música salva, se houver, e não estiver tocando nada
-    if (!AudioManager::getInstance().isPlaying() &&
-        !mStack.sharedState.musicPath.empty()) 
-    {
-        AudioManager::getInstance().playMusic(
-            mStack.sharedState.musicPath, 
-            mStack.sharedState.musicTime
-        );
-        // Limpa para não tentar dar play toda vez
-        mStack.sharedState.musicPath.clear();
-        mStack.sharedState.musicTime = 0.f;
     }
 }
 
