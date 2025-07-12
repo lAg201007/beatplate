@@ -26,4 +26,5 @@ private:
     sf::Color textColor;
     float textTransparencyValue;
     static int ActualMusicBpm;
+    std::string lastCheckedMusicPath;
 };

@@ -91,7 +91,8 @@ void MainMenu::update(sf::Time dt) {
     // Detecta se tem música tocando
     if (AudioManager::getInstance().isPlaying()) {
         std::string musicPath = AudioManager::getInstance().getCurrentMusicPath();
-        if (!musicPath.empty()) {
+        if (!musicPath.empty() && musicPath != lastCheckedMusicPath) {
+            lastCheckedMusicPath = musicPath;
             std::filesystem::path path(musicPath);
             std::string folder = path.parent_path().string();
 
@@ -135,7 +136,7 @@ void MainMenu::update(sf::Time dt) {
     }
 }
 
-void MainMenu::render() {   
+void MainMenu::render() {  
     mWindow.clear(sf::Color::Transparent);
 
     ShaderUtils::drawVerticalBlurSprite(mWindow,*background.sprite, 5.0f);
