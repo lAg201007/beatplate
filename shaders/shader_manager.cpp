@@ -3,6 +3,7 @@
 namespace ShaderUtils {
     std::shared_ptr<sf::Shader> blurShaderPtr = nullptr;
     std::shared_ptr<sf::Shader> whiteMaskShaderPtr = nullptr;
+    std::shared_ptr<sf::Shader> blackMaskShaderPtr = nullptr;
 
     void loadShaders() {
         if (!blurShaderPtr) {
@@ -17,6 +18,13 @@ namespace ShaderUtils {
             if (!whiteMaskShaderPtr->loadFromFile("shaders/frag/white_flash.frag", sf::Shader::Type::Fragment)) {
                 std::cerr << "Erro ao carregar shader white_flash.frag" << std::endl;
                 whiteMaskShaderPtr = nullptr;
+            }
+        }
+        if (!blackMaskShaderPtr) {
+            blackMaskShaderPtr = std::make_shared<sf::Shader>();
+            if (!blackMaskShaderPtr->loadFromFile("shaders/frag/dark_out.frag", sf::Shader::Type::Fragment)) {
+                std::cerr << "Erro ao carregar shader dark_out.frag" << std::endl;
+                blackMaskShaderPtr = nullptr;
             }
         }
     }
@@ -83,34 +91,67 @@ namespace ShaderUtils {
         return compound;
     }
 
+    ShaderCompound createBlackOutCompound(sf::RenderWindow& window, sf::Sprite& sprite, int BlackIntensity) {
+        if (!blackMaskShaderPtr) loadShaders();
+        if (!blackMaskShaderPtr) return {};
+
+        const sf::Vector2u winSize = window.getSize();
+        std::shared_ptr<sf::RenderTexture> renderTexture = std::make_shared<sf::RenderTexture>(sf::Vector2u({winSize.x, winSize.y}));
+        
+
+        renderTexture->clear(sf::Color::Transparent);
+        renderTexture->draw(sprite);
+        renderTexture->display();
+
+        sf::Sprite renderSprite(renderTexture->getTexture());
+
+        blackMaskShaderPtr->setUniform("DarkMultiplier", static_cast<float>(BlackIntensity));
+        blackMaskShaderPtr->setUniform("image", renderSprite.getTexture());
+        blackMaskShaderPtr->setUniform("resolution", sf::Glsl::Vec2(winSize));
+
+        ShaderCompound compound;
+        compound.renderSprite = renderSprite;
+        compound.shader = blackMaskShaderPtr;
+        compound.textureHolder = renderTexture;
+
+        return compound;
+    }
+
     void drawShaderCompound(sf::RenderWindow& window, const ShaderCompound& compound) {
         if (!compound.shader || !compound.renderSprite.has_value()) return;
         window.draw(compound.renderSprite.value(), compound.shader.get());
     }
 
-    void drawCompoundVector(sf::RenderWindow& window, const std::vector<ShaderCompound>& compounds) {
+    void ShaderUtils::drawCompoundVector(sf::RenderWindow& window, const std::vector<ShaderCompound>& compounds) {
         if (compounds.empty()) return;
+        const sf::Vector2u winSize = window.getSize();
 
-        sf::Vector2u winSize = window.getSize();
-        sf::RenderTexture tempRT({winSize.x, winSize.y});
+        sf::RenderTexture tempTexture({winSize.x, winSize.y});
+        
+        sf::Sprite tempSprite(tempTexture.getTexture());
 
-        tempRT.clear(sf::Color::Transparent);
-        tempRT.draw(compounds[0].renderSprite.value(), compounds[0].shader.get());
-        tempRT.display();
+        tempTexture.clear(sf::Color::Transparent);
+        tempTexture.draw(compounds[0].renderSprite.value(), compounds[0].shader.get());
+        tempTexture.display();
 
-        for (size_t i = 1; i < compounds.size(); ++i) {
-            sf::Sprite prevSprite(tempRT.getTexture());
+        tempSprite.setTexture(tempTexture.getTexture());
 
-            if (compounds[i].shader) {
-                compounds[i].shader->setUniform("image", tempRT.getTexture());
-            }
-
-            tempRT.clear(sf::Color::Transparent);
-            tempRT.draw(prevSprite, compounds[i].shader.get());
-            tempRT.display();
+        if (compounds.size() == 1) {
+            window.draw(tempSprite);
+            return;
         }
 
-        sf::Sprite finalSprite(tempRT.getTexture());
-        window.draw(finalSprite);
+        for (int i = 1; i < compounds.size(); ++i) {
+            sf::RenderStates states;
+            states.shader = compounds[i].shader.get();
+            states.blendMode = sf::BlendNone; 
+
+            tempTexture.clear(sf::Color::Transparent);
+            tempTexture.draw(tempSprite, states);
+            tempTexture.display();
+            tempSprite.setTexture(tempTexture.getTexture());
+        }
+
+        window.draw(tempSprite);
     }
 }

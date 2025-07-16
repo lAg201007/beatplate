@@ -23,6 +23,7 @@ struct ShaderCompound {
 namespace ShaderUtils {
     ShaderCompound createVerticalBlurCompound(sf::RenderWindow& mWindow, sf::Sprite& sprite, float BlurStrength);
     ShaderCompound createWhiteMaskCompound(sf::RenderWindow& window, sf::Sprite& sprite, int WhiteIntensity);
+    ShaderCompound createBlackOutCompound(sf::RenderWindow& window, sf::Sprite& sprite, int BlackIntensity);
     void drawShaderCompound(sf::RenderWindow& window, const ShaderCompound& compound);
     void drawCompoundVector(sf::RenderWindow& window, const std::vector<ShaderCompound>& compounds);
 

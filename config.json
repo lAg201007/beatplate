@@ -2,6 +2,7 @@
     "settings": {
         "binds": {
             "game_click": ["K", "L"]
-        }
+        },
+        "background_dark_intensity": 100
     }
 }
