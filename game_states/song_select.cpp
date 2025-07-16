@@ -36,7 +36,7 @@ void SongSelect::handleEvent(const sf::Event& event) {
     if (event.is<sf::Event::KeyPressed>()) {
         if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
             if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
-                pendingPop = true; // Marque para pop depois
+                mStack.popState();
             }
             else if (keyPressed->scancode == sf::Keyboard::Scancode::Up) {
                 List->scrollListUpByOne();
@@ -96,23 +96,6 @@ void SongSelect::update(sf::Time dt) {
             slot->clicked(List->ButtonVector, List->SelectedSlot, *List, mStack, mWindow);
         }
     }
-
-    if (pendingPop) {
-        bool anyTweenActive = false;
-        if (List->backgroundTransparencyTweenIn.isActive() || List->backgroundTransparencyTweenOut.isActive())
-            anyTweenActive = true;
-        for (auto& slot : List->ButtonVector) {
-            if (slot->PositionTweenX.isActive() || slot->PositionTweenY.isActive() ||
-                slot->SelectedOffsetTween.isActive() || slot->WhiteIntensityTween.isActive()) {
-                anyTweenActive = true;
-                break;
-            }
-        }
-        if (!anyTweenActive) {
-            mStack.popState();
-            pendingPop = false;
-        }
-    }
 }
 
 // Render Event for SongSelect
@@ -166,7 +149,6 @@ void SongSlot::SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
     SongNameLabel.setPosition(Position + offsetVec + sf::Vector2f({-60,-20}));
     MapperLabel.setPosition(Position + offsetVec + sf::Vector2f({0,5}));
 
-
     if (SongNameLabel.getCharacterSize() != fitTextToWidth(SongNameLabel, 330)) {
         SongNameLabel.setCharacterSize(fitTextToWidth(SongNameLabel, 330));
     } 
@@ -198,7 +180,9 @@ void SongSlot::update(float dt) {
 
 void SongSlot::renderButton(sf::RenderWindow& window) {
     if (WhiteIntensityTween.isActive() || whiteIntensity > 0.f) {
-        ShaderUtils::drawSpriteWithWhiteMaskShader(window, *SongButton.sprite, static_cast<uint8_t>(whiteIntensity));
+        //ShaderUtils::drawSpriteWithWhiteMaskShader(window, *SongButton.sprite, static_cast<uint8_t>(whiteIntensity));
+        ShaderUtils::drawShaderCompound(window, ShaderUtils::createWhiteMaskCompound(window,*SongButton.sprite, static_cast<uint8_t>(whiteIntensity)));
+   
     }   
     else {
         window.draw(*SongButton.sprite);
@@ -257,8 +241,11 @@ void SongList::ResizeSpriteToFitWindow(Object& obj, sf::RenderWindow& window) {
 }
 
 void SongList::RenderList(sf::RenderWindow& window) {
-    ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background1.sprite, select_slot_background1.blurredStrength);
-    ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background2.sprite, select_slot_background2.blurredStrength);
+    //ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background1.sprite, select_slot_background1.blurredStrength);
+    //ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background2.sprite, select_slot_background2.blurredStrength);
+
+    ShaderUtils::drawShaderCompound(window, ShaderUtils::createVerticalBlurCompound(window,*select_slot_background1.sprite, select_slot_background1.blurredStrength));
+    ShaderUtils::drawShaderCompound(window, ShaderUtils::createVerticalBlurCompound(window,*select_slot_background2.sprite, select_slot_background2.blurredStrength));
 
     for (auto slot : ButtonVector) {
         if (slot->Position.x > window.getSize().x + 100

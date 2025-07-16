@@ -89,7 +89,8 @@ void Game::update(sf::Time dt) {
 }
 
 void Game::render() {   
-    ShaderUtils::drawVerticalBlurSprite(mWindow, *background.sprite, background.blurredStrength);
+    //ShaderUtils::drawVerticalBlurSprite(mWindow, *background.sprite, background.blurredStrength);
+    ShaderUtils::drawShaderCompound(mWindow, ShaderUtils::createVerticalBlurCompound(mWindow, *background.sprite, background.blurredStrength));
     for (const auto& note : notes) {
         note->render(mWindow);
     }

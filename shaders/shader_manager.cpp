@@ -21,54 +21,96 @@ namespace ShaderUtils {
         }
     }
 
-    void drawVerticalBlurSprite(sf::RenderWindow& mWindow, sf::Sprite sprite, float BlurStrength) {
+    ShaderCompound createVerticalBlurCompound(sf::RenderWindow& mWindow, sf::Sprite& sprite, float BlurStrength) {
         if (!blurShaderPtr) loadShaders();
-        if (!blurShaderPtr) return;
-
+        if (!blurShaderPtr) return {};
+       
         const sf::Vector2u winSize = mWindow.getSize();
 
         sf::RenderTexture sceneRT({winSize.x, winSize.y});
-        sf::RenderTexture blurRT({winSize.x, winSize.y});
+        std::shared_ptr<sf::RenderTexture> blurRT = std::make_shared<sf::RenderTexture>(sf::Vector2u({winSize.x, winSize.y}));
 
         sceneRT.clear(sf::Color::Transparent);
         sceneRT.draw(sprite);
         sceneRT.display();
 
         sf::Sprite sceneSprite(sceneRT.getTexture());
-        sf::Sprite blurSprite(blurRT.getTexture());
+        sf::Sprite blurSprite(blurRT->getTexture());
 
         blurShaderPtr->setUniform("image", sceneRT.getTexture());
         blurShaderPtr->setUniform("resolution", sf::Glsl::Vec2(winSize));
         blurShaderPtr->setUniform("blurStrength", BlurStrength);
         blurShaderPtr->setUniform("horizontal", true);
 
-        blurRT.clear(sf::Color::Transparent);
-        blurRT.draw(sceneSprite, blurShaderPtr.get());
-        blurRT.display();
+        blurRT->clear(sf::Color::Transparent);
+        blurRT->draw(sceneSprite, blurShaderPtr.get());
+        blurRT->display();
 
-        blurShaderPtr->setUniform("image", blurRT.getTexture());
+        blurShaderPtr->setUniform("image", blurRT->getTexture());
         blurShaderPtr->setUniform("horizontal", false);
 
-        mWindow.draw(blurSprite, blurShaderPtr.get());
+        ShaderCompound compound;
+        compound.renderSprite = blurSprite;
+        compound.shader = blurShaderPtr;
+        compound.textureHolder = blurRT;
+
+        return compound;
     }
 
-    void drawSpriteWithWhiteMaskShader(sf::RenderWindow& window, sf::Sprite sprite, int WhiteIntensity) {
+    ShaderCompound createWhiteMaskCompound(sf::RenderWindow& window, sf::Sprite& sprite, int WhiteIntensity) {
         if (!whiteMaskShaderPtr) loadShaders();
-        if (!whiteMaskShaderPtr) return;
+        if (!whiteMaskShaderPtr) return {};
 
         const sf::Vector2u winSize = window.getSize();
-        sf::RenderTexture renderTexture({winSize.x, winSize.y});
+        std::shared_ptr<sf::RenderTexture> renderTexture = std::make_shared<sf::RenderTexture>(sf::Vector2u({winSize.x, winSize.y}));
+        
 
-        renderTexture.clear(sf::Color::Transparent);
-        renderTexture.draw(sprite);
-        renderTexture.display();
+        renderTexture->clear(sf::Color::Transparent);
+        renderTexture->draw(sprite);
+        renderTexture->display();
 
-        sf::Sprite renderSprite(renderTexture.getTexture());
+        sf::Sprite renderSprite(renderTexture->getTexture());
 
         whiteMaskShaderPtr->setUniform("WhiteMultiplier", static_cast<float>(WhiteIntensity));
         whiteMaskShaderPtr->setUniform("image", renderSprite.getTexture());
         whiteMaskShaderPtr->setUniform("resolution", sf::Glsl::Vec2(winSize));
 
-        window.draw(renderSprite, whiteMaskShaderPtr.get());
+        ShaderCompound compound;
+        compound.renderSprite = renderSprite;
+        compound.shader = whiteMaskShaderPtr;
+        compound.textureHolder = renderTexture;
+
+        return compound;
+    }
+
+    void drawShaderCompound(sf::RenderWindow& window, const ShaderCompound& compound) {
+        if (!compound.shader || !compound.renderSprite.has_value()) return;
+        window.draw(compound.renderSprite.value(), compound.shader.get());
+    }
+
+    void drawCompoundVector(sf::RenderWindow& window, const std::vector<ShaderCompound>& compounds) {
+        if (compounds.empty()) return;
+
+        sf::Vector2u winSize = window.getSize();
+        sf::RenderTexture tempRT({winSize.x, winSize.y});
+
+        tempRT.clear(sf::Color::Transparent);
+        tempRT.draw(compounds[0].renderSprite.value(), compounds[0].shader.get());
+        tempRT.display();
+
+        for (size_t i = 1; i < compounds.size(); ++i) {
+            sf::Sprite prevSprite(tempRT.getTexture());
+
+            if (compounds[i].shader) {
+                compounds[i].shader->setUniform("image", tempRT.getTexture());
+            }
+
+            tempRT.clear(sf::Color::Transparent);
+            tempRT.draw(prevSprite, compounds[i].shader.get());
+            tempRT.display();
+        }
+
+        sf::Sprite finalSprite(tempRT.getTexture());
+        window.draw(finalSprite);
     }
 }

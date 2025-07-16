@@ -242,11 +242,9 @@ public:
 
     bool isActive = true;
 
-    // Use ponteiro ou unique_ptr para evitar dependência circular
     std::unique_ptr<SongList> List;
     Object Cursor;
     sf::Vector2i mouse_pos;
     float mouseScrollQueueCooldown = 0.0f;
     std::vector<int> pendingScrolls;
-    bool pendingPop = false; // Adicione isso na sua classe SongSelect
 };
