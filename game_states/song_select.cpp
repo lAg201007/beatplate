@@ -131,7 +131,7 @@ void SongSlot::clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::share
             list.updateSlotPositions();
         } else {
             std::string FolderLoc = selectedSlot->FolderLocation;
-            Object Background = (list.isActiveBackground1 ? list.select_slot_background1 : list.select_slot_background2);
+            ShaderObject Background = (list.isActiveBackground1 ? list.select_slot_background1 : list.select_slot_background2);
             mStack.popState();
             mStack.pushState(std::make_unique<Game>(mStack, mWindow, FolderLoc, Background)); 
         }
@@ -230,14 +230,6 @@ void SongList::scrollListDownByOne() {
         }   
         updateSlotPositions();     
     }
-}
-
-void SongList::ResizeSpriteToFitWindow(Object& obj, sf::RenderWindow& window) {
-    sf::Vector2u windowSize = window.getSize();                
-    sf::Vector2u textureSize = obj.sprite->getTexture().getSize();
-    float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
-    float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
-    obj.sprite->setScale({scaleX, scaleY});
 }
 
 void SongList::RenderList(sf::RenderWindow& window) {

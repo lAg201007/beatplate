@@ -7,6 +7,21 @@
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
 #include "../utils/SFML_CLASSES.h"
+#include <SFML/Graphics.hpp>
+#include <variant>
+#include <functional>
+#include <optional>
+#include <vector>
+#include <string>
+#include <unordered_map>
+
+using UniformValue = std::variant<
+    int,
+    float,
+    bool,
+    sf::Vector2f,
+    std::reference_wrapper<const sf::Texture>
+>;
 
 struct ShaderCompound {
     std::optional<sf::Sprite> renderSprite;
@@ -18,16 +33,14 @@ struct ShaderCompound {
     ShaderCompound(sf::Sprite& s, std::shared_ptr<sf::Shader> sh)
         : renderSprite(s), shader(sh), textureHolder(nullptr) {}
 };
-// TODO: FIX THIS
 
 namespace ShaderUtils {
-    ShaderCompound createVerticalBlurCompound(sf::RenderWindow& mWindow, sf::Sprite& sprite, float BlurStrength);
-    ShaderCompound createWhiteMaskCompound(sf::RenderWindow& window, sf::Sprite& sprite, int WhiteIntensity);
-    ShaderCompound createBlackOutCompound(sf::RenderWindow& window, sf::Sprite& sprite, int BlackIntensity);
+    ShaderCompound createGenericShaderCompound(sf::RenderWindow& window, ShaderSprite& sprite, std::string shaderPath, const std::vector<std::pair<std::string, UniformValue>>& uniforms);
+    ShaderCompound createVerticalBlurCompound(sf::RenderWindow& mWindow, ShaderSprite& sprite, float BlurStrength);
+    ShaderCompound createWhiteMaskCompound(sf::RenderWindow& window, ShaderSprite& sprite, int WhiteIntensity);
+    ShaderCompound createBlackOutCompound(sf::RenderWindow& window, ShaderSprite& sprite, int BlackIntensity);
     void drawShaderCompound(sf::RenderWindow& window, const ShaderCompound& compound);
     void drawCompoundVector(sf::RenderWindow& window, const std::vector<ShaderCompound>& compounds);
 
-    extern std::shared_ptr<sf::Shader> blurShaderPtr;
-    extern std::shared_ptr<sf::Shader> whiteMaskShaderPtr;
     void loadShaders();
 }

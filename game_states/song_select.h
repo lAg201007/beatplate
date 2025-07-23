@@ -87,7 +87,7 @@ public:
     sf::Text ArtistLabel;
     sf::Text MapperLabel;
     sf::Text DificultyLabel;
-    Button SongButton;
+    ShaderButton SongButton;
 
     sf::Color originalColor = sf::Color::White;
 
@@ -155,8 +155,8 @@ public:
     std::vector<std::shared_ptr<SongSlot>> ButtonVector;
     std::shared_ptr<SongSlot> SelectedSlot;
     sf::RenderWindow& window;
-    Object select_slot_background1;
-    Object select_slot_background2;
+    ShaderObject select_slot_background1;
+    ShaderObject select_slot_background2;
 
     ValueTween backgroundTransparencyTweenIn;
     ValueTween backgroundTransparencyTweenOut;
@@ -227,8 +227,15 @@ public:
     void scrollListUpByOne();
     void scrollListDownByOne();
     void selectSlotByIndex(int index);
-    void ResizeSpriteToFitWindow(Object& obj, sf::RenderWindow& window);
     void RenderList(sf::RenderWindow& window);
+    template<typename ObjectT>
+    static void ResizeSpriteToFitWindow(ObjectT& obj, sf::RenderWindow& window) {
+        sf::Vector2u windowSize = window.getSize();                
+        sf::Vector2u textureSize = obj.sprite->getTexture().getSize();
+        float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
+        float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
+        obj.sprite->setScale({scaleX, scaleY});
+    }
 };
 
 class SongSelect : public State {

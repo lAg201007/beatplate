@@ -7,7 +7,7 @@
 
 class Game : public State {
 public:
-    Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, Object& background);
+    Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, ShaderObject& background);
 
     void handleEvent(const sf::Event& event) override;
     void update(sf::Time dt) override;
@@ -24,5 +24,5 @@ private:
     float startDelay = 2.0f; 
     bool started = false;
     std::string songFolder;
-    Object background;
+    ShaderObject background;
 };

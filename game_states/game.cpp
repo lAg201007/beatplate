@@ -8,9 +8,10 @@
 #include "../state_stack.h"
 #include "../game_logic/note_objects/plate.h"
 #include "../utils/audio_manager.h"
+#include "../utils/SFML_CLASSES.h"
 #include <fstream>
 
-Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, Object& background)
+Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, ShaderObject& background)
     : State(stack, window),
       Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
       songFolder(songFolder),
@@ -21,7 +22,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     dataFile >> data;
 
     for (auto& [key, value] : data["notes"].items()) {
-        if (value["type"] == "plate") {
+        if (value["type"] == "plate") { 
                 notes.push_back(std::make_shared<Plate>(mWindow,
                 static_cast<int>(value["offset"]),
                 static_cast<int>(value["xPos"]),
