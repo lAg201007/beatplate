@@ -87,7 +87,7 @@ public:
     sf::Text ArtistLabel;
     sf::Text MapperLabel;
     sf::Text DificultyLabel;
-    ShaderButton SongButton;
+    Button SongButton;
 
     sf::Color originalColor = sf::Color::White;
 

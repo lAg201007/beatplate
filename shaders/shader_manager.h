@@ -37,13 +37,13 @@ struct ShaderCompound {
 namespace ShaderUtils {
     ShaderCompound createGenericShaderCompound(
         sf::RenderWindow& window,
-        ShaderSprite& sprite,
+        sf::Sprite& sprite,
         const std::string& shaderPath,
         std::vector<std::pair<std::string, UniformValue>>& uniforms,
         const std::string& vertexShaderPath = "shaders/vert/default.vert");
     ShaderCompound createVerticalBlurCompound(sf::RenderWindow& mWindow, ShaderSprite& sprite, float BlurStrength);
-    ShaderCompound createWhiteMaskCompound(sf::RenderWindow& window, ShaderSprite& sprite, int WhiteIntensity);
-    ShaderCompound createBlackOutCompound(sf::RenderWindow& window, ShaderSprite& sprite, int BlackIntensity);
+    ShaderCompound createWhiteMaskCompound(sf::RenderWindow& window, sf::Sprite& sprite, int WhiteIntensity);
+    ShaderCompound createBlackOutCompound(sf::RenderWindow& window, sf::Sprite& sprite, int BlackIntensity);
     void drawShaderCompound(sf::RenderWindow& window, const ShaderCompound& compound);
     void drawCompoundVector(sf::RenderWindow& window, const std::vector<ShaderCompound>& compounds);
 

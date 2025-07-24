@@ -52,7 +52,7 @@ namespace ShaderUtils {
 
     ShaderCompound createGenericShaderCompound(
         sf::RenderWindow& window,
-        ShaderSprite& sprite,
+        sf::Sprite& sprite,
         const std::string& shaderPath,
         std::vector<std::pair<std::string, UniformValue>>& uniforms,
         const std::string& vertexShaderPath) 
@@ -91,7 +91,7 @@ namespace ShaderUtils {
     // this happens because the sprite uses the non scaled texture size, and the render texture transforms
     // that sprite into a texture with the window´s size, so the sprite will remain with his scaled size
 
-    ShaderCompound createWhiteMaskCompound(sf::RenderWindow& window, ShaderSprite& sprite, int WhiteIntensity) {
+    ShaderCompound createWhiteMaskCompound(sf::RenderWindow& window, sf::Sprite& sprite, int WhiteIntensity) {
         std::vector<std::pair<std::string, UniformValue>> uniforms;
         uniforms.reserve(3);
         uniforms.emplace_back("WhiteMultiplier", static_cast<float>(WhiteIntensity));
@@ -102,7 +102,7 @@ namespace ShaderUtils {
         return compound;
     }
 
-    ShaderCompound createBlackOutCompound(sf::RenderWindow& window, ShaderSprite& sprite, int BlackIntensity) {
+    ShaderCompound createBlackOutCompound(sf::RenderWindow& window, sf::Sprite& sprite, int BlackIntensity) {
         std::vector<std::pair<std::string, UniformValue>> uniforms;
         uniforms.reserve(3);
         uniforms.emplace_back("DarkMultiplier", static_cast<float>(BlackIntensity));
