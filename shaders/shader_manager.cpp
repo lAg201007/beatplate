@@ -37,7 +37,7 @@ namespace ShaderUtils {
     ShaderCompound createGenericShaderCompound(sf::RenderWindow& window, 
         ShaderSprite& sprite, 
         std::string shaderPath, 
-        const std::vector<std::pair<std::string, UniformValue>>& uniforms)
+        std::vector<std::pair<std::string, UniformValue>>& uniforms)
     {
         std::string shaderInstanceKey;
 
@@ -90,6 +90,8 @@ namespace ShaderUtils {
 
         sf::Sprite renderSprite(renderTexture->getTexture());
 
+        uniforms.emplace_back("image", std::cref(renderTexture->getTexture())); // passar image aqui, usando render texture, não sprite
+
         // set uniforms
         for (auto& u : uniforms)
         {
@@ -109,11 +111,15 @@ namespace ShaderUtils {
         return compound;
     }
 
+    // do not pass image uniform here, it needs to be passed using the render texture´s texture, not the sprite one
+    // doing this will not crash anything, but it will make the sprite enormously big
+    // this happens because the sprite uses the non scaled texture size, and the render texture transforms
+    // that sprite into a texture with the window´s size, so the sprite will remain with his scaled size
+
     ShaderCompound createWhiteMaskCompound(sf::RenderWindow& window, ShaderSprite& sprite, int WhiteIntensity) {
         std::vector<std::pair<std::string, UniformValue>> uniforms;
         uniforms.reserve(3);
         uniforms.emplace_back("WhiteMultiplier", static_cast<float>(WhiteIntensity));
-        uniforms.emplace_back("image", std::cref(sprite.getTexture())); 
         sf::Vector2u winSize = window.getSize();
         sf::Vector2f resolution(winSize.x, winSize.y); 
         uniforms.emplace_back("resolution", UniformValue{resolution});
@@ -125,7 +131,6 @@ namespace ShaderUtils {
         std::vector<std::pair<std::string, UniformValue>> uniforms;
         uniforms.reserve(3);
         uniforms.emplace_back("DarkMultiplier", static_cast<float>(BlackIntensity));
-        uniforms.emplace_back("image", std::cref(sprite.getTexture())); 
         sf::Vector2u winSize = window.getSize();
         sf::Vector2f resolution(winSize.x, winSize.y); 
         uniforms.emplace_back("resolution", UniformValue{resolution});
