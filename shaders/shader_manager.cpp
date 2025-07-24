@@ -13,76 +13,56 @@ uint32_t uniqueIdCounter = 0;
 
 namespace ShaderUtils {
     std::unordered_map<std::string, std::shared_ptr<sf::Shader>> shaderInstanceCache;
-    std::unordered_map<uint32_t, ShaderCompound> shaderCompoundCache;
+    std::unordered_map<std::string, ShaderCompound> shaderCompoundCache;
 
-    std::shared_ptr<sf::Shader> cacheShader(const std::string& shaderInstanceKey, std::string shaderPath,
-    std::unordered_map<std::string, std::shared_ptr<sf::Shader>>& shaderInstanceCache) {
-        std::shared_ptr<sf::Shader> shader;
-        auto shaderIt = shaderInstanceCache.find(shaderInstanceKey);
+    std::shared_ptr<sf::Shader> cacheShader(
+    const std::string& shaderPath,
+    std::unordered_map<std::string, std::shared_ptr<sf::Shader>>& shaderInstanceCache,
+    bool useVertexShader = false,
+    const std::string& vertexShaderPath = "shaders/vert/default.vert") {
+        std::string cacheKey = shaderPath;
+
+        if (useVertexShader) {
+            // chave precisa diferenciar shaders com vertex default
+            cacheKey = vertexShaderPath + shaderPath;
+        }
+
+        auto shaderIt = shaderInstanceCache.find(cacheKey);
         if (shaderIt != shaderInstanceCache.end()) {
-            shader = shaderIt->second;
-        } else {
-            // carrega o shader e coloca no cache se n tiver la
-            shader = std::make_shared<sf::Shader>();
-            if (!shader->loadFromFile(shaderPath, sf::Shader::Type::Fragment)) {
-                std::cerr << "Erro ao carregar shader em " << shaderPath << "\n";
+            return shaderIt->second;
+        }
+
+        auto shader = std::make_shared<sf::Shader>();
+
+        if (useVertexShader) {
+            if (!shader->loadFromFile(vertexShaderPath, shaderPath)) {
+                std::cerr << "Erro ao carregar vertex+fragment shaders em " << vertexShaderPath << " + " << shaderPath << "\n";
                 return {};
             }
-            shaderInstanceCache[shaderInstanceKey] = shader;
+        } else {
+            if (!shader->loadFromFile(shaderPath, sf::Shader::Type::Fragment)) {
+                std::cerr << "Erro ao carregar fragment shader em " << shaderPath << "\n";
+                return {};
+            }
         }
+ 
+        shaderInstanceCache[cacheKey] = shader;
         return shader;
     }
 
-    // função para shaders genericos de uma passada só
-    ShaderCompound createGenericShaderCompound(sf::RenderWindow& window, 
-        ShaderSprite& sprite, 
-        std::string shaderPath, 
-        std::vector<std::pair<std::string, UniformValue>>& uniforms)
+    ShaderCompound createGenericShaderCompound(
+        sf::RenderWindow& window,
+        ShaderSprite& sprite,
+        const std::string& shaderPath,
+        std::vector<std::pair<std::string, UniformValue>>& uniforms,
+        const std::string& vertexShaderPath) 
     {
-        std::string shaderInstanceKey;
-
-        auto compoundIt = shaderCompoundCache.find(sprite.uniqueId);    
-        if (compoundIt != shaderCompoundCache.end()) {
-            return compoundIt->second; // Retorna o cache se já existir
-        }
-
-        // uniforms podem ser apenas tipos primitivos
-        // loopa pelos uniforms e cria uma chave única
-        for (const auto& uniform : uniforms) {
-            shaderInstanceKey += uniform.first;
-            std::visit([&](auto&& v) {
-                using T = std::decay_t<decltype(v)>;
-
-                if constexpr (std::is_same_v<T, int>) {
-                    shaderInstanceKey += std::to_string(v);
-                }
-                else if constexpr (std::is_same_v<T, float>) {
-                    shaderInstanceKey += std::to_string(v);
-                }
-                else if constexpr (std::is_same_v<T, bool>) {
-                    shaderInstanceKey += v ? "true" : "false";
-                }
-                else if constexpr (std::is_same_v<T, sf::Vector2f>) {
-                    shaderInstanceKey += "(" + std::to_string(v.x) + "," + std::to_string(v.y) + ")";
-                }
-                else if constexpr (std::is_same_v<T,  std::reference_wrapper<const sf::Texture>>) {
-                    // usa o handle único da textura para a chave
-                    shaderInstanceKey += std::to_string(v.get().getNativeHandle());
-                }   
-                else {
-                    static_assert(always_false<T>::value,
-                        "Tipo de UniformValue não tratado no key generator");
-                }
-            }, uniform.second);
-        }
-
-        // pega winSize e cria a renderTexture
         const sf::Vector2u winSize = window.getSize();
-        std::shared_ptr<sf::RenderTexture> renderTexture = std::make_shared<sf::RenderTexture>(winSize);
+        auto renderTexture = std::make_shared<sf::RenderTexture>(winSize);
 
-        // procura o shader no cache
-        std::shared_ptr<sf::Shader> shader;
-        shader = cacheShader(shaderInstanceKey, shaderPath, shaderInstanceCache);
+        // Aqui usamos cacheShader adaptado para vertex + fragment (caso não tenha, substitua pela criação direta)
+        std::shared_ptr<sf::Shader> shaderCopy;
+        shaderCopy = cacheShader(shaderPath, shaderInstanceCache, true, vertexShaderPath);
 
         renderTexture->clear(sf::Color::Transparent);
         renderTexture->draw(sprite);
@@ -90,24 +70,19 @@ namespace ShaderUtils {
 
         sf::Sprite renderSprite(renderTexture->getTexture());
 
-        uniforms.emplace_back("image", std::cref(renderTexture->getTexture())); // passar image aqui, usando render texture, não sprite
+        uniforms.emplace_back("image", std::cref(renderTexture->getTexture())); // image = renderTexture
 
-        // set uniforms
         for (auto& u : uniforms)
         {
             std::visit([&](auto&& v) {
-
-                shader->setUniform(u.first, v);
-
+                shaderCopy->setUniform(u.first, v);
             }, u.second);
         }
 
         ShaderCompound compound;
         compound.renderSprite = renderSprite;
-        compound.shader = shader;
+        compound.shader = shaderCopy;
         compound.textureHolder = renderTexture;
-
-        shaderCompoundCache[sprite.uniqueId] = compound; 
         return compound;
     }
 
@@ -141,8 +116,13 @@ namespace ShaderUtils {
     // shaders mais complexos que precisam de uma função própia
 
     ShaderCompound createVerticalBlurCompound(sf::RenderWindow& mWindow, ShaderSprite& sprite, float BlurStrength) {
-        std::string shaderKey = "verticalBlur" + std::to_string(BlurStrength);
-        auto compoundIt = shaderCompoundCache.find(sprite.uniqueId);    
+        // como essa é uma função especifica de shader, nós setamos as keys manualmente
+
+        std::string compoundKey = std::to_string(sprite.uniqueId);
+        compoundKey += "pos(" + std::to_string(sprite.getPosition().x) + "," + std::to_string(sprite.getPosition().y) + ")";
+        compoundKey += "blurStrength" + std::to_string(BlurStrength);
+
+        auto compoundIt = shaderCompoundCache.find(compoundKey);    
         if (compoundIt != shaderCompoundCache.end()) {
             return compoundIt->second; // Retorna o cache se já existir
         }
@@ -152,7 +132,7 @@ namespace ShaderUtils {
         std::shared_ptr<sf::RenderTexture> blurRT = std::make_shared<sf::RenderTexture>(winSize);
 
         std::shared_ptr<sf::Shader> shaderCopy;
-        shaderCopy = cacheShader(shaderKey, "shaders/frag/blur.frag", shaderInstanceCache);
+        shaderCopy = cacheShader("shaders/frag/blur.frag", shaderInstanceCache, false);
 
         sceneRT.clear(sf::Color::Transparent);
         sceneRT.draw(sprite);
@@ -178,7 +158,7 @@ namespace ShaderUtils {
         compound.shader = shaderCopy;
         compound.textureHolder = blurRT;
 
-        shaderCompoundCache[sprite.uniqueId] = compound; 
+        shaderCompoundCache[compoundKey] = compound; 
         return compound;
     } 
 

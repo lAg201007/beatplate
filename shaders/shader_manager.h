@@ -35,7 +35,12 @@ struct ShaderCompound {
 };
 
 namespace ShaderUtils {
-    ShaderCompound createGenericShaderCompound(sf::RenderWindow& window, ShaderSprite& sprite, std::string shaderPath, const std::vector<std::pair<std::string, UniformValue>>& uniforms);
+    ShaderCompound createGenericShaderCompound(
+        sf::RenderWindow& window,
+        ShaderSprite& sprite,
+        const std::string& shaderPath,
+        std::vector<std::pair<std::string, UniformValue>>& uniforms,
+        const std::string& vertexShaderPath = "shaders/vert/default.vert");
     ShaderCompound createVerticalBlurCompound(sf::RenderWindow& mWindow, ShaderSprite& sprite, float BlurStrength);
     ShaderCompound createWhiteMaskCompound(sf::RenderWindow& window, ShaderSprite& sprite, int WhiteIntensity);
     ShaderCompound createBlackOutCompound(sf::RenderWindow& window, ShaderSprite& sprite, int BlackIntensity);
