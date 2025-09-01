@@ -96,6 +96,8 @@ public:
     ValueTween SelectedOffsetTween;
     ValueTween WhiteIntensityTween;
     float whiteIntensity = 0.f;
+    float whiteIntensityCache = 0.f;
+    sf::Shader whiteMaskShader;
 
     sf::Vector2f Position;
 
@@ -110,7 +112,8 @@ public:
     PositionTweenY(startPos.y, startPos.y, 1.0f, Tween::easeOutQuad),
     SelectedOffsetTween(0.f, 0.f, 1.0f, Tween::easeOutQuad),
     WhiteIntensityTween(255.f, 0.f, 0.3f, Tween::easeOutQuad),
-    whiteIntensity(0.f)
+    whiteIntensity(0.f),
+    whiteIntensityCache(0.f)
     {
         FolderLocation = data.FolderLocation;
         SongName = data.SongName;
@@ -155,8 +158,8 @@ public:
     std::vector<std::shared_ptr<SongSlot>> ButtonVector;
     std::shared_ptr<SongSlot> SelectedSlot;
     sf::RenderWindow& window;
-    ShaderObject select_slot_background1;
-    ShaderObject select_slot_background2;
+    Object select_slot_background1;
+    Object select_slot_background2;
 
     ValueTween backgroundTransparencyTweenIn;
     ValueTween backgroundTransparencyTweenOut;
@@ -216,6 +219,12 @@ public:
             std::cerr << "Erro: " << e.what() << std::endl;
         }
 
+        ResizeSpriteToFitWindow(*select_slot_background1.sprite, window);
+        ResizeSpriteToFitWindow(*select_slot_background2.sprite, window);
+
+        select_slot_background1 = ShaderUtils::applyBlurToObject(window, select_slot_background1, 2.0f);
+        select_slot_background2 = ShaderUtils::applyBlurToObject(window, select_slot_background2, 2.0f);
+
         setBackgroundForSelectedSlot();
     }
 
@@ -228,14 +237,6 @@ public:
     void scrollListDownByOne();
     void selectSlotByIndex(int index);
     void RenderList(sf::RenderWindow& window);
-    template<typename ObjectT>
-    static void ResizeSpriteToFitWindow(ObjectT& obj, sf::RenderWindow& window) {
-        sf::Vector2u windowSize = window.getSize();                
-        sf::Vector2u textureSize = obj.sprite->getTexture().getSize();
-        float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
-        float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
-        obj.sprite->setScale({scaleX, scaleY});
-    }
 };
 
 class SongSelect : public State {
@@ -249,9 +250,11 @@ public:
 
     bool isActive = true;
 
+    // Use ponteiro ou unique_ptr para evitar dependência circular
     std::unique_ptr<SongList> List;
     Object Cursor;
     sf::Vector2i mouse_pos;
     float mouseScrollQueueCooldown = 0.0f;
     std::vector<int> pendingScrolls;
+    bool pendingPop = false; // Adicione isso na sua classe SongSelect
 };

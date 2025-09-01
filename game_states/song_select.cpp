@@ -7,6 +7,7 @@
 #include "../utils/utilities.h"
 #include "../utils/tween_storage.h"
 #include "../state_stack.h"
+#include "print"
 
 sf::Font SongSlot::Montserrat;
 std::unordered_map<std::string, std::shared_ptr<sf::Texture>> SongList::BackgroundCache;
@@ -36,7 +37,7 @@ void SongSelect::handleEvent(const sf::Event& event) {
     if (event.is<sf::Event::KeyPressed>()) {
         if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
             if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
-                mStack.popState();
+                pendingPop = true; // Marque para pop depois
             }
             else if (keyPressed->scancode == sf::Keyboard::Scancode::Up) {
                 List->scrollListUpByOne();
@@ -96,6 +97,23 @@ void SongSelect::update(sf::Time dt) {
             slot->clicked(List->ButtonVector, List->SelectedSlot, *List, mStack, mWindow);
         }
     }
+
+    if (pendingPop) {
+        bool anyTweenActive = false;
+        if (List->backgroundTransparencyTweenIn.isActive() || List->backgroundTransparencyTweenOut.isActive())
+            anyTweenActive = true;
+        for (auto& slot : List->ButtonVector) {
+            if (slot->PositionTweenX.isActive() || slot->PositionTweenY.isActive() ||
+                slot->SelectedOffsetTween.isActive() || slot->WhiteIntensityTween.isActive()) {
+                anyTweenActive = true;
+                break;
+            }
+        }
+        if (!anyTweenActive) {
+            mStack.popState();
+            pendingPop = false;
+        }
+    }
 }
 
 // Render Event for SongSelect
@@ -131,7 +149,7 @@ void SongSlot::clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::share
             list.updateSlotPositions();
         } else {
             std::string FolderLoc = selectedSlot->FolderLocation;
-            ShaderObject Background = (list.isActiveBackground1 ? list.select_slot_background1 : list.select_slot_background2);
+            Object Background = (list.isActiveBackground1 ? list.select_slot_background1 : list.select_slot_background2);
             mStack.popState();
             mStack.pushState(std::make_unique<Game>(mStack, mWindow, FolderLoc, Background)); 
         }
@@ -148,6 +166,7 @@ void SongSlot::SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
     DificultyLabel.setPosition(Position + offsetVec + sf::Vector2f({-90,-20}));
     SongNameLabel.setPosition(Position + offsetVec + sf::Vector2f({-60,-20}));
     MapperLabel.setPosition(Position + offsetVec + sf::Vector2f({0,5}));
+
 
     if (SongNameLabel.getCharacterSize() != fitTextToWidth(SongNameLabel, 330)) {
         SongNameLabel.setCharacterSize(fitTextToWidth(SongNameLabel, 330));
@@ -173,20 +192,24 @@ void SongSlot::update(float dt) {
     SelectedOffsetTween.update(dt);
     WhiteIntensityTween.update(dt);
     whiteIntensity = WhiteIntensityTween.getValue();
+    whiteIntensityCache = whiteIntensity;
     if (PositionTweenX.isActive() || PositionTweenY.isActive() || SelectedOffsetTween.isActive()) {
         SetButtonAndWidjetsRelativePosition({PositionTweenX.getValue(), PositionTweenY.getValue()});
     }
 }
 
 void SongSlot::renderButton(sf::RenderWindow& window) {
-    if (WhiteIntensityTween.isActive() || whiteIntensity > 0.f) {
-        //ShaderUtils::drawSpriteWithWhiteMaskShader(window, *SongButton.sprite, static_cast<uint8_t>(whiteIntensity));
-        ShaderUtils::drawShaderCompound(window, ShaderUtils::createWhiteMaskCompound(window,*SongButton.sprite, static_cast<uint8_t>(whiteIntensity)));
-   
-    }   
+    if (WhiteIntensityTween.isActive() || whiteIntensity > 0.f && whiteIntensityCache != whiteIntensity) {
+        whiteMaskShader = ShaderUtils::createWhiteMaskShader(static_cast<int>(std::round(whiteIntensity)), window);
+        window.draw(*SongButton.sprite, &whiteMaskShader);
+    }
+    else if (whiteIntensity > 0.f && whiteIntensityCache == whiteIntensity) {
+        window.draw(*SongButton.sprite, &whiteMaskShader);
+    }
     else {
         window.draw(*SongButton.sprite);
     }
+
     window.draw(SongNameLabel);
     window.draw(ArtistLabel);
     window.draw(MapperLabel);
@@ -233,11 +256,8 @@ void SongList::scrollListDownByOne() {
 }
 
 void SongList::RenderList(sf::RenderWindow& window) {
-    //ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background1.sprite, select_slot_background1.blurredStrength);
-    //ShaderUtils::drawVerticalBlurSprite(window, *select_slot_background2.sprite, select_slot_background2.blurredStrength);
-
-    ShaderUtils::drawShaderCompound(window, ShaderUtils::createVerticalBlurCompound(window,*select_slot_background1.sprite, select_slot_background1.blurredStrength));
-    ShaderUtils::drawShaderCompound(window, ShaderUtils::createVerticalBlurCompound(window,*select_slot_background2.sprite, select_slot_background2.blurredStrength));
+    window.draw(*select_slot_background1.sprite);
+    window.draw(*select_slot_background2.sprite);
 
     for (auto slot : ButtonVector) {
         if (slot->Position.x > window.getSize().x + 100
@@ -274,16 +294,18 @@ void SongList::setBackgroundForSelectedSlot() {
     }
     if (isActiveBackground1) {
         select_slot_background2.sprite->setTexture(*select_slot_background2.spriteTexture);
-        ResizeSpriteToFitWindow(select_slot_background2, window);
+        ResizeSpriteToFitWindow(*select_slot_background2.sprite, window);
         backgroundTransparencyTweenIn.play();
         backgroundTransparencyTweenOut.reset(); backgroundTransparencyTweenOut.pause();
+        select_slot_background2 = ShaderUtils::applyBlurToObject(window, select_slot_background2, 5.0f);
         isActiveBackground1 = false;
     }
     else {
         select_slot_background1.sprite->setTexture(*select_slot_background1.spriteTexture);
-        ResizeSpriteToFitWindow(select_slot_background1, window);
+        ResizeSpriteToFitWindow(*select_slot_background1.sprite, window);
         backgroundTransparencyTweenOut.play();
         backgroundTransparencyTweenIn.reset(); backgroundTransparencyTweenIn.pause();
+        select_slot_background1 = ShaderUtils::applyBlurToObject(window, select_slot_background1, 5.0f);
         isActiveBackground1 = true;
     }
 }

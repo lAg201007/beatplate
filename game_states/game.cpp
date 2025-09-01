@@ -11,7 +11,7 @@
 #include "../utils/SFML_CLASSES.h"
 #include <fstream>
 
-Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, ShaderObject& background)
+Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, Object& background)
     : State(stack, window),
       Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
       songFolder(songFolder),
@@ -23,7 +23,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
 
     for (auto& [key, value] : data["notes"].items()) {
         if (value["type"] == "plate") { 
-                notes.push_back(std::make_shared<Plate>(mWindow,
+                notes.push_back(std::make_shared<Plate>(window,
                 static_cast<int>(value["offset"]),
                 static_cast<int>(value["xPos"]),
                 static_cast<int>(data["metadata"]["AR"]),
@@ -35,18 +35,13 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     }
 
     AudioManager::getInstance().pauseMusic();   
-    ResizeSpriteToFitWindow(*background.sprite, mWindow);
+    ResizeSpriteToFitWindow(*background.sprite, window);
 
     std::ifstream configFile("config.json");
     nlohmann::json config;
     configFile >> config;
 
-    backgroundCompounds.push_back(
-        ShaderUtils::createVerticalBlurCompound(mWindow, *background.sprite, background.blurredStrength)
-    );
-    backgroundCompounds.push_back(
-        ShaderUtils::createBlackOutCompound(mWindow, *background.sprite, config["settings"]["background_dark_intensity"])
-    ); 
+    background = ShaderUtils::applyBlurToObject(window, background, background.blurredStrength);
 }
 
 namespace {
@@ -103,7 +98,7 @@ void Game::update(sf::Time dt) {
 void Game::render() {   
     //ShaderUtils::drawVerticalBlurSprite(mWindow, *background.sprite, background.blurredStrength);
     //ShaderUtils::drawShaderCompound(mWindow, ShaderUtils::createVerticalBlurCompound(mWindow, *background.sprite, background.blurredStrength));
-    ShaderUtils::drawCompoundVector(mWindow, backgroundCompounds);
+    mWindow.draw(*background.sprite);
     for (const auto& note : notes) {
         note->render(mWindow);
     }

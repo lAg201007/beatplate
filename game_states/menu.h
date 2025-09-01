@@ -2,7 +2,6 @@
 #include "game_state.h"
 #include "../utils/SFML_CLASSES.h"
 #include "../utils/tween_service.h"
-#include "../shaders/shader_manager.h"
 
 class MainMenu : public State {
 public:
@@ -14,7 +13,7 @@ public:
 
 private:
     Object Cursor;
-    ShaderObject background;
+    Object background;
     Button Title;
     sf::Vector2i mouse_pos;
     sf::Shader blurShader;
