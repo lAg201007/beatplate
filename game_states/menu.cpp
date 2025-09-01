@@ -15,7 +15,7 @@
 
     MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
         : State(stack, window),
-        Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
+        Cursor("assets/sprites/cursor.png", 400, 300, 640, 360, 0.05f, 0.05f), 
         Title("assets/sprites/main_menu/title.png", 0, 0, 225, 104), // x e y serão definidos depois
         background("assets/sprites/main_menu/background.png",0,0),
 
@@ -25,12 +25,7 @@
         StartGameText(Arial),
         textColor(StartGameText.getFillColor())
     {
-        // Centraliza o título
-        sf::Vector2u windowSize = window.getSize();
-        sf::FloatRect titleBounds = Title.sprite->getLocalBounds();
-        float titleX = (windowSize.x - titleBounds.size.x) / 2.f;
-        float titleY = (windowSize.y - titleBounds.size.y) / 2.f;
-        Title.sprite->setPosition({titleX, titleY});
+
         TitlePosition = Title.sprite->getPosition();
 
         TitleTween->initScale(1.0f,1.1f);

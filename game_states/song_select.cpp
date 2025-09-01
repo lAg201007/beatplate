@@ -161,12 +161,11 @@ void SongSlot::SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
     float offset = SelectedOffsetTween.getValue();
     sf::Vector2f offsetVec = {offset, 0.f};
 
-    SongButton.sprite->setPosition(Position + offsetVec + sf::Vector2f({80,0}));
+    SongButton.sprite->setPosition(Position + offsetVec + sf::Vector2f({0,0}));
     ArtistLabel.setPosition(Position + offsetVec + sf::Vector2f({-60,5}));
     DificultyLabel.setPosition(Position + offsetVec + sf::Vector2f({-90,-20}));
     SongNameLabel.setPosition(Position + offsetVec + sf::Vector2f({-60,-20}));
     MapperLabel.setPosition(Position + offsetVec + sf::Vector2f({0,5}));
-
 
     if (SongNameLabel.getCharacterSize() != fitTextToWidth(SongNameLabel, 330)) {
         SongNameLabel.setCharacterSize(fitTextToWidth(SongNameLabel, 330));
