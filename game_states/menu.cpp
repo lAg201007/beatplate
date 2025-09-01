@@ -10,13 +10,14 @@
     #include <filesystem>
     #include <fstream>
     #include "../libs/json.hpp"
+    #include "print"
 
     int MainMenu::ActualMusicBpm = 0;
 
     MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
         : State(stack, window),
-        Cursor("assets/sprites/cursor.png", 400, 300, 640, 360, 0.05f, 0.05f), 
-        Title("assets/sprites/main_menu/title.png", 0, 0, 225, 104), // x e y serão definidos depois
+        Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
+        Title("assets/sprites/main_menu/title.png", 0, 0, 640, 360), // x e y serão definidos depois
         background("assets/sprites/main_menu/background.png",0,0),
 
         TitleTween(std::make_unique<Tween>(*Title.sprite,0.5f,Tween::linear)),
@@ -25,7 +26,7 @@
         StartGameText(Arial),
         textColor(StartGameText.getFillColor())
     {
-
+        Title.sprite->setPosition({window.getSize().x / 2.f, window.getSize().y / 2.f});
         TitlePosition = Title.sprite->getPosition();
 
         TitleTween->initScale(1.0f,1.1f);
