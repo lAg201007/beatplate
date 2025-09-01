@@ -1,6 +1,7 @@
 #include "shader_manager.h"
 #include <variant>
 #include <optional>
+#include "print"
 
 namespace ShaderUtils {
     sf::Shader createShader(const std::string& fragmentShaderPath, std::optional<std::string> vertexShaderPath, std::vector<std::pair<std::string, std::variant<int, float, bool, sf::Vector2f, sf::Texture, sf::Shader::CurrentTextureType>>> uniforms) {

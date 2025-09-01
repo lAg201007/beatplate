@@ -293,7 +293,7 @@ void SongList::setBackgroundForSelectedSlot() {
             select_slot_background1.spriteTexture = tex;
     }
     if (isActiveBackground1) {
-        select_slot_background2.sprite->setTexture(*select_slot_background2.spriteTexture);
+        select_slot_background2.sprite->setTexture(*select_slot_background2.spriteTexture, true);
         ResizeSpriteToFitWindow(*select_slot_background2.sprite, window);
         backgroundTransparencyTweenIn.play();
         backgroundTransparencyTweenOut.reset(); backgroundTransparencyTweenOut.pause();
@@ -301,7 +301,7 @@ void SongList::setBackgroundForSelectedSlot() {
         isActiveBackground1 = false;
     }
     else {
-        select_slot_background1.sprite->setTexture(*select_slot_background1.spriteTexture);
+        select_slot_background1.sprite->setTexture(*select_slot_background1.spriteTexture, true);
         ResizeSpriteToFitWindow(*select_slot_background1.sprite, window);
         backgroundTransparencyTweenOut.play();
         backgroundTransparencyTweenIn.reset(); backgroundTransparencyTweenIn.pause();
