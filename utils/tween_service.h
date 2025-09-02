@@ -171,6 +171,10 @@ public:
 
     float getValue() const { return currentValue; }
 
+    void setDuration(float newDuration) {
+        duration = newDuration;
+    }
+
 private:
     float startValue;
     float endValue;

@@ -12,6 +12,9 @@ public:
     void render() override;
 
 private:
+    int TitleBeatWhiteMultiplier;
+    float textTransparencyValue;
+    static int ActualMusicBpm;
     Object Cursor;
     Object background;
     Button Title;
@@ -20,15 +23,16 @@ private:
     sf::Sound start_sound;
     sf::Vector2i mouse_pos;
     sf::Shader blurShader;
-    std::unique_ptr<Tween> TitleTween; // <-- altere para ponteiro
+    sf::Shader whiteMaskShader;
+    std::unique_ptr<Tween> TitleTween;
+    std::unique_ptr<ValueTween> TitleWhiteMaskTween;
     Tween TitleTransparencyTween;
     ValueTween StartTextTransparencyTween;
-    ValueTween TitleWhiteMaskTween;
     sf::Vector2f TitlePosition;
     sf::Font Arial;
     sf::Text StartGameText;
     sf::Color textColor;
-    float textTransparencyValue;
-    static int ActualMusicBpm;
     std::string lastCheckedMusicPath;
+    bool isPendingTweenChange = false;
+    bool isPendingStateChange = false;
 };
