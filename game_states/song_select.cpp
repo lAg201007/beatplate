@@ -7,6 +7,7 @@
 #include "../utils/utilities.h"
 #include "../utils/tween_storage.h"
 #include "../state_stack.h"
+#include "../utils/audio_manager.h"
 #include "print"
 
 sf::Font SongSlot::Montserrat;
@@ -19,7 +20,13 @@ std::unordered_map<std::string, std::shared_ptr<sf::Texture>> SongList::Backgrou
 // Constructor for SongSlot
 SongSelect::SongSelect(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window),
-      Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f)
+      Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
+      click_buffer("assets/sounds/song_select/click.mp3"),
+      back_buffer("assets/sounds/song_select/back.wav"),
+      play_buffer("assets/sounds/song_select/play.wav"),
+      play_sound(play_buffer),
+      back_sound(back_buffer),
+      click_sound(click_buffer)
 {
     List = std::make_unique<SongList>("assets/songs", sf::Vector2f(974,432), mWindow, this);
 
@@ -38,12 +45,15 @@ void SongSelect::handleEvent(const sf::Event& event) {
         if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
             if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
                 pendingPop = true; // Marque para pop depois
+                AudioManager::getInstance().playTemporarySound(back_buffer);
             }
             else if (keyPressed->scancode == sf::Keyboard::Scancode::Up) {
                 List->scrollListUpByOne();
+                click_sound.play();
             }
             else if (keyPressed->scancode == sf::Keyboard::Scancode::Down) {
                 List->scrollListDownByOne();
+                click_sound.play();
             }
         }
     }
@@ -80,8 +90,10 @@ void SongSelect::update(sf::Time dt) {
 
         if (scrollDir > 0) {
             List->scrollListUpByOne();
+            click_sound.play();
         } else {
             List->scrollListDownByOne();
+            click_sound.play();
         }
 
         float baseCooldown = 0.07f;
@@ -94,7 +106,7 @@ void SongSelect::update(sf::Time dt) {
 
     for (auto& slot : List->ButtonVector) {
         if (slot->SongButton.DetectButtonClick(mWindow)) {
-            slot->clicked(List->ButtonVector, List->SelectedSlot, *List, mStack, mWindow);
+            slot->clicked(List->ButtonVector, List->SelectedSlot, *List, mStack, mWindow, play_buffer, click_sound);
         }
     }
 
@@ -141,15 +153,17 @@ SongSelect::~SongSelect() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SongSlot Functions:
-void SongSlot::clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::shared_ptr<SongSlot>& selectedSlot, SongList& list, StateStack& mStack, sf::RenderWindow& mWindow) {
+void SongSlot::clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::shared_ptr<SongSlot>& selectedSlot, SongList& list, StateStack& mStack, sf::RenderWindow& mWindow, sf::SoundBuffer& play_sound_buffer, sf::Sound& click_sound) {
     auto it = std::find(slots.begin(), slots.end(), shared_from_this());
     if (it != slots.end()) {
         if (selectedSlot != *it) {
             selectedSlot = *it;
             list.updateSlotPositions();
+            click_sound.play();
         } else {
             std::string FolderLoc = selectedSlot->FolderLocation;
             Object Background = (list.isActiveBackground1 ? list.select_slot_background1 : list.select_slot_background2);
+            AudioManager::getInstance().playTemporarySound(play_sound_buffer);
             mStack.popState();
             mStack.pushState(std::make_unique<Game>(mStack, mWindow, FolderLoc, Background)); 
         }

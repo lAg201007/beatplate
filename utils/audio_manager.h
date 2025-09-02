@@ -2,9 +2,21 @@
 #include <SFML/Audio.hpp>
 #include <memory>
 #include <string>
+#include <vector>
+#include <utility>
 class SongSlot; // forward declaration
 
 class AudioManager {
+private:
+    struct TempSound {
+        std::unique_ptr<sf::SoundBuffer> buffer;
+        std::unique_ptr<sf::Sound> sound;
+        TempSound(const sf::SoundBuffer& buf) {
+            buffer = std::make_unique<sf::SoundBuffer>(buf);
+            sound = std::make_unique<sf::Sound>(*buffer);
+        }
+    };
+
 public:
     static AudioManager& getInstance() {
         static AudioManager instance;
@@ -50,9 +62,27 @@ public:
         return currentSlot;
     }
 
+    void playTemporarySound(const sf::SoundBuffer& buffer, float volume = 100.f) {
+        tempSounds.emplace_back(buffer);
+        tempSounds.back().sound->setVolume(volume);
+        tempSounds.back().sound->play();
+    }
+
+    void updateTempSounds() {
+        tempSounds.erase(
+            std::remove_if(tempSounds.begin(), tempSounds.end(),
+                [](const TempSound& temp) {
+                    return temp.sound->getStatus() == sf::Sound::Status::Stopped;
+                }
+            ),
+            tempSounds.end()
+        );
+    }
+
 private:
     AudioManager() = default;
     sf::Music music;
     std::string currentPath; // Caminho da música atual
     std::shared_ptr<SongSlot> currentSlot; // agora é shared_ptr
+    std::vector<TempSound> tempSounds;
 };

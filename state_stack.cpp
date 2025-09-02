@@ -1,5 +1,6 @@
 // StateStack.cpp
 #include "state_stack.h"
+#include "utils/audio_manager.h"
 
 void StateStack::pushState(std::unique_ptr<State> state) {
     mStack.push(std::move(state));
@@ -20,8 +21,10 @@ void StateStack::handleEvent(const sf::Event& event) {
 }
 
 void StateStack::update(sf::Time dt) {
-    if (auto* state = getCurrentState())
+    if (auto* state = getCurrentState()) {
+        AudioManager::getInstance().updateTempSounds();
         state->update(dt);
+    }
 }
 
 void StateStack::render() {

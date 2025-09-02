@@ -15,11 +15,15 @@ private:
     Object Cursor;
     Object background;
     Button Title;
+    sf::SoundBuffer start_buffer;
+    sf::SoundBuffer circle_beat_buffer;
+    sf::Sound start_sound;
     sf::Vector2i mouse_pos;
     sf::Shader blurShader;
     std::unique_ptr<Tween> TitleTween; // <-- altere para ponteiro
     Tween TitleTransparencyTween;
     ValueTween StartTextTransparencyTween;
+    ValueTween TitleWhiteMaskTween;
     sf::Vector2f TitlePosition;
     sf::Font Arial;
     sf::Text StartGameText;

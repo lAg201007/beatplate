@@ -12,6 +12,9 @@
     #include "../libs/json.hpp"
     #include "print"
 
+    //TODO: FAZER O TWEEN BRANCO NO TITLE QUANDO DA O BEAT, O TWEEN BRANCO NO TITLE QUANDO CLICA
+    // E O TWEEN DE HOVER NO SONG SLOT
+
     int MainMenu::ActualMusicBpm = 0;
 
     MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
@@ -19,6 +22,9 @@
         Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
         Title("assets/sprites/main_menu/title.png", 0, 0, 640, 360), // x e y serão definidos depois
         background("assets/sprites/main_menu/background.png",0,0),
+        start_buffer("assets/sounds/menu/start.wav"),
+        circle_beat_buffer("assets/sounds/menu/circle_beat.wav"),
+        start_sound(start_buffer),
 
         TitleTween(std::make_unique<Tween>(*Title.sprite,0.5f,Tween::linear)),
         TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear),
@@ -26,6 +32,7 @@
         StartGameText(Arial),
         textColor(StartGameText.getFillColor())
     {
+        start_sound.setVolume(130.f);
         Title.sprite->setPosition({window.getSize().x / 2.f, window.getSize().y / 2.f});
         TitlePosition = Title.sprite->getPosition();
 
@@ -78,6 +85,7 @@
             if (!TitleTween->isActive()) {
                 TitleTween->reset();
                 TitleTween->play();
+                AudioManager::getInstance().playTemporarySound(circle_beat_buffer, 10.f);
             }
         }
 
@@ -85,6 +93,7 @@
         StartTextTransparencyTween.update(dt.asSeconds());
 
         if (Title.DetectButtonClick(mWindow)) {
+            start_sound.play();
             mStack.pushState(std::make_unique<SongSelect>(mStack,mWindow)); 
         } 
 

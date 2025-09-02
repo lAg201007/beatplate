@@ -147,7 +147,9 @@ public:
         std::vector<std::shared_ptr<SongSlot>>& slots, 
         std::shared_ptr<SongSlot>& selectedSlot, 
         SongList& list, StateStack& mStack, 
-        sf::RenderWindow& mWindow
+        sf::RenderWindow& mWindow,
+        sf::SoundBuffer& play_sound_buffer,
+        sf::Sound& click_sound
     );
     void renderButton(sf::RenderWindow& window);
 };
@@ -254,6 +256,12 @@ public:
     std::unique_ptr<SongList> List;
     Object Cursor;
     sf::Vector2i mouse_pos;
+    sf::SoundBuffer click_buffer;
+    sf::SoundBuffer back_buffer;
+    sf::SoundBuffer play_buffer;
+    sf::Sound play_sound;
+    sf::Sound click_sound;
+    sf::Sound back_sound;
     float mouseScrollQueueCooldown = 0.0f;
     std::vector<int> pendingScrolls;
     bool pendingPop = false; // Adicione isso na sua classe SongSelect
