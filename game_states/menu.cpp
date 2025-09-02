@@ -39,7 +39,7 @@
 
         StartGameText.setString("Press the Title Button to Play");
         StartGameText.setCharacterSize(20);
-        StartGameText.setPosition(TitlePosition + sf::Vector2f({-100,80}));
+        StartGameText.setPosition(TitlePosition + sf::Vector2f({-150,80}));
 
         ResizeSpriteToFitWindow(*background.sprite, window);
 

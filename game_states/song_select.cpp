@@ -344,22 +344,25 @@ void SongList::updateSlotPositions() {
     auto it = std::find(ButtonVector.begin(), ButtonVector.end(), SelectedSlot);
     if (it != ButtonVector.end()) {
         int index = std::distance(ButtonVector.begin(), it);
+        float selectedOffsetX = -40.f; // Offset do slot selecionado
 
-        // move left
+        // move selected slot
         ButtonVector[index]->setPositionTweened(ListPosition);
-        ButtonVector[index]->SelectedOffsetTween = ValueTween(ButtonVector[index]->SelectedOffsetTween.getValue(), -40.f, 0.5f, Tween::easeOutQuad);
+        ButtonVector[index]->SelectedOffsetTween = ValueTween(ButtonVector[index]->SelectedOffsetTween.getValue(), selectedOffsetX, 0.5f, Tween::easeOutQuad);
         ButtonVector[index]->SelectedOffsetTween.play();
 
-        // whiteIntensity tween
         ButtonVector[index]->WhiteIntensityTween = ValueTween(255.f, 50.f, 0.6f, Tween::easeOutQuad);
         ButtonVector[index]->WhiteIntensityTween.play();
 
-        // Move other slots
+        // Move slots acima do selecionado
         for (int i = index - 1, offset = -1; i >= 0; --i, --offset) {
-            if (ButtonVector[i]->Position != ListPosition + sf::Vector2f(0.f, offset * button_offset)) {
-                ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
-            }
-            ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
+            float distance = std::abs(i - index);
+            // Nova fórmula para offsetX com transição mais suave
+            float offsetX = selectedOffsetX * std::exp(-distance * 0.8f);
+            
+            sf::Vector2f newPos = ListPosition + sf::Vector2f(0.f, offset * button_offset);
+            ButtonVector[i]->setPositionTweened(newPos);
+            ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), offsetX, 0.5f, Tween::easeOutQuad);
             ButtonVector[i]->SelectedOffsetTween.play();
 
             if (ButtonVector[i]->whiteIntensity > 0.f) {
@@ -367,11 +370,16 @@ void SongList::updateSlotPositions() {
                 ButtonVector[i]->WhiteIntensityTween.play();
             }
         }
+
+        // Move slots abaixo do selecionado
         for (int i = index + 1, offset = 1; i < ButtonVector.size(); ++i, ++offset) {
-            if (ButtonVector[i]->Position != ListPosition + sf::Vector2f(0.f, offset * button_offset)) {
-                ButtonVector[i]->setPositionTweened(ListPosition + sf::Vector2f(0.f, offset * button_offset));
-            }
-            ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), 0.f, 0.5f, Tween::easeOutQuad);
+            float distance = std::abs(i - index);
+            // Nova fórmula para offsetX com transição mais suave
+            float offsetX = selectedOffsetX * std::exp(-distance * 0.8f);
+
+            sf::Vector2f newPos = ListPosition + sf::Vector2f(0.f, offset * button_offset);
+            ButtonVector[i]->setPositionTweened(newPos);
+            ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), offsetX, 0.5f, Tween::easeOutQuad);
             ButtonVector[i]->SelectedOffsetTween.play();
 
             if (ButtonVector[i]->whiteIntensity > 0.f) {

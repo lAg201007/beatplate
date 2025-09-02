@@ -165,7 +165,7 @@ public:
     ValueTween backgroundTransparencyTweenOut;
     bool isActiveBackground1 = true;
 
-    int button_offset = 70;
+    int button_offset = 80;
 
     float BackgroundChangeCooldown = 0.2f;
     float BackgroundChangeTimer = 0.0f;
