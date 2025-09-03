@@ -164,7 +164,6 @@ void SongSlot::clicked(std::vector<std::shared_ptr<SongSlot>>& slots, std::share
             std::string FolderLoc = selectedSlot->FolderLocation;
             Object Background = (list.isActiveBackground1 ? list.select_slot_background1 : list.select_slot_background2);
             AudioManager::getInstance().playTemporarySound(play_sound_buffer);
-            mStack.popState();
             mStack.pushState(std::make_unique<Game>(mStack, mWindow, FolderLoc, Background)); 
         }
     }

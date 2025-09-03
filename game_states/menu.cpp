@@ -105,6 +105,8 @@ void MainMenu::update(sf::Time dt) {
         AudioManager::getInstance().playTemporarySound(circle_beat_buffer);
         TitleWhiteMaskTween = std::make_unique<ValueTween>(TitleWhiteMaskTween->getValue(), 255.f, 0.01f);
         TitleWhiteMaskTween->play();
+        TitleTween->reset();
+        TitleTween->play();
         isPendingTweenChange = true;
     } 
 
