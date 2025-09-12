@@ -1,4 +1,4 @@
-    cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.16)
     project(beatplate)
 
     set(CMAKE_CXX_STANDARD 23)
@@ -95,25 +95,18 @@
     if(BUILD_TESTS)
         enable_testing()
 
-        # Ajuste o caminho do arquivo de teste conforme sua organização.
-        # Este arquivo deve conter: #define CATCH_CONFIG_MAIN e #include "catch_amalgamated.hpp"
-        set(TEST_SOURCES
-            "${CMAKE_SOURCE_DIR}/tests/SongSelect/song_select_tests.cpp"
-            "${CMAKE_SOURCE_DIR}/tests/tests_main.cpp"
+        # Use file(GLOB_RECURSE ...) para coletar todos os arquivos de teste
+        file(GLOB_RECURSE TEST_SOURCES
+            "${CMAKE_SOURCE_DIR}/tests/*.cpp"
             "${CMAKE_SOURCE_DIR}/libs/catch_amalgamated.cpp"
         )
 
         add_executable(unit_tests ${TEST_SOURCES})
-        target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR})
-        # linka com 'core' para testar a lógica
+        target_include_directories(unit_tests PRIVATE 
+            ${CMAKE_SOURCE_DIR}
+            ${CMAKE_SOURCE_DIR}/tests
+        )
         target_link_libraries(unit_tests PRIVATE core)
 
-        # Se for necessário link com libs externas para os testes, for exemplo se core precisa,
-        # adicione aqui também. Ex:
-        # target_link_libraries(unit_tests PRIVATE "${SFML_LIB_DIR}/sfml-system-s.lib")
-
-        add_test(NAME SongSlotTest COMMAND unit_tests)
-
-        # Para ver a saída dos testes via ctest:
-        # ctest --test-dir build -C Debug --output-on-failure
+        add_test(NAME AllTests COMMAND unit_tests)
     endif()
