@@ -137,3 +137,44 @@ TEST_CASE("SongSlot Loads No Data File", "[SongSelect]") {
 
     fs::remove_all(testDir);
 }
+
+TEST_CASE("SongSlot Loads Vector Loading", "[SongSelect]") {
+    namespace fs = std::filesystem;
+    int iterations = 10;
+
+    fs::path testDir = fs::temp_directory_path() / "vector_loading_test_song_slot";
+    fs::create_directories(testDir);
+
+    for (int i = 1; i <= iterations; ++i) {
+        fs::path songDir = testDir / ("Song" + std::to_string(i));
+        fs::create_directories(songDir);
+
+        fs::path dataFileDir = songDir / "data.json";
+
+        std::ofstream dataFile(dataFileDir);
+        dataFile << R"({
+            "SongName": "Song )" << i << R"(",
+            "Artist": "Artist )" << i << R"(",
+            "Mapper": "Mapper )" << i << R"(",
+            "Difficulty": )" << i*2 << R"(
+        })";
+        
+        dataFile.close();
+    }
+
+    std::vector<SongSlotData> slotDataList = load_song_slot_data(testDir.string());
+
+    REQUIRE(slotDataList.size() == iterations);
+    for (const auto& data : slotDataList) {
+        REQUIRE(!data.SongName.empty());
+        REQUIRE(!data.Artist.empty());
+        REQUIRE(!data.Mapper.empty());
+        REQUIRE(typeid(data.Difficulty) == typeid(int));
+        REQUIRE(typeid(data.SongName) == typeid(std::string));
+        REQUIRE(typeid(data.Artist) == typeid(std::string));
+        REQUIRE(typeid(data.Mapper) == typeid(std::string));
+    }
+
+    // Limpa os arquivos de teste
+    fs::remove_all(testDir);
+}
