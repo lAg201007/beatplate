@@ -30,7 +30,13 @@ namespace {
         std::ifstream dataFile(data_folder + "/data.json");
         if (!dataFile.is_open()) {
             std::cerr << "Não foi possível abrir " << data_folder << "/data.json" << std::endl;
-            return SongSlotData{};
+            return SongSlotData{
+                .SongName = "Corrupted File",
+                .Artist = "Unknown Artist",
+                .Mapper = "Unknown Mapper",
+                .Difficulty = 0,
+                .FolderLocation = data_folder
+            };
         }
         
         nlohmann::json jsonData;
