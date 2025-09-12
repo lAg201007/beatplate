@@ -32,15 +32,51 @@ namespace {
             std::cerr << "Não foi possível abrir " << data_folder << "/data.json" << std::endl;
             return SongSlotData{};
         }
+        
         nlohmann::json jsonData;
-        dataFile >> jsonData;
+        try {
+            dataFile >> jsonData;
+        } catch(const nlohmann::json::parse_error& e) {
+            std::cerr << "Erro ao parsear JSON: " << e.what() << std::endl;
+            return SongSlotData{
+                .SongName = "Corrupted File",
+                .Artist = "Unknown Artist",
+                .Mapper = "Unknown Mapper",
+                .Difficulty = 0,
+                .FolderLocation = data_folder
+            };
+        }
 
         SongSlotData data;
         data.FolderLocation = data_folder;
-        data.SongName = jsonData.value("SongName", "");
-        data.Artist = jsonData.value("Artist", "");
-        data.Mapper = jsonData.value("Mapper", "");
-        data.Difficulty = jsonData.value("Difficulty", 0);
+
+        // Check and set SongName
+        if (jsonData.contains("SongName") && jsonData["SongName"].is_string()) {
+            data.SongName = jsonData["SongName"];
+        } else {
+            data.SongName = "Corrupted Name";
+        }
+
+        // Check and set Artist
+        if (jsonData.contains("Artist") && jsonData["Artist"].is_string()) {
+            data.Artist = jsonData["Artist"];
+        } else {
+            data.Artist = "Unknown Artist";
+        }
+
+        // Check and set Mapper
+        if (jsonData.contains("Mapper") && jsonData["Mapper"].is_string()) {
+            data.Mapper = jsonData["Mapper"];
+        } else {
+            data.Mapper = "Unknown Mapper";
+        }
+
+        // Check and set Difficulty
+        if (jsonData.contains("Difficulty") && jsonData["Difficulty"].is_number()) {
+            data.Difficulty = jsonData["Difficulty"];
+        } else {
+            data.Difficulty = 0;
+        }
 
         return data;
     }
