@@ -17,7 +17,6 @@ include_directories(
     libs/SFML-3.0.0/include
     game_states
     game_logic
-    game_logic/note_objects
 )
 
 file(GLOB_RECURSE CORE_SOURCES
@@ -31,7 +30,6 @@ file(GLOB_RECURSE UTILITIES_SOURCES
 
 file(GLOB_RECURSE GAME_LOGIC_SOURCES
     "game_logic/*.cpp"
-    "game_logic/note_objects/*.cpp"
     "game_states/*.cpp"
 )
 
