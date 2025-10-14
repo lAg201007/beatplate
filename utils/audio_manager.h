@@ -48,8 +48,8 @@ public:
     }
 
     // Retorna o tempo atual da música
-    float getCurrentTime() const {
-        return music.getPlayingOffset().asSeconds();
+    sf::Time getCurrentTime() const {
+        return music.getPlayingOffset();
     }
 
     // Retorna o caminho do arquivo da música atual
@@ -60,6 +60,11 @@ public:
     // Retorna o slot atual
     std::shared_ptr<SongSlot> getCurrentSlot() const {
         return currentSlot;
+    }
+
+    // Define o tempo atual da música
+    void setCurrentTime(sf::Time time) {
+        music.setPlayingOffset(time);
     }
 
     void playTemporarySound(const sf::SoundBuffer& buffer, float volume = 100.f) {

@@ -1,5 +1,6 @@
 #pragma once
 #include "game_state.h"
+#include "../game_logic/clock.hpp"
 #include "../utils/SFML_CLASSES.h"
 #include "../utils/tween_service.h"
 #include "../shaders/shader_manager.h"
@@ -14,7 +15,11 @@ public:
 
 private:
     Object Cursor;
+    Object background;
     sf::Vector2i mouse_pos;
     std::string songFolder;
-    Object background;
+    GameClock gameClock;
+
+    int offset_ms = 0;
+    
 };

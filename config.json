@@ -3,6 +3,7 @@
         "binds": {
             "game_click": ["K", "L"]
         },
-        "background_dark_intensity": 100
+        "background_dark_intensity": 100,
+        "music_offset_ms": 0
     }
 }
