@@ -40,6 +40,22 @@ void Game::handleEvent(const sf::Event& event) {
     if (event.is<sf::Event::Closed>()) {
         mWindow.close();
     }
+    if (event.is<sf::Event::KeyPressed>()) {
+        if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
+            if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
+                if (paused) {
+                    resume();
+                } else {
+                    pause();
+                }
+            }
+
+            // Debug key to rewind time by 5 seconds
+            if (keyPressed->scancode == sf::Keyboard::Scancode::R) {
+                gameClock.setTime(gameClock.getTime() - sf::milliseconds(5000), AudioManager::getInstance(), offset_ms);
+            }
+        }
+    }
 }
 
 void Game::update(sf::Time dt) {

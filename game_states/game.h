@@ -13,6 +13,19 @@ public:
     void update(sf::Time dt) override;
     void render() override;
 
+    void pause() {
+        gameClock.pause();
+        AudioManager::getInstance().pauseMusic();
+        paused = true; 
+    };
+
+    void resume() {
+        gameClock.unpause();
+        AudioManager::getInstance().resumeMusic();
+        gameClock.syncMusicToClock(AudioManager::getInstance(), offset_ms);
+        paused = false;
+    }
+
 private:
     Object Cursor;
     Object background;
@@ -20,6 +33,6 @@ private:
     std::string songFolder;
     GameClock gameClock;
 
+    bool paused = false;
     int offset_ms = 0;
-    
 };

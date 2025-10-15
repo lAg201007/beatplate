@@ -19,8 +19,9 @@ public:
         paused = false;
     }
 
-    void setTime(sf::Time time) {
-        currentTime = time;
+    void setTime(sf::Time time, AudioManager& audioManager, int offset_ms = 0) {
+        currentTime = (time.asMilliseconds() >= 0) ? time : sf::Time::Zero;
+        syncMusicToClock(audioManager, offset_ms);
     }
 
     void syncMusicToClock(AudioManager& audioManager, int offset_ms = 0) {
