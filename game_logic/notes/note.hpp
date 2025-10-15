@@ -10,6 +10,7 @@
 enum class NoteState {
     Waiting,
     Active,
+    Judging,
     Hitting,
     Hit,
     Missed,
@@ -25,6 +26,34 @@ enum class HitResult {
     None
 };
 
+int getAproachRateMs(float AR) {
+    if (AR < 5.f) {
+        return 1200 + 120 * (5 - AR);
+    }
+    else if (AR == 5.f) {
+        return 1200;
+    }
+    else {
+        return 1200 - 150 * (AR - 5);
+    }
+}
+
+int getAppearTimeMs(float AR, int hitTime) {
+    return hitTime - getAproachRateMs(AR);
+}
+
+int getPerfectWindowMs(float ACD) {
+    return 80 - 6 * ACD;
+}
+
+int getEarlyLateWindowMs(float ACD) {
+    return 140 - 8 * ACD;
+}
+
+int getTooEarlyLateWindowMs(float ACD) {
+    return 200 - 10 * ACD;
+}
+
 class Note {
 public:
     Note(int offset, const std::string& type, int xPos = 0, float AR = 0.0f)
@@ -32,8 +61,7 @@ public:
 
     virtual ~Note() = default;
 
-    virtual void update(float elapsed) {}
-    virtual void start() {}
+    virtual void update(sf::Time elapsed, sf::RenderWindow& window) {}
     virtual void render(sf::RenderWindow& window) {}
 
     void setState(NoteState newState) {
