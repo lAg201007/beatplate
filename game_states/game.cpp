@@ -16,11 +16,14 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
       Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
       songFolder(songFolder),
       background(background),
-      gameClock()
+      gameClock(startTime_ms, endTime_ms)
 {
     std::ifstream dataFile(songFolder + "/map.json");
     nlohmann::json data;
     dataFile >> data;
+
+    startTime_ms = data["metadata"]["StartsAt"].get<int>();
+    endTime_ms = data["metadata"]["EndsAt"].get<int>();
 
     AudioManager::getInstance().pauseMusic();   
     ResizeSpriteToFitWindow(*background.sprite, window);
@@ -61,11 +64,10 @@ void Game::handleEvent(const sf::Event& event) {
 void Game::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
     Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),300});
-    gameClock.update(dt);
-    gameClock.syncClockToMusic(AudioManager::getInstance(), offset_ms);
+    gameClock.update(dt, AudioManager::getInstance());
 
-    std::println("Clock Time: {} ms", gameClock.getTime().asMilliseconds());
-    std::println("Music Time: {} ms", AudioManager::getInstance().getCurrentTime().asMilliseconds());
+    //std::println("Clock Time: {} ms", gameClock.getTime().asMilliseconds());
+    //std::println("Music Time: {} ms", AudioManager::getInstance().getCurrentTime().asMilliseconds());
 }
 
 void Game::render() {   

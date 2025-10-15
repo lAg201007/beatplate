@@ -3,7 +3,9 @@
         "BPM": 240,
         "PS": 4,
         "AR": 9,
-        "ACD": 8
+        "ACD": 8,
+        "StartsAt": 1500,
+        "EndsAt": 7500
     },
     "notes": [
         { "type": "plate", "offset": 2000, "xPos": 150 },

@@ -3,7 +3,9 @@
         "BPM": 176,
         "PS": 4,
         "AR": 9,
-        "ACD": 5
+        "ACD": 5,
+        "StartsAt": 1500,
+        "EndsAt": 7500
     },
     "notes": [
          {

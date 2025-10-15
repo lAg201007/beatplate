@@ -35,4 +35,7 @@ private:
 
     bool paused = false;
     int offset_ms = 0;
+
+    int startTime_ms = 0;
+    int endTime_ms = 0;
 };

@@ -1,14 +1,26 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/System/Time.hpp>
 #include "utils/audio_manager.h"
+#include <print>
 
 class GameClock {
 public:
-    GameClock() : paused(false), currentTime(sf::Time::Zero) {}
+    GameClock(int& startTime_ms, int& endTime_ms) : 
+        paused(false), 
+        currentTime(sf::Time::Zero), 
+        startTime_ms(startTime_ms), 
+        endTime_ms(endTime_ms) {}
 
-    void update(sf::Time dt) {
-        if (!paused)
-            currentTime += dt;
+    void update(sf::Time dt, AudioManager& audioManager) {
+        if (!paused) {
+            if (audioManager.isPlaying()) {
+                // Clock segue o tempo real da música
+                syncClockToMusic(audioManager);
+            } else {
+                // Clock avança manualmente (ex: pré-start)
+                currentTime += dt;
+            }
+        }
     }
 
     void pause() {
@@ -19,8 +31,15 @@ public:
         paused = false;
     }
 
+    void reset(AudioManager& audioManager) {
+        currentTime = sf::Time::Zero;
+        audioManager.setCurrentTime(sf::Time::Zero);
+    }
+
+
     void setTime(sf::Time time, AudioManager& audioManager, int offset_ms = 0) {
-        currentTime = (time.asMilliseconds() >= 0) ? time : sf::Time::Zero;
+        int clamped = std::clamp(time.asMilliseconds(), startTime_ms, endTime_ms);
+        currentTime = sf::milliseconds(clamped);
         syncMusicToClock(audioManager, offset_ms);
     }
 
@@ -35,7 +54,7 @@ public:
         if (std::abs((currentTime - (musicTime - offset)).asMilliseconds()) < 1)
             return;
 
-        audioManager.setCurrentTime(currentTime + offset);
+        audioManager.setCurrentTime(currentTime + offset); 
     }
 
     void syncClockToMusic(AudioManager& audioManager, int offset_ms = 0) {
@@ -56,7 +75,19 @@ public:
         return currentTime;
     }
 
+    int getStartTime() const {
+        return startTime_ms;
+    }
+
+    int getEndTime() const {
+        return endTime_ms;
+    }
+
+    bool isPaused() const { return paused; }
+
 private:
     bool paused;
+    int startTime_ms;
+    int endTime_ms;
     sf::Time currentTime;
 };
