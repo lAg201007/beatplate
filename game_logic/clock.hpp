@@ -3,6 +3,8 @@
 #include "utils/audio_manager.h"
 #include <print>
 
+#pragma once
+
 class GameClock {
 public:
     GameClock(int& startTime_ms, int& endTime_ms) : 
