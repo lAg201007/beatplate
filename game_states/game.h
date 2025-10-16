@@ -4,6 +4,7 @@
 #include "../utils/SFML_CLASSES.h"
 #include "../utils/tween_service.h"
 #include "../shaders/shader_manager.h"
+#include "../game_logic/notes/plate.hpp"
 
 class Game : public State {
 public:
@@ -32,6 +33,8 @@ private:
     sf::Vector2i mouse_pos;
     std::string songFolder;
     GameClock gameClock;
+
+    Plate testPlate;
 
     bool paused = false;
     int offset_ms = 0;

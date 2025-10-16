@@ -1,11 +1,10 @@
+#pragma once
+
 #include "../game_logic/clock.hpp"
 #include "../utils/SFML_CLASSES.h"
 #include "../utils/tween_service.h"
 #include "../shaders/shader_manager.h"
 #include "../utils/utilities.h"
-#include "../game_logic/clock.hpp"
-
-#pragma once
 
 enum class NoteState {
     Waiting,
@@ -26,7 +25,9 @@ enum class HitResult {
     None
 };
 
-int getAproachRateMs(float AR) {
+// deixando inline pq o linker é o linker
+
+inline int getAproachRateMs(float AR) {
     if (AR < 5.f) {
         return 1200 + 120 * (5 - AR);
     }
@@ -38,19 +39,19 @@ int getAproachRateMs(float AR) {
     }
 }
 
-int getAppearTimeMs(float AR, int hitTime) {
+inline int getAppearTimeMs(float AR, int hitTime) {
     return hitTime - getAproachRateMs(AR);
 }
 
-int getPerfectWindowMs(float ACD) {
+inline int getPerfectWindowMs(float ACD) {
     return 80 - 6 * ACD;
 }
 
-int getEarlyLateWindowMs(float ACD) {
+inline int getEarlyLateWindowMs(float ACD) {
     return 140 - 8 * ACD;
 }
 
-int getTooEarlyLateWindowMs(float ACD) {
+inline int getTooEarlyLateWindowMs(float ACD) {
     return 200 - 10 * ACD;
 }
 
@@ -72,12 +73,16 @@ public:
         hitResult = result;
     }
 
-    void getHitResult() const {
+    HitResult getHitResult() const {
         return hitResult;
     }
 
-    void getState() const {
+    NoteState getState() const {
         return state;
+    }
+
+    int getOffset() const {
+        return offset;
     }
 private:
     const int offset = 0;

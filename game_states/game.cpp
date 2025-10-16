@@ -16,7 +16,8 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
       Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
       songFolder(songFolder),
       background(background),
-      gameClock(startTime_ms, endTime_ms)
+      gameClock(startTime_ms, endTime_ms),
+      testPlate(3000, {"D", "F"}, 400, -100, 300, 5, 8, 7.f)
 {
     std::ifstream dataFile(songFolder + "/map.json");
     nlohmann::json data;
@@ -65,6 +66,7 @@ void Game::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
     Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),300});
     gameClock.update(dt, AudioManager::getInstance());
+    testPlate.update(gameClock.getTime(), mWindow);
 
     //std::println("Clock Time: {} ms", gameClock.getTime().asMilliseconds());
     //std::println("Music Time: {} ms", AudioManager::getInstance().getCurrentTime().asMilliseconds());
