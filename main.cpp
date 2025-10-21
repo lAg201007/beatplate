@@ -20,22 +20,28 @@ int main()
     sf::Clock clock;
     float accumulator = 0.0f;
     const float minDt = 0.001f; // 1 ms em segundos
+    bool inFocus = true;
 
     while (window->isOpen())
     {
         while (auto event = window->pollEvent())
         {
 
-            stack.handleEvent(*event);
+            if (inFocus) 
+                stack.handleEvent(*event);
 
             if (event->is<sf::Event::Closed>())
                 window->close();
 
-            if (event->is<sf::Event::FocusGained>())
+            if (event->is<sf::Event::FocusGained>()) {
                 window->setMouseCursorVisible(false);
+                inFocus = true;
+            }
 
-            if (event->is<sf::Event::FocusLost>())
+            if (event->is<sf::Event::FocusLost>()) {
                 window->setMouseCursorVisible(true);
+                inFocus = false;
+            }
         }
 
         sf::Time dt = clock.restart();

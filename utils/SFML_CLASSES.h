@@ -177,7 +177,7 @@ public:
         bool mousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
         bool hovered = isHovered(window);
 
-        if (hovered && mousePressed && !PressedLastFrame) {
+        if (hovered && mousePressed && !PressedLastFrame && window.hasFocus()) {
             PressedLastFrame = true;
             return true;
         }
