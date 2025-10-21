@@ -17,7 +17,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
       songFolder(songFolder),
       background(background),
       gameClock(startTime_ms, endTime_ms),
-      testPlate(3000, {"D", "F"}, 400, -100, 300, 5, 8, 7.f)
+      testPlate(3000, {"K", "L"}, 1000, -100, 300, 1, 8, 7.f)
 {
     std::ifstream dataFile(songFolder + "/map.json");
     nlohmann::json data;
@@ -75,4 +75,5 @@ void Game::update(sf::Time dt) {
 void Game::render() {   
     mWindow.draw(*background.sprite);
     mWindow.draw(*Cursor.sprite);
+    testPlate.render(mWindow);
 }

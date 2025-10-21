@@ -11,14 +11,18 @@
 class Plate : public Note {
 public:
     Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos,int PS, int ACD, float AR = 0.0f)
-        : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD),
+        : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos),
           object("assets/sprites/game/objects/plate.png", xPos, yPos, 128, 128, 1.0f, 1.0f),
           perfectHitWindow(getPerfectWindowMs(ACD)),
           earlyLateWindow(getEarlyLateWindowMs(ACD)),
           tooEarlyLateWindow(getTooEarlyLateWindowMs(ACD)),
           appearTime(getAppearTimeMs(AR, offset))
     {
-        
+        int pixelSize = 150 * PS;
+        object.sprite->setScale({
+            static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
+            static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.y
+        });
     }
 
     bool DetectHoverX(sf::RenderWindow& window) {
@@ -108,17 +112,24 @@ public:
         if (getState() == NoteState::Active) {
             float progress = static_cast<float>(milliTime - appearTime) / 
                     static_cast<float>(offset - tooEarlyLateWindow - appearTime);
-            std::println("Progress: {:.2f}", progress);
+            float easedProgress = (1 - (1 - progress) * (1 - progress)); // easeOutQuad
+            
+            float newY = static_cast<float>(finalYPos) / easedProgress;
+
+            object.sprite->setPosition({static_cast<float>(xPos), newY});
         }
     }
 
     void render(sf::RenderWindow& window) override {
-        
+        if (getState() == NoteState::Active || getState() == NoteState::Judging ||
+            getState() == NoteState::Hitting || getState() == NoteState::Missing) {
+            
+            window.draw(*object.sprite);
+
+        }
     }
 
 private:
-    Button object;
-    const std::pair<std::string, std::string> binds;
     int xPos;
     int yPos;
     int finalYPos;
@@ -129,4 +140,7 @@ private:
     int tooEarlyLateWindow;
     int appearTime;
     bool PressedLastFrame = false;
+
+    Button object;
+    const std::pair<std::string, std::string> binds;
 };
