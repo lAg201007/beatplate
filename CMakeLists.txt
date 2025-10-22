@@ -6,6 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SFML_LIB_DIR "${CMAKE_SOURCE_DIR}/libs/SFML-3.0.0/lib")
 
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+endif()
+
 add_definitions(-DSFML_STATIC)
 
 # diretorios que vão ser fonte de arquivos que serão incluidos
@@ -44,7 +49,19 @@ set(ALL_SOURCES
     ${SHADERS_SOURCES}
 )
 
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${ALL_SOURCES})
+
 add_executable(beatplate ${ALL_SOURCES})
+
+target_precompile_headers(beatplate PRIVATE
+    <SFML/Graphics.hpp>
+    <SFML/Window.hpp>
+    <SFML/Audio.hpp>
+    <SFML/System.hpp>
+    <memory>
+    <vector>
+    <string>
+)
 
 target_link_libraries(beatplate
     PRIVATE

@@ -12,7 +12,8 @@ class Plate : public Note {
 public:
     Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos,int PS, int ACD, float AR = 0.0f)
         : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos),
-          object("assets/sprites/game/objects/plate.png", xPos, yPos, 128, 128, 1.0f, 1.0f),
+          object("assets/sprites/game/objects/plate.png", xPos, yPos, 200, 200, 1.0f, 1.0f),
+          aproachCircle("assets/sprites/game/objects/plate_approach_circle.png", xPos, yPos, 200, 200, 1.0f, 1.0f),
           perfectHitWindow(getPerfectWindowMs(ACD)),
           earlyLateWindow(getEarlyLateWindowMs(ACD)),
           tooEarlyLateWindow(getTooEarlyLateWindowMs(ACD)),
@@ -28,7 +29,7 @@ public:
     bool DetectHoverX(sf::RenderWindow& window) {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
         sf::FloatRect bounds = object.sprite->getGlobalBounds();
-        return bounds.contains(sf::Vector2f({static_cast<float>(mousePos.x), static_cast<float>(finalYPos)}));
+        return bounds.contains(sf::Vector2f({static_cast<float>(mousePos.x), finalYPos}));
     }
 
     bool DetectClickWithBind(sf::RenderWindow& window) {
@@ -89,6 +90,7 @@ public:
                 if (hitWindow <= perfectHitWindow) {
                     setHitResult(HitResult::Perfect);
                     setState(NoteState::Hit);
+                    hitTime = milliTime;
                 }
                 if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
                     if (milliTime < offset) {
@@ -97,6 +99,7 @@ public:
                         setHitResult(HitResult::PerfectLate);
                     }
                     setState(NoteState::Hit);
+                    hitTime = milliTime;
                 }
                 if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
                     if (milliTime < offset) {
@@ -105,6 +108,7 @@ public:
                         setHitResult(HitResult::TooLate);
                     }
                     setState(NoteState::Hit);
+                    hitTime = milliTime;
                 }
             }
         }
@@ -125,22 +129,24 @@ public:
             getState() == NoteState::Hitting || getState() == NoteState::Missing) {
             
             window.draw(*object.sprite);
-
-        }
+            window.draw(*aproachCircle.sprite);
+        }   
     }
 
 private:
-    int xPos;
-    int yPos;
-    int finalYPos;
+    float xPos;
+    float yPos;
+    float finalYPos;
     int PS;
     int ACD;
     int perfectHitWindow;
     int earlyLateWindow;
     int tooEarlyLateWindow;
     int appearTime;
+    int hitTime = -1;
     bool PressedLastFrame = false;
 
     Button object;
+    Object aproachCircle;
     const std::pair<std::string, std::string> binds;
 };
