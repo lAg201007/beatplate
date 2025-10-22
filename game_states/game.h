@@ -34,11 +34,12 @@ private:
     std::string songFolder;
     GameClock gameClock;
 
-    Plate testPlate;
+    std::vector<std::unique_ptr<Note>> notes;
 
     bool paused = false;
     int offset_ms = 0;
 
     int startTime_ms = 0;
     int endTime_ms = 0;
+    const int targetYPos;
 };

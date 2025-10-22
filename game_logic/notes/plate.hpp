@@ -11,7 +11,7 @@
 class Plate : public Note {
 public:
     Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos,int PS, int ACD, float AR = 0.0f)
-        : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos),
+        : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), pixelSize(150 * PS),
           object("assets/sprites/game/objects/plate.png", xPos, yPos, 200, 200, 1.0f, 1.0f),
           aproachCircle("assets/sprites/game/objects/plate_approach_circle.png", xPos, yPos, 200, 200, 1.0f, 1.0f),
           perfectHitWindow(getPerfectWindowMs(ACD)),
@@ -19,7 +19,6 @@ public:
           tooEarlyLateWindow(getTooEarlyLateWindowMs(ACD)),
           appearTime(getAppearTimeMs(AR, offset))
     {
-        int pixelSize = 150 * PS;
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.y
@@ -122,6 +121,18 @@ public:
 
             object.sprite->setPosition({static_cast<float>(xPos), newY});
         }
+
+        if (getState() == NoteState::Active || getState() == NoteState::Judging) {
+            float targetScale = static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.x;
+
+            float approachProgress = static_cast<float>(milliTime - appearTime) / 
+                    static_cast<float>(offset - tooEarlyLateWindow - appearTime);
+
+            // Interpolação linear de 3.0f até targetScale
+            float scale = (approachProgress < 1) ? 1.0f - ((1.0f - targetScale) * approachProgress) : targetScale;
+            aproachCircle.sprite->setPosition(object.sprite->getPosition());
+            aproachCircle.sprite->setScale({scale, scale});
+        }
     }
 
     void render(sf::RenderWindow& window) override {
@@ -144,6 +155,7 @@ private:
     int tooEarlyLateWindow;
     int appearTime;
     int hitTime = -1;
+    int pixelSize;
     bool PressedLastFrame = false;
 
     Button object;

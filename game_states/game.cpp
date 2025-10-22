@@ -13,11 +13,11 @@
 
 Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, Object& background)
     : State(stack, window),
+      targetYPos(300),
       Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
       songFolder(songFolder),
       background(background),
-      gameClock(startTime_ms, endTime_ms),
-      testPlate(3000, {"K", "L"}, 1000, -100, 300, 1, 8, 7.f)
+      gameClock(startTime_ms, endTime_ms)
 {
     std::ifstream dataFile(songFolder + "/map.json");
     nlohmann::json data;
@@ -34,6 +34,29 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     configFile >> config;
 
     offset_ms = config["settings"]["music_offset_ms"].get<int>();
+
+    auto bindArray = config["settings"]["binds"]["game_click"].get<std::vector<std::string>>();
+    std::pair<std::string, std::string> binds = {bindArray[0], bindArray[1]};
+
+    for (auto& note : data["notes"]) {
+        if (note["type"] == "plate") {
+            int offset = note["offset"].get<int>();
+            int xPos = note["xPos"].get<int>();
+
+            std::unique_ptr<Plate> newPlate = std::make_unique<Plate>(
+                offset,
+                binds,
+                xPos,
+                0,
+                targetYPos,
+                data["metadata"]["PS"].get<int>(),
+                data["metadata"]["ACD"].get<int>(),
+                data["metadata"]["AR"].get<float>()
+            );
+
+            notes.push_back(std::move(newPlate));
+        }
+    }
 
     background = ShaderUtils::applyBlurToObject(window, background, background.blurredStrength);
 
@@ -66,7 +89,10 @@ void Game::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
     Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),300});
     gameClock.update(dt, AudioManager::getInstance());
-    testPlate.update(gameClock.getTime(), mWindow);
+
+    for (auto& note : notes) {
+        note->update(gameClock.getTime(), mWindow);
+    }
 
     //std::println("Clock Time: {} ms", gameClock.getTime().asMilliseconds());
     //std::println("Music Time: {} ms", AudioManager::getInstance().getCurrentTime().asMilliseconds());
@@ -74,6 +100,10 @@ void Game::update(sf::Time dt) {
 
 void Game::render() {   
     mWindow.draw(*background.sprite);
+
+    for (auto& note : notes) {
+        note->render(mWindow);
+    }
+
     mWindow.draw(*Cursor.sprite);
-    testPlate.render(mWindow);
 }
