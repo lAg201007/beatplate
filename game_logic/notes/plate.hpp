@@ -17,7 +17,8 @@ public:
           perfectHitWindow(getPerfectWindowMs(ACD)),
           earlyLateWindow(getEarlyLateWindowMs(ACD)),
           tooEarlyLateWindow(getTooEarlyLateWindowMs(ACD)),
-          appearTime(getAppearTimeMs(AR, offset))
+          appearTime(getAppearTimeMs(AR, offset)),
+          noteColor(object.sprite->getColor())
     {
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
@@ -119,6 +120,8 @@ public:
             
             float newY = static_cast<float>(finalYPos) / easedProgress;
 
+            noteColor.a = 255 * easedProgress;
+            object.sprite->setColor(noteColor);
             object.sprite->setPosition({static_cast<float>(xPos), newY});
         }
 
@@ -161,4 +164,5 @@ private:
     Button object;
     Object aproachCircle;
     const std::pair<std::string, std::string> binds;
+    sf::Color noteColor;
 };
