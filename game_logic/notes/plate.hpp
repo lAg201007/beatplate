@@ -12,7 +12,7 @@
 inline sf::Vector2f getXYTrajectory(float x0, float y0, float h, float k, float t) {
     float xf = 2 * h - x0;
     float yf = y0;
-    float a = (y0 - k) / ((x0 - h) * (x0 - h));
+    float a = -(y0 - k) / ((x0 - h) * (x0 - h));
     float x = x0 + (xf - x0) * t;
     float y = a * (x - h) * (x - h) + k;
 
