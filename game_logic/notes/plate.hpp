@@ -8,6 +8,17 @@
 #include "../game_logic/notes/note.hpp"
 #include <print>
 
+// h e k são o x e y do apice da parábola
+sf::Vector2f getXYTrajectory(float x0, float y0, float h, float k, float t) {
+    float xf = 2 * h - x0;
+    float yf = y0;
+    float a = (y0 - k) / ((x0 - h) * (x0 - h));
+    float x = x0 + (xf - x0) * t;
+    float y = a * (x - h) * (x - h) + k;
+
+    return sf::Vector2f({x, y});
+}
+
 class Plate : public Note {
 public:
     Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int PS, int ACD, float AR = 0.0f)
