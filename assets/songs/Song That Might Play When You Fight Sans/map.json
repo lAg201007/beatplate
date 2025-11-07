@@ -9,7 +9,14 @@
         "yPos": 400
     },
     "notes": [
-        { "type": "plate", "offset": 2000, "initialXPos": 150, "finalXPos": 300, "Vel": 1, "PlateNumber": 1}
-
+    { "type": "plate", "offset": 1000, "initialXPos": 100, "finalXPos": 250, "Vel": 1.2, "PlateNumber": 1 },
+    { "type": "plate", "offset": 2500, "initialXPos": 300, "finalXPos": 100, "Vel": 0.8, "PlateNumber": 2 },
+    { "type": "plate", "offset": 4000, "initialXPos": 180, "finalXPos": 500, "Vel": 1.5, "PlateNumber": 3 },
+    { "type": "plate", "offset": 5500, "initialXPos": 500, "finalXPos": 200, "Vel": 2.0, "PlateNumber": 4 },
+    { "type": "plate", "offset": 7000, "initialXPos": 250, "finalXPos": 600, "Vel": 1.0, "PlateNumber": 5 },
+    { "type": "plate", "offset": 8500, "initialXPos": 600, "finalXPos": 150, "Vel": 0.5, "PlateNumber": 6 },
+    { "type": "plate", "offset": 10000, "initialXPos": 120, "finalXPos": 400, "Vel": 1.8, "PlateNumber": 7 },
+    { "type": "plate", "offset": 11500, "initialXPos": 400, "finalXPos": 250, "Vel": 1.3, "PlateNumber": 8 },
+    { "type": "plate", "offset": 13000, "initialXPos": 350, "finalXPos": 550, "Vel": 0.9, "PlateNumber": 9 }
     ]
 }
