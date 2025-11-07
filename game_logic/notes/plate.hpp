@@ -9,7 +9,7 @@
 #include <print>
 
 // h e k são o x e y do apice da parábola
-sf::Vector2f getXYTrajectory(float x0, float y0, float h, float k, float t) {
+inline sf::Vector2f getXYTrajectory(float x0, float y0, float h, float k, float t) {
     float xf = 2 * h - x0;
     float yf = y0;
     float a = (y0 - k) / ((x0 - h) * (x0 - h));
@@ -21,14 +21,15 @@ sf::Vector2f getXYTrajectory(float x0, float y0, float h, float k, float t) {
 
 class Plate : public Note {
 public:
-    Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int PS, int ACD, float AR = 0.0f)
+    Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int PS, int ACD, float AR = 0.0f, float Vel = 1.0f)
         : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), finalXPos(finalXPos), pixelSize(150 * PS),
-          object("assets/sprites/game/objects/plate.png", xPos, yPos, 200, 200, 1.0f, 1.0f),
+          object(std::string("assets/sprites/game/objects/plates/plate_") + std::to_string(plateNumber) + ".png", xPos, yPos, 200, 200, 1.0f, 1.0f),
           perfectHitWindow(getPerfectWindowMs(ACD)),
           earlyLateWindow(getEarlyLateWindowMs(ACD)),
           tooEarlyLateWindow(getTooEarlyLateWindowMs(ACD)),
           appearTime(getAppearTimeMs(AR, offset)),
-          plateNumber(plateNumber)
+          plateNumber(plateNumber),
+          Velocity(Vel)
     {
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
@@ -127,13 +128,13 @@ public:
             float progress = static_cast<float>(milliTime - appearTime) / 
                     static_cast<float>(offset - tooEarlyLateWindow - appearTime);
 
-            float newY = static_cast<float>(finalYPos);
+            sf::Vector2f newPos = getXYTrajectory(static_cast<float>(xPos), static_cast<float>(yPos), finalXPos, finalYPos, progress / 2.0f);
 
-            object.sprite->setPosition({static_cast<float>(xPos), newY});
+            object.sprite->setPosition(newPos);
         }
 
         if (getState() == NoteState::Active || getState() == NoteState::Judging) {
-            float targetScale = static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.x;
+            //float targetScale = static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.x;
             
         }
     }
@@ -143,7 +144,7 @@ public:
             getState() == NoteState::Hitting || getState() == NoteState::Missing) {
             
             window.draw(*object.sprite);
-            window.draw(*aproachCircle.sprite);
+            //window.draw(*aproachCircle.sprite);
         }   
     }
 
@@ -152,6 +153,7 @@ private:
     float yPos;
     float finalYPos;
     float finalXPos;
+    float Velocity;
     int plateNumber;
     int PS;
     int ACD;

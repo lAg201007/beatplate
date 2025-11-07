@@ -41,5 +41,4 @@ private:
 
     int startTime_ms = 0;
     int endTime_ms = 0;
-    const int targetYPos;
 };

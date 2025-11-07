@@ -13,7 +13,6 @@
 
 Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, Object& background)
     : State(stack, window),
-      targetYPos(300),
       Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
       songFolder(songFolder),
       background(background),
@@ -41,17 +40,23 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     for (auto& note : data["notes"]) {
         if (note["type"] == "plate") {
             int offset = note["offset"].get<int>();
-            int xPos = note["xPos"].get<int>();
+            int xPos = note["initialXPos"].get<int>();
+            int finalXPos = note["finalXPos"].get<int>();
+            int plateNumber = note["PlateNumber"].get<int>();
+            float velocity = note["Vel"].get<float>();
 
             std::unique_ptr<Plate> newPlate = std::make_unique<Plate>(
                 offset,
                 binds,
                 xPos,
                 0,
-                targetYPos,
+                data["metadata"]["yPos"].get<int>(),
+                finalXPos,
+                plateNumber,
                 data["metadata"]["PS"].get<int>(),
                 data["metadata"]["ACD"].get<int>(),
-                data["metadata"]["AR"].get<float>()
+                data["metadata"]["AR"].get<float>(),
+                velocity
             );
 
             notes.push_back(std::move(newPlate));

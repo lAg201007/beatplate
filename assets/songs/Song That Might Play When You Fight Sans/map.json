@@ -9,7 +9,7 @@
         "yPos": 400
     },
     "notes": [
-        { "type": "plate", "offset": 2000, "initialXPos": 150, "finalXPos": 300, "Vel": 1}
+        { "type": "plate", "offset": 2000, "initialXPos": 150, "finalXPos": 300, "Vel": 1, "PlateNumber": 1}
 
     ]
 }
