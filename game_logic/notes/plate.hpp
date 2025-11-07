@@ -10,15 +10,14 @@
 
 class Plate : public Note {
 public:
-    Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos,int PS, int ACD, float AR = 0.0f)
-        : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), pixelSize(150 * PS),
+    Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int PS, int ACD, float AR = 0.0f)
+        : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), finalXPos(finalXPos), pixelSize(150 * PS),
           object("assets/sprites/game/objects/plate.png", xPos, yPos, 200, 200, 1.0f, 1.0f),
-          aproachCircle("assets/sprites/game/objects/plate_approach_circle.png", xPos, yPos, 200, 200, 1.0f, 1.0f),
           perfectHitWindow(getPerfectWindowMs(ACD)),
           earlyLateWindow(getEarlyLateWindowMs(ACD)),
           tooEarlyLateWindow(getTooEarlyLateWindowMs(ACD)),
           appearTime(getAppearTimeMs(AR, offset)),
-          noteColor(object.sprite->getColor())
+          plateNumber(plateNumber)
     {
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
@@ -116,25 +115,15 @@ public:
         if (getState() == NoteState::Active) {
             float progress = static_cast<float>(milliTime - appearTime) / 
                     static_cast<float>(offset - tooEarlyLateWindow - appearTime);
-            float easedProgress = (1 - (1 - progress) * (1 - progress)); // easeOutQuad
-            
-            float newY = static_cast<float>(finalYPos) / easedProgress;
 
-            noteColor.a = 255 * easedProgress;
-            object.sprite->setColor(noteColor);
+            float newY = static_cast<float>(finalYPos);
+
             object.sprite->setPosition({static_cast<float>(xPos), newY});
         }
 
         if (getState() == NoteState::Active || getState() == NoteState::Judging) {
             float targetScale = static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.x;
-
-            float approachProgress = static_cast<float>(milliTime - appearTime) / 
-                    static_cast<float>(offset - tooEarlyLateWindow - appearTime);
-
-            // Interpolação linear de 3.0f até targetScale
-            float scale = (approachProgress < 1) ? 1.0f - ((1.0f - targetScale) * approachProgress) : targetScale;
-            aproachCircle.sprite->setPosition(object.sprite->getPosition());
-            aproachCircle.sprite->setScale({scale, scale});
+            
         }
     }
 
@@ -151,6 +140,8 @@ private:
     float xPos;
     float yPos;
     float finalYPos;
+    float finalXPos;
+    int plateNumber;
     int PS;
     int ACD;
     int perfectHitWindow;
@@ -162,7 +153,5 @@ private:
     bool PressedLastFrame = false;
 
     Button object;
-    Object aproachCircle;
     const std::pair<std::string, std::string> binds;
-    sf::Color noteColor;
 };
