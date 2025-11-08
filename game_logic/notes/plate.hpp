@@ -9,10 +9,12 @@
 #include <print>
 
 // h e k são o x e y do apice da parábola
+// a diferenca entre ixpos e xpos é de 100px - 350px
+// a altura do y é de 100px à 500px
 inline sf::Vector2f getXYTrajectory(float x0, float y0, float h, float k, float t) {
     float xf = 2 * h - x0;
     float yf = y0;
-    float a = -(y0 - k) / ((x0 - h) * (x0 - h));
+    float a = (y0 - k) / ((x0 - h) * (x0 - h));
     float x = x0 + (xf - x0) * t;
     float y = a * (x - h) * (x - h) + k;
 
@@ -129,7 +131,6 @@ public:
                     static_cast<float>(offset - tooEarlyLateWindow - appearTime);
 
             sf::Vector2f newPos = getXYTrajectory(static_cast<float>(xPos), static_cast<float>(yPos), finalXPos, finalYPos, progress / 2.0f);
-
             object.sprite->setPosition(newPos);
         }
 

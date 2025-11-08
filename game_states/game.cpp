@@ -50,7 +50,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
                 offset,
                 binds,
                 xPos,
-                0,
+                window.getSize().y + 100,
                 finalYPos,
                 finalXPos,
                 plateNumber,
