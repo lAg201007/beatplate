@@ -43,6 +43,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
             int xPos = note["initialXPos"].get<int>();
             int finalXPos = note["finalXPos"].get<int>();
             int plateNumber = note["PlateNumber"].get<int>();
+            int finalYPos = note["finalYPos"].get<int>();
             float velocity = note["Vel"].get<float>();
 
             std::unique_ptr<Plate> newPlate = std::make_unique<Plate>(
@@ -50,7 +51,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
                 binds,
                 xPos,
                 0,
-                data["metadata"]["yPos"].get<int>(),
+                finalYPos,
                 finalXPos,
                 plateNumber,
                 data["metadata"]["PS"].get<int>(),
@@ -92,7 +93,7 @@ void Game::handleEvent(const sf::Event& event) {
 
 void Game::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
-    Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),300});
+    Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
     gameClock.update(dt, AudioManager::getInstance());
 
     for (auto& note : notes) {

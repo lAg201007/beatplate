@@ -37,10 +37,10 @@ public:
         });
     }
 
-    bool DetectHoverX(sf::RenderWindow& window) {
+    bool DetectHover(sf::RenderWindow& window) {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
         sf::FloatRect bounds = object.sprite->getGlobalBounds();
-        return bounds.contains(sf::Vector2f({static_cast<float>(mousePos.x), finalYPos}));
+        return bounds.contains(sf::Vector2f({static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)}));
     }
 
     bool DetectClickWithBind(sf::RenderWindow& window) {
@@ -66,7 +66,7 @@ public:
             }
         }
 
-        bool hovered = DetectHoverX(window);
+        bool hovered = DetectHover(window);
 
         if (hovered && bindPressed && !PressedLastFrame) {
             PressedLastFrame = true;
