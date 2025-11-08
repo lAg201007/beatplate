@@ -31,6 +31,8 @@ public:
           tooEarlyLateWindow(getTooEarlyLateWindowMs(ACD)),
           appearTime(getAppearTimeMs(AR, offset)),
           plateNumber(plateNumber),
+          initialXPos(xPos),
+          initialYPos(yPos),
           Velocity(Vel)
     {
         object.sprite->setScale({
@@ -130,7 +132,24 @@ public:
             float progress = static_cast<float>(milliTime - appearTime) / 
                     static_cast<float>(offset - tooEarlyLateWindow - appearTime);
 
-            sf::Vector2f newPos = getXYTrajectory(static_cast<float>(xPos), static_cast<float>(yPos), finalXPos, finalYPos, progress / 2.0f);
+            sf::Vector2f newPos = getXYTrajectory(static_cast<float>(xPos), static_cast<float>(yPos), finalXPos, finalYPos, (progress / 2.0f) * Velocity);
+            object.sprite->setPosition(newPos);
+
+            float spinFactor =
+                (std::abs(initialYPos - finalYPos) / (float)window.getSize().y) *
+                (std::abs(initialXPos - finalXPos) / (float)window.getSize().x) *
+                8.0f; // amplifica o spin
+
+            sf::Angle newAngle = sf::degrees(progress * 360.0f * Velocity * spinFactor);
+
+            object.sprite->setRotation(newAngle);
+        }
+
+        if (getState() == NoteState::Missing) {
+            float progress = static_cast<float>(milliTime - appearTime) / 
+                    static_cast<float>(offset - tooEarlyLateWindow - appearTime);
+
+            sf::Vector2f newPos = getXYTrajectory(static_cast<float>(xPos), static_cast<float>(yPos), finalXPos, finalYPos, progress / 4.0f);
             object.sprite->setPosition(newPos);
         }
 
@@ -152,6 +171,8 @@ public:
 private:
     float xPos;
     float yPos;
+    float initialXPos;
+    float initialYPos;
     float finalYPos;
     float finalXPos;
     float Velocity;
