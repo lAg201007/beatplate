@@ -20,7 +20,7 @@ std::unordered_map<std::string, std::shared_ptr<sf::Texture>> SongList::Backgrou
 // Constructor for SongSlot
 SongSelect::SongSelect(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window),
-      Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
+      Cursor("assets/sprites/cursor.png", 400, 300, 0, 0), 
       click_buffer("assets/sounds/song_select/click.mp3"),
       back_buffer("assets/sounds/song_select/back.wav"),
       play_buffer("assets/sounds/song_select/play.wav"),

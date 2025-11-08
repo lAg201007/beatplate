@@ -13,7 +13,7 @@
 
 Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, Object& background)
     : State(stack, window),
-      Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
+      Cursor("assets/sprites/CursorInGame.png", 400, 300, 67, 67),
       songFolder(songFolder),
       background(background),
       gameClock(startTime_ms, endTime_ms)

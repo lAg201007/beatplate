@@ -18,7 +18,7 @@ int MainMenu::ActualMusicBpm = 0;
 
 MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window),
-    Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
+    Cursor("assets/sprites/cursor.png", 400, 300, 0, 0), 
     Title("assets/sprites/main_menu/title.png", 0, 0, 640, 360), // x e y serão definidos depois
     background("assets/sprites/main_menu/background.png",0,0),
     start_buffer("assets/sounds/menu/start.wav"),
