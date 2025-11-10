@@ -32,7 +32,7 @@ public:
           appearTime(getAppearTimeMs(AR, offset)),
           plateNumber(plateNumber),
           initialXPos(xPos),
-          initialYPos(yPos),
+          initialYPos(yPos)
     {
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
