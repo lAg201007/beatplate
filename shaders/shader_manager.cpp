@@ -52,6 +52,16 @@ namespace ShaderUtils {
         return shader;
     }
 
+    sf::Shader createDarkOutShader(float DarkMultiplier, sf::RenderWindow& window) {
+        sf::Shader shader = ShaderUtils::createShader("shaders/frag/dark_out.frag", std::nullopt, { 
+                {"DarkMultiplier", DarkMultiplier},
+                {"texture", sf::Shader::CurrentTexture}
+            }
+        );
+        
+        return shader;
+    }
+
     sf::Texture applyBlur(sf::RenderWindow& window, sf::Sprite& sprite, float blurStrength) {
         sf::RenderTexture rtH = (window.getSize());
         sf::RenderTexture rtV = (window.getSize());
