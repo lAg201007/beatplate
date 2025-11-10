@@ -63,6 +63,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     }
 
     background = ShaderUtils::applyBlurToObject(window, background, background.blurredStrength);
+    backgroundShader = ShaderUtils::createDarkOutShader(config["settings"]["background_dark_intensity"].get<float>(), window);
 
     AudioManager::getInstance().playMusic(songFolder + "/song.mp3", false, nullptr);
 }
@@ -103,7 +104,7 @@ void Game::update(sf::Time dt) {
 }
 
 void Game::render() {   
-    mWindow.draw(*background.sprite);
+    mWindow.draw(*background.sprite, &backgroundShader);
 
     for (auto& note : notes) {
         note->render(mWindow);

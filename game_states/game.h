@@ -33,6 +33,7 @@ private:
     sf::Vector2i mouse_pos;
     std::string songFolder;
     GameClock gameClock;
+    sf::Shader backgroundShader;
 
     std::vector<std::unique_ptr<Note>> notes;
 
