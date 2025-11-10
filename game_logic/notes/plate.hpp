@@ -33,7 +33,6 @@ public:
           plateNumber(plateNumber),
           initialXPos(xPos),
           initialYPos(yPos),
-          Velocity(Vel)
     {
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
@@ -132,7 +131,7 @@ public:
             float progress = static_cast<float>(milliTime - appearTime) / 
                     static_cast<float>(offset - tooEarlyLateWindow - appearTime);
 
-            sf::Vector2f newPos = getXYTrajectory(static_cast<float>(xPos), static_cast<float>(yPos), finalXPos, finalYPos, (progress / 2.0f) * Velocity);
+            sf::Vector2f newPos = getXYTrajectory(static_cast<float>(xPos), static_cast<float>(yPos), finalXPos, finalYPos, progress / 2.0f);
             object.sprite->setPosition(newPos);
 
             float spinFactor =
@@ -140,7 +139,7 @@ public:
                 (std::abs(initialXPos - finalXPos) / (float)window.getSize().x) *
                 8.0f; // amplifica o spin
 
-            sf::Angle newAngle = sf::degrees(progress * 360.0f * Velocity * spinFactor);
+            sf::Angle newAngle = sf::degrees(progress * 360.0f * spinFactor);
 
             object.sprite->setRotation(newAngle);
         }
@@ -175,7 +174,6 @@ private:
     float initialYPos;
     float finalYPos;
     float finalXPos;
-    float Velocity;
     int plateNumber;
     int PS;
     int ACD;

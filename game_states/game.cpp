@@ -44,7 +44,6 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
             int finalXPos = note["finalXPos"].get<int>();
             int plateNumber = note["PlateNumber"].get<int>();
             int finalYPos = note["finalYPos"].get<int>();
-            float velocity = note["Vel"].get<float>();
 
             std::unique_ptr<Plate> newPlate = std::make_unique<Plate>(
                 offset,
@@ -56,8 +55,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
                 plateNumber,
                 data["metadata"]["PS"].get<int>(),
                 data["metadata"]["ACD"].get<int>(),
-                data["metadata"]["AR"].get<float>(),
-                velocity
+                data["metadata"]["AR"].get<float>()
             );
 
             notes.push_back(std::move(newPlate));
