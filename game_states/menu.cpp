@@ -26,7 +26,7 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     start_sound(start_buffer),
 
     TitleTween(std::make_unique<Tween>(*Title.sprite,0.5f,Tween::linear)),
-    TitleBeatWhiteMultiplier(50),
+    TitleBeatWhiteMultiplier(50.f),
     TitleWhiteMaskTween(std::make_unique<ValueTween>(TitleBeatWhiteMultiplier,0.f,0.5f)),
     TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear),
     StartTextTransparencyTween(0.0f,1.0f,3.0f),

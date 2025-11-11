@@ -97,14 +97,18 @@ public:
             setState(NoteState::Missed);
             setHitResult(HitResult::None);
         }
+        else if (getState() == NoteState::Hitting && milliTime >= hitTime + 100) { // tempo no hitting
+            setState(NoteState::Hit);
+        }
         
         if (getState() == NoteState::Judging) {
             if (DetectClickWithBind(window)) {
                 int hitWindow = std::abs(milliTime - offset);
                 if (hitWindow <= perfectHitWindow) {
                     setHitResult(HitResult::Perfect);
-                    setState(NoteState::Hit);
+                    setState(NoteState::Hitting);
                     hitTime = milliTime;
+                    std::println("Plate {} hit at {} ms with Perfect\n", plateNumber, milliTime);
                 }
                 if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
                     if (milliTime < offset) {
@@ -112,8 +116,9 @@ public:
                     } else {
                         setHitResult(HitResult::PerfectLate);
                     }
-                    setState(NoteState::Hit);
+                    setState(NoteState::Hitting);
                     hitTime = milliTime;
+                    std::println("Plate {} hit at {} ms with Perfect Early/Late\n", plateNumber, milliTime);
                 }
                 if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
                     if (milliTime < offset) {
@@ -121,8 +126,9 @@ public:
                     } else {
                         setHitResult(HitResult::TooLate);
                     }
-                    setState(NoteState::Hit);
+                    setState(NoteState::Hitting);
                     hitTime = milliTime;
+                    std::println("Plate {} hit at {} ms with Too Early/Late\n", plateNumber, milliTime);
                 }
             }
         }
