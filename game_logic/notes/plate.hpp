@@ -25,7 +25,8 @@ class Plate : public Note {
 public:
     Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int PS, int ACD, float AR = 0.0f, float Vel = 1.0f)
         : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), finalXPos(finalXPos), pixelSize(150 * PS),
-          object(std::string("assets/sprites/game/objects/plates/plate_") + std::to_string(plateNumber) + ".png", xPos, yPos, 200, 200, 1.0f, 1.0f),
+          object(std::string("assets/sprites/game/objects/plates/plate_") + std::to_string(plateNumber) + ".png", xPos, yPos, 195, 195, 1.0f, 1.0f),
+          aproachCircle("assets/sprites/game/objects/plates/plate_aproach_circle.png", finalXPos, finalYPos, 150, 150, 1.0f, 1.0f),
           perfectHitWindow(getPerfectWindowMs(ACD)),
           earlyLateWindow(getEarlyLateWindowMs(ACD)),
           tooEarlyLateWindow(getTooEarlyLateWindowMs(ACD)),
@@ -38,6 +39,11 @@ public:
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.y
         });
+        aproachCircle.sprite->setScale({
+            static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.x,
+            static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.y
+        });
+        aproachCircleScale = aproachCircle.sprite->getScale();
     }
 
     bool DetectHover(sf::RenderWindow& window) {
@@ -169,7 +175,7 @@ public:
             getState() == NoteState::Hitting || getState() == NoteState::Missing) {
             
             window.draw(*object.sprite);
-            //window.draw(*aproachCircle.sprite);
+            window.draw(*aproachCircle.sprite);
         }   
     }
 
@@ -192,5 +198,7 @@ private:
     bool PressedLastFrame = false;
 
     Button object;
+    Button aproachCircle;
+    sf::Vector2f aproachCircleScale;
     const std::pair<std::string, std::string> binds;
 };
