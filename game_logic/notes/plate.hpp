@@ -9,6 +9,12 @@
 #include <print>
 #include <algorithm>
 
+// consts
+
+// ms
+const int hittingTime = 100;
+const float aproachCircleScaleDiminish = 0.15f;
+
 // h e k são o x e y do apice da parábola
 // a diferenca entre ixpos e xpos é de 100px - 350px
 // a altura do y é de 100px à 500px
@@ -44,8 +50,8 @@ public:
         aproachCircleScale.x = (static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.x);
         aproachCircleScale.y = (static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.y);
 
-        aproachCircleScale.x = std::max(0.0f, aproachCircleScale.x - 0.15f); // fix this later (making it fit perfectly)
-        aproachCircleScale.y = std::max(0.0f, aproachCircleScale.y - 0.15f);
+        aproachCircleScale.x = std::max(0.0f, aproachCircleScale.x - aproachCircleScaleDiminish); // fix this later (making it fit perfectly)
+        aproachCircleScale.y = std::max(0.0f, aproachCircleScale.y - aproachCircleScaleDiminish);
 
         aproachCircle.sprite->setScale(aproachCircleScale);
     }
@@ -107,7 +113,7 @@ public:
             setState(NoteState::Missed);
             setHitResult(HitResult::None);
         }
-        else if (getState() == NoteState::Hitting && milliTime >= hitTime + 100) { // tempo no hitting
+        else if (getState() == NoteState::Hitting && milliTime >= hitTime + hittingTime) { // tempo no hitting
             setState(NoteState::Hit);
         }
         
@@ -147,6 +153,7 @@ public:
             float progress = static_cast<float>(milliTime - appearTime) / 
                     static_cast<float>(offset - tooEarlyLateWindow - appearTime);
 
+            // half progress because of the parabolic movement
             float p = std::clamp(progress / 2.0f, 0.0f, 1.0f);
 
             sf::Vector2f newPos = getXYTrajectory(
@@ -169,7 +176,7 @@ public:
                 8.0f; // amplifica o spin
 
             sf::Angle newAngle = sf::degrees(progress * 360.0f * spinFactor);
-            sf::Angle newAproachCircleAngle = sf::degrees((progress * 360.0f * spinFactor) / 4.0f);
+            sf::Angle newAproachCircleAngle = sf::degrees((progress * 360.0f * spinFactor) / 4.0f); // making it 4 times slower
 
             aproachCircle.sprite->setScale(newScale);
             aproachCircle.sprite->setRotation(newAproachCircleAngle);
