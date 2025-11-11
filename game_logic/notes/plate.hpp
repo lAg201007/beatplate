@@ -7,6 +7,7 @@
 #include "../utils/utilities.h"
 #include "../game_logic/notes/note.hpp"
 #include <print>
+#include <algorithm>
 
 // h e k são o x e y do apice da parábola
 // a diferenca entre ixpos e xpos é de 100px - 350px
@@ -39,11 +40,14 @@ public:
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.y
         });
-        aproachCircle.sprite->setScale({
-            static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.x,
-            static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.y
-        });
-        aproachCircleScale = aproachCircle.sprite->getScale();
+
+        aproachCircleScale.x = (static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.x);
+        aproachCircleScale.y = (static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.y);
+
+        aproachCircleScale.x = std::max(0.0f, aproachCircleScale.x - 0.15f); // fix this later (making it fit perfectly)
+        aproachCircleScale.y = std::max(0.0f, aproachCircleScale.y - 0.15f);
+
+        aproachCircle.sprite->setScale(aproachCircleScale);
     }
 
     bool DetectHover(sf::RenderWindow& window) {
@@ -143,8 +147,21 @@ public:
             float progress = static_cast<float>(milliTime - appearTime) / 
                     static_cast<float>(offset - tooEarlyLateWindow - appearTime);
 
-            sf::Vector2f newPos = getXYTrajectory(static_cast<float>(xPos), static_cast<float>(yPos), finalXPos, finalYPos, progress / 2.0f);
-            object.sprite->setPosition(newPos);
+            float p = std::clamp(progress / 2.0f, 0.0f, 1.0f);
+
+            sf::Vector2f newPos = getXYTrajectory(
+                static_cast<float>(xPos),
+                static_cast<float>(yPos),
+                finalXPos,
+                finalYPos,
+                p
+            );
+
+            float scaleFactor = std::max(-4.0f * p + 3.0f, 1.0f);
+
+            sf::Vector2f newScale;
+            newScale.x = aproachCircleScale.x * scaleFactor;
+            newScale.y = aproachCircleScale.y * scaleFactor;
 
             float spinFactor =
                 (std::abs(initialYPos - finalYPos) / (float)window.getSize().y) *
@@ -152,7 +169,11 @@ public:
                 8.0f; // amplifica o spin
 
             sf::Angle newAngle = sf::degrees(progress * 360.0f * spinFactor);
+            sf::Angle newAproachCircleAngle = sf::degrees((progress * 360.0f * spinFactor) / 4.0f);
 
+            aproachCircle.sprite->setScale(newScale);
+            aproachCircle.sprite->setRotation(newAproachCircleAngle);
+            object.sprite->setPosition(newPos);
             object.sprite->setRotation(newAngle);
         }
 
