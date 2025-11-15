@@ -109,12 +109,17 @@ public:
         else if (milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + earlyLateWindow && getState() != NoteState::Judging) {
             setState(NoteState::Judging);
         }
-        else if (milliTime > offset + earlyLateWindow && getState() != NoteState::Missed && getState() != NoteState::Hit) {
-            setState(NoteState::Missed);
+        else if (milliTime > offset + earlyLateWindow && getState() != NoteState::Missed 
+        || milliTime > offset + earlyLateWindow && getState() != NoteState::Hit 
+        || milliTime > offset + earlyLateWindow && getState() != NoteState::Hitting) {
+            setState(NoteState::Missing);
             setHitResult(HitResult::None);
         }
         else if (getState() == NoteState::Hitting && milliTime >= hitTime + hittingTime) { // tempo no hitting
             setState(NoteState::Hit);
+        }
+        else if (getState() == NoteState::Missing && milliTime >= hitTime + hittingTime) {
+            setState(NoteState::Missed);
         }
         
         if (getState() == NoteState::Judging) {
@@ -192,10 +197,6 @@ public:
             object.sprite->setPosition(newPos);
         }
 
-        if (getState() == NoteState::Active || getState() == NoteState::Judging) {
-            //float targetScale = static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.x;
-            
-        }
     }
 
     void render(sf::RenderWindow& window) override {
