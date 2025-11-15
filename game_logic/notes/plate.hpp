@@ -28,6 +28,48 @@ inline sf::Vector2f getXYTrajectory(float x0, float y0, float h, float k, float 
     return sf::Vector2f({x, y});
 }
 
+inline float getProgress(int milliTime, int appearTime, int offset, int tooEarlyLateWindow) {
+    return static_cast<float>(milliTime - appearTime) / 
+           static_cast<float>(offset - tooEarlyLateWindow - appearTime);
+}
+
+inline void updatePlate(int milliTime, int offset, int xPos, int yPos, int finalXPos, int finalYPos,
+                  sf::RenderWindow& window, Object& object, Object& aproachCircle,
+                  sf::Vector2f& aproachCircleScale, int appearTime,
+                  int initialXPos, int initialYPos, int tooEarlyLateWindow) {
+
+    float progress = getProgress(milliTime, appearTime, offset, tooEarlyLateWindow);
+    // half progress because of the parabolic movement
+    float p = std::clamp(progress / 2.0f, 0.0f, 1.0f);
+
+    sf::Vector2f newPos = getXYTrajectory(
+        static_cast<float>(xPos),
+        static_cast<float>(yPos),
+        finalXPos,
+        finalYPos,
+        p
+    );
+
+    float scaleFactor = std::max(-4.0f * p + 3.0f, 1.0f);
+
+    sf::Vector2f newScale;
+    newScale.x = aproachCircleScale.x * scaleFactor;
+    newScale.y = aproachCircleScale.y * scaleFactor;
+
+    float spinFactor =
+        (std::abs(initialYPos - finalYPos) / (float)window.getSize().y) *
+        (std::abs(initialXPos - finalXPos) / (float)window.getSize().x) *
+        8.0f; // amplifica o spin
+
+    sf::Angle newAngle = sf::degrees(progress * 360.0f * spinFactor);
+    sf::Angle newAproachCircleAngle = sf::degrees((progress * 360.0f * spinFactor) / 4.0f); // making it 4 times slower
+
+    aproachCircle.sprite->setScale(newScale);
+    aproachCircle.sprite->setRotation(newAproachCircleAngle);
+    object.sprite->setPosition(newPos);
+    object.sprite->setRotation(newAngle);
+}
+
 class Plate : public Note {
 public:
     Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int PS, int ACD, float AR = 0.0f, float Vel = 1.0f)
@@ -155,46 +197,17 @@ public:
         }
 
         if (getState() == NoteState::Active) {
-            float progress = static_cast<float>(milliTime - appearTime) / 
-                    static_cast<float>(offset - tooEarlyLateWindow - appearTime);
-
-            // half progress because of the parabolic movement
-            float p = std::clamp(progress / 2.0f, 0.0f, 1.0f);
-
-            sf::Vector2f newPos = getXYTrajectory(
-                static_cast<float>(xPos),
-                static_cast<float>(yPos),
-                finalXPos,
-                finalYPos,
-                p
-            );
-
-            float scaleFactor = std::max(-4.0f * p + 3.0f, 1.0f);
-
-            sf::Vector2f newScale;
-            newScale.x = aproachCircleScale.x * scaleFactor;
-            newScale.y = aproachCircleScale.y * scaleFactor;
-
-            float spinFactor =
-                (std::abs(initialYPos - finalYPos) / (float)window.getSize().y) *
-                (std::abs(initialXPos - finalXPos) / (float)window.getSize().x) *
-                8.0f; // amplifica o spin
-
-            sf::Angle newAngle = sf::degrees(progress * 360.0f * spinFactor);
-            sf::Angle newAproachCircleAngle = sf::degrees((progress * 360.0f * spinFactor) / 4.0f); // making it 4 times slower
-
-            aproachCircle.sprite->setScale(newScale);
-            aproachCircle.sprite->setRotation(newAproachCircleAngle);
-            object.sprite->setPosition(newPos);
-            object.sprite->setRotation(newAngle);
+            updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
+                        window, object, aproachCircle, aproachCircleScale,
+                        appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
         }
 
-        if (getState() == NoteState::Missing) {
-            float progress = static_cast<float>(milliTime - appearTime) / 
-                    static_cast<float>(offset - tooEarlyLateWindow - appearTime);
+        if (getState() == NoteState::Missing or getState() == NoteState::Judging) {
+            updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
+                        window, object, aproachCircle, aproachCircleScale,
+                        appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
 
-            sf::Vector2f newPos = getXYTrajectory(static_cast<float>(xPos), static_cast<float>(yPos), finalXPos, finalYPos, progress / 4.0f);
-            object.sprite->setPosition(newPos);
+            float progress = getProgress(milliTime, appearTime, offset, tooEarlyLateWindow);
         }
 
     }
