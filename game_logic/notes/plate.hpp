@@ -82,7 +82,8 @@ public:
           appearTime(getAppearTimeMs(AR, offset)),
           plateNumber(plateNumber),
           initialXPos(xPos),
-          initialYPos(yPos)
+          initialYPos(yPos),
+          aproachCircleColor(aproachCircle.sprite->getColor())
     {
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
@@ -151,11 +152,15 @@ public:
         else if (milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + earlyLateWindow && getState() != NoteState::Judging) {
             setState(NoteState::Judging);
         }
-        else if (milliTime > offset + earlyLateWindow && getState() != NoteState::Missed 
-        || milliTime > offset + earlyLateWindow && getState() != NoteState::Hit 
-        || milliTime > offset + earlyLateWindow && getState() != NoteState::Hitting) {
+        
+        else if (milliTime > offset + earlyLateWindow &&
+                 getState() != NoteState::Missing &&
+                 getState() != NoteState::Missed &&
+                 getState() != NoteState::Hit &&
+                 getState() != NoteState::Hitting) {
             setState(NoteState::Missing);
             setHitResult(HitResult::None);
+            hitTime = milliTime;
         }
         else if (getState() == NoteState::Hitting && milliTime >= hitTime + hittingTime) { // tempo no hitting
             setState(NoteState::Hit);
@@ -208,6 +213,9 @@ public:
                         appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
 
             float progress = getProgress(milliTime, appearTime, offset, tooEarlyLateWindow);
+            sf::Color newColor = aproachCircleColor;
+            newColor.a = uint8_t(aproachCircleColor.a * (1.0f - progress));
+            aproachCircle.sprite->setColor(newColor);
         }
 
     }
@@ -242,5 +250,6 @@ private:
     Button object;
     Button aproachCircle;
     sf::Vector2f aproachCircleScale;
+    sf::Color aproachCircleColor;
     const std::pair<std::string, std::string> binds;
 };
