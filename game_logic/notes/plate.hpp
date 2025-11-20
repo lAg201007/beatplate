@@ -12,7 +12,8 @@
 // consts
 
 // ms
-const int hittingTime = 100;
+const int hittingTime = 500;
+const float missFadeDuration = 500;
 const float aproachCircleScaleDiminish = 0.15f;
 
 // h e k são o x e y do apice da parábola
@@ -70,6 +71,18 @@ inline void updatePlate(int milliTime, int offset, int xPos, int yPos, int final
     object.sprite->setRotation(newAngle);
 }
 
+inline void updateMissAlpha(NoteState state, sf::Color& originalColor, Object& obj, int milliTime, int appearTime, int hitTime) {
+    int fadeStart = appearTime;
+    if (state == NoteState::Missing && hitTime != -1) {
+        fadeStart = hitTime;
+    }
+    float fadeElapsed = static_cast<float>(milliTime - fadeStart);
+    float fadeProgress = std::clamp(fadeElapsed / missFadeDuration, 0.0f, 1.0f);
+    sf::Color newColor = originalColor;
+    newColor.a = static_cast<uint8_t>(originalColor.a * (1.0f - fadeProgress));
+    obj.sprite->setColor(newColor);
+}
+
 class Plate : public Note {
 public:
     Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int PS, int ACD, float AR = 0.0f, float Vel = 1.0f)
@@ -83,7 +96,8 @@ public:
           plateNumber(plateNumber),
           initialXPos(xPos),
           initialYPos(yPos),
-          aproachCircleColor(aproachCircle.sprite->getColor())
+          aproachCircleColor(aproachCircle.sprite->getColor()),
+          objColor(object.sprite->getColor())
     {
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
@@ -199,6 +213,9 @@ public:
                     std::println("Plate {} hit at {} ms with Too Early/Late\n", plateNumber, milliTime);
                 }
             }
+            updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
+                        window, object, aproachCircle, aproachCircleScale,
+                        appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
         }
 
         if (getState() == NoteState::Active) {
@@ -207,15 +224,13 @@ public:
                         appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
         }
 
-        if (getState() == NoteState::Missing or getState() == NoteState::Judging) {
+        if (getState() == NoteState::Missing) {
             updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
                         window, object, aproachCircle, aproachCircleScale,
                         appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
 
-            float progress = getProgress(milliTime, appearTime, offset, tooEarlyLateWindow);
-            sf::Color newColor = aproachCircleColor;
-            newColor.a = uint8_t(aproachCircleColor.a * (1.0f - progress));
-            aproachCircle.sprite->setColor(newColor);
+            updateMissAlpha(getState(), aproachCircleColor, aproachCircle, milliTime, appearTime, hitTime);
+            updateMissAlpha(getState(), objColor, object, milliTime, appearTime, hitTime);
         }
 
     }
@@ -251,5 +266,6 @@ private:
     Button aproachCircle;
     sf::Vector2f aproachCircleScale;
     sf::Color aproachCircleColor;
+    sf::Color objColor;
     const std::pair<std::string, std::string> binds;
 };
