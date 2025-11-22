@@ -34,6 +34,7 @@ inline float getProgress(int milliTime, int appearTime, int offset, int tooEarly
            static_cast<float>(offset - tooEarlyLateWindow - appearTime);
 }
 
+// TODO: VER SE ELE TÁ ATUALIZANDO QUANDO ESTÁ EM NOTESTATE::HITTING
 inline void updatePlate(int milliTime, int offset, int xPos, int yPos, int finalXPos, int finalYPos,
                   sf::RenderWindow& window, Object& object, Object& aproachCircle,
                   sf::Vector2f& aproachCircleScale, int appearTime,
@@ -213,9 +214,12 @@ public:
                     std::println("Plate {} hit at {} ms with Too Early/Late\n", plateNumber, milliTime);
                 }
             }
-            updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
-                        window, object, aproachCircle, aproachCircleScale,
-                        appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
+
+            if (getState() == NoteState::Judging) {
+                updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
+                            window, object, aproachCircle, aproachCircleScale,
+                            appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
+            }
         }
 
         if (getState() == NoteState::Active) {
@@ -231,6 +235,10 @@ public:
 
             updateMissAlpha(getState(), aproachCircleColor, aproachCircle, milliTime, appearTime, hitTime);
             updateMissAlpha(getState(), objColor, object, milliTime, appearTime, hitTime);
+        }
+
+        if (getState() == NoteState::Hitting) {
+            
         }
 
     }
