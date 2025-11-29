@@ -153,37 +153,24 @@ public:
         PressedLastFrame = bindPressed;
         return false;
     }
-
     void update(sf::Time elapsed, sf::RenderWindow& window) override {
         const int milliTime = elapsed.asMilliseconds();
         const int offset = getOffset();
 
+        // Transições de estado baseadas no tempo
         if (milliTime < appearTime && getState() != NoteState::Waiting) {
             setState(NoteState::Waiting);
         }
         else if (milliTime >= appearTime && milliTime < offset - tooEarlyLateWindow && getState() != NoteState::Active) {
             setState(NoteState::Active);
         }
-        else if (milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + earlyLateWindow && getState() != NoteState::Judging) {
+        else if (milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + earlyLateWindow && 
+                getState() != NoteState::Judging && getState() != NoteState::Hitting && 
+                getState() != NoteState::Hit) {  // <-- Não entra em Judging se já acertou
             setState(NoteState::Judging);
         }
         
-        else if (milliTime > offset + earlyLateWindow &&
-                 getState() != NoteState::Missing &&
-                 getState() != NoteState::Missed &&
-                 getState() != NoteState::Hit &&
-                 getState() != NoteState::Hitting) {
-            setState(NoteState::Missing);
-            setHitResult(HitResult::None);
-            hitTime = milliTime;
-        }
-        else if (getState() == NoteState::Hitting && milliTime >= hitTime + hittingTime) { // tempo no hitting
-            setState(NoteState::Hit);
-        }
-        else if (getState() == NoteState::Missing && milliTime >= hitTime + hittingTime) {
-            setState(NoteState::Missed);
-        }
-        
+        // Processa clique ANTES de verificar timeout
         if (getState() == NoteState::Judging) {
             if (DetectClickWithBind(window)) {
                 int hitWindow = std::abs(milliTime - offset);
@@ -191,7 +178,8 @@ public:
                     setHitResult(HitResult::Perfect);
                     setState(NoteState::Hitting);
                     hitTime = milliTime;
-                    std::println("Plate {} hit at {} ms with Perfect\n", plateNumber, milliTime);
+                    std::println("Plate {} hit at {} ms with Perfect", plateNumber, milliTime);
+                    return;
                 }
                 if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
                     if (milliTime < offset) {
@@ -201,7 +189,8 @@ public:
                     }
                     setState(NoteState::Hitting);
                     hitTime = milliTime;
-                    std::println("Plate {} hit at {} ms with Perfect Early/Late\n", plateNumber, milliTime);
+                    std::println("Plate {} hit at {} ms with Perfect Early/Late", plateNumber, milliTime);
+                    return;
                 }
                 if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
                     if (milliTime < offset) {
@@ -211,18 +200,33 @@ public:
                     }
                     setState(NoteState::Hitting);
                     hitTime = milliTime;
-                    std::println("Plate {} hit at {} ms with Too Early/Late\n", plateNumber, milliTime);
+                    std::println("Plate {} hit at {} ms with Too Early/Late", plateNumber, milliTime);
+                    return;
                 }
-            }
-
-            if (getState() == NoteState::Judging) {
-                updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
-                            window, object, aproachCircle, aproachCircleScale,
-                            appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
             }
         }
 
-        if (getState() == NoteState::Active) {
+        // Verifica timeout (SEM ELSE - independente)
+        if (milliTime > offset + earlyLateWindow &&
+            getState() != NoteState::Missing &&
+            getState() != NoteState::Missed &&
+            getState() != NoteState::Hit &&
+            getState() != NoteState::Hitting) {
+            setState(NoteState::Missing);
+            setHitResult(HitResult::None);
+            hitTime = milliTime;
+        }
+
+        // Transições finais (SEM ELSE - todos devem ser IFs independentes)
+        if (getState() == NoteState::Hitting && milliTime >= hitTime + hittingTime) {
+            setState(NoteState::Hit);
+        }
+        if (getState() == NoteState::Missing && milliTime >= hitTime + hittingTime) {
+            setState(NoteState::Missed);
+        }
+
+        // Atualização visual
+        if (getState() == NoteState::Active || getState() == NoteState::Judging) {
             updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
                         window, object, aproachCircle, aproachCircleScale,
                         appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
@@ -238,9 +242,8 @@ public:
         }
 
         if (getState() == NoteState::Hitting) {
-            
+            std::println("hitting, {}, number: {}", milliTime, plateNumber);
         }
-
     }
 
     void render(sf::RenderWindow& window) override {
