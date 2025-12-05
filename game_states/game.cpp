@@ -11,6 +11,14 @@
 #include <fstream>
 #include <print>
 
+// inicializando os sons do plate
+sf::SoundBuffer bufhit1;
+sf::SoundBuffer bufhit2;
+sf::SoundBuffer bufhit3;
+sf::Sound hit1(bufhit1);
+sf::Sound hit2(bufhit2);
+sf::Sound hit3(bufhit3);
+
 Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, Object& background)
     : State(stack, window),
       Cursor("assets/sprites/CursorInGame.png", 400, 300, 67, 67),
@@ -18,6 +26,8 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
       background(background),
       gameClock(startTime_ms, endTime_ms)
 {
+    loadHitSounds();
+
     std::ifstream dataFile(songFolder + "/map.json");
     nlohmann::json data;
     dataFile >> data;
@@ -44,6 +54,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
             int finalXPos = note["finalXPos"].get<int>();
             int plateNumber = note["PlateNumber"].get<int>();
             int finalYPos = note["finalYPos"].get<int>();
+            int hitNum = note["hitsound"].get<int>();
 
             std::unique_ptr<Plate> newPlate = std::make_unique<Plate>(
                 offset,
@@ -53,6 +64,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
                 finalYPos,
                 finalXPos,
                 plateNumber,
+                hitNum,
                 data["metadata"]["PS"].get<int>(),
                 data["metadata"]["ACD"].get<int>(),
                 data["metadata"]["AR"].get<float>()

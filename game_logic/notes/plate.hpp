@@ -8,6 +8,7 @@
 #include "../game_logic/notes/note.hpp"
 #include <print>
 #include <algorithm>
+#include <iostream> // Necessário para std::cerr
 
 // consts
 
@@ -16,9 +17,31 @@ const int hittingTime = 500;
 const float missFadeDuration = 500;
 const float aproachCircleScaleDiminish = 0.15f;
 
-// h e k são o x e y do apice da parábola
-// a diferenca entre ixpos e xpos é de 100px - 350px
-// a altura do y é de 100px à 500px
+// CORREÇÃO 1: Removido 'const'. sf::Sound precisa ser mutável para tocar.
+extern sf::Sound hit1;
+extern sf::Sound hit2;
+extern sf::Sound hit3;
+
+extern sf::SoundBuffer bufhit1;
+extern sf::SoundBuffer bufhit2;
+extern sf::SoundBuffer bufhit3;
+
+inline sf::Sound initSound(sf::Sound& Sound, sf::SoundBuffer& Buffer, std::string path) {
+    if (Buffer.loadFromFile(path)) {
+        Sound.setBuffer(Buffer);
+    }
+    else {
+        std::println("FAILED TO LOAD SOUND BUFFER FROM FILE: {}", path);
+    }
+    return Sound;
+}
+
+inline void loadHitSounds() {
+    hit1 = initSound(hit1, bufhit1, "assets/sounds/game/plate/platehit1.wav");
+    hit2 = initSound(hit2, bufhit2, "assets/sounds/game/plate/platehit2.wav");
+    hit3 = initSound(hit3, bufhit3, "assets/sounds/game/plate/platehit3.wav");
+}
+
 inline sf::Vector2f getXYTrajectory(float x0, float y0, float h, float k, float t) {
     float xf = 2 * h - x0;
     float yf = y0;
@@ -72,9 +95,13 @@ inline void updatePlate(int milliTime, int offset, int xPos, int yPos, int final
     object.sprite->setRotation(newAngle);
 }
 
-inline void updateMissAlpha(NoteState state, sf::Color& originalColor, Object& obj, int milliTime, int appearTime, int hitTime) {
+inline void updateAlpha(NoteState state, sf::Color& originalColor, Object& obj, int milliTime, int appearTime, int hitTime) {
     int fadeStart = appearTime;
     if (state == NoteState::Missing && hitTime != -1) {
+        fadeStart = hitTime;
+    }
+    // CORREÇÃO 3: 'Note_state' corrigido para 'NoteState' (Case sensitive e nome correto do enum)
+    if (state == NoteState::Hitting) {
         fadeStart = hitTime;
     }
     float fadeElapsed = static_cast<float>(milliTime - fadeStart);
@@ -84,9 +111,24 @@ inline void updateMissAlpha(NoteState state, sf::Color& originalColor, Object& o
     obj.sprite->setColor(newColor);
 }
 
+inline void playHitSound(const int hitnum) {
+    if (hitnum > 3 || hitnum < 1) { return; } // Corrigido erro de sintaxe: faltava ';'
+    switch (hitnum) {
+        case 1:
+            hit1.play();
+            break;
+        case 2:
+            hit2.play();
+            break;
+        case 3:
+            hit3.play();
+            break;
+    }
+}
+
 class Plate : public Note {
 public:
-    Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int PS, int ACD, float AR = 0.0f, float Vel = 1.0f)
+    Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int hitNum, int PS, int ACD, float AR = 0.0f, float Vel = 1.0f)
         : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), finalXPos(finalXPos), pixelSize(150 * PS),
           object(std::string("assets/sprites/game/objects/plates/plate_") + std::to_string(plateNumber) + ".png", xPos, yPos, 195, 195, 1.0f, 1.0f),
           aproachCircle("assets/sprites/game/objects/plates/plate_aproach_circle.png", finalXPos, finalYPos, 150, 150, 1.0f, 1.0f),
@@ -98,7 +140,8 @@ public:
           initialXPos(xPos),
           initialYPos(yPos),
           aproachCircleColor(aproachCircle.sprite->getColor()),
-          objColor(object.sprite->getColor())
+          objColor(object.sprite->getColor()),
+          hitNum(hitNum)
     {
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
@@ -178,7 +221,7 @@ public:
                     setHitResult(HitResult::Perfect);
                     setState(NoteState::Hitting);
                     hitTime = milliTime;
-                    std::println("Plate {} hit at {} ms with Perfect", plateNumber, milliTime);
+                    playHitSound(hitNum); // Adicionado para tocar o som
                     return;
                 }
                 if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
@@ -189,7 +232,7 @@ public:
                     }
                     setState(NoteState::Hitting);
                     hitTime = milliTime;
-                    std::println("Plate {} hit at {} ms with Perfect Early/Late", plateNumber, milliTime);
+                    playHitSound(hitNum); // Adicionado para tocar o som
                     return;
                 }
                 if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
@@ -200,7 +243,7 @@ public:
                     }
                     setState(NoteState::Hitting);
                     hitTime = milliTime;
-                    std::println("Plate {} hit at {} ms with Too Early/Late", plateNumber, milliTime);
+                    playHitSound(hitNum); // Adicionado para tocar o som
                     return;
                 }
             }
@@ -237,12 +280,12 @@ public:
                         window, object, aproachCircle, aproachCircleScale,
                         appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
 
-            updateMissAlpha(getState(), aproachCircleColor, aproachCircle, milliTime, appearTime, hitTime);
-            updateMissAlpha(getState(), objColor, object, milliTime, appearTime, hitTime);
+            updateAlpha(getState(), aproachCircleColor, aproachCircle, milliTime, appearTime, hitTime);
+            updateAlpha(getState(), objColor, object, milliTime, appearTime, hitTime);
         }
 
         if (getState() == NoteState::Hitting) {
-            std::println("hitting, {}, number: {}", milliTime, plateNumber);
+            updateAlpha(getState(), objColor, object, milliTime, appearTime, hitTime);
         }
     }
 
@@ -271,6 +314,7 @@ private:
     int appearTime;
     int hitTime = -1;
     int pixelSize;
+    int hitNum;
     bool PressedLastFrame = false;
 
     Button object;
