@@ -58,6 +58,16 @@ inline float getProgress(int milliTime, int appearTime, int offset, int tooEarly
 }
 
 // TODO: VER SE ELE TÁ ATUALIZANDO QUANDO ESTÁ EM NOTESTATE::HITTING
+inline sf::Angle getRotationAngle(float progress, int initialYPos, int finalYPos, int initialXPos, int finalXPos, float windowSizeX, float windowSizeY, int division) {
+    float spinFactor =
+        (std::abs(initialYPos - finalYPos) / windowSizeY) *
+        (std::abs(initialXPos - finalXPos) / windowSizeX) *
+        8.0f; // amplifica o spin
+    
+    sf::Angle result = sf::degrees((progress * 360.0f * spinFactor) / division);
+    return result;
+}
+
 inline void updatePlate(int milliTime, int offset, int xPos, int yPos, int finalXPos, int finalYPos,
                   sf::RenderWindow& window, Object& object, Object& aproachCircle,
                   sf::Vector2f& aproachCircleScale, int appearTime,
@@ -81,13 +91,8 @@ inline void updatePlate(int milliTime, int offset, int xPos, int yPos, int final
     newScale.x = aproachCircleScale.x * scaleFactor;
     newScale.y = aproachCircleScale.y * scaleFactor;
 
-    float spinFactor =
-        (std::abs(initialYPos - finalYPos) / (float)window.getSize().y) *
-        (std::abs(initialXPos - finalXPos) / (float)window.getSize().x) *
-        8.0f; // amplifica o spin
-
-    sf::Angle newAngle = sf::degrees(progress * 360.0f * spinFactor);
-    sf::Angle newAproachCircleAngle = sf::degrees((progress * 360.0f * spinFactor) / 4.0f); // making it 4 times slower
+    sf::Angle newAngle = getRotationAngle(progress, initialYPos, finalYPos, initialXPos, finalXPos, (float)window.getSize().x, (float)window.getSize().y, 1);
+    sf::Angle newAproachCircleAngle = getRotationAngle(progress, initialYPos, finalYPos, initialXPos, finalXPos, (float)window.getSize().x, (float)window.getSize().y, 4);
 
     aproachCircle.sprite->setScale(newScale);
     aproachCircle.sprite->setRotation(newAproachCircleAngle);
@@ -155,7 +160,55 @@ public:
         aproachCircleScale.y = std::max(0.0f, aproachCircleScale.y - aproachCircleScaleDiminish);
 
         aproachCircle.sprite->setScale(aproachCircleScale);
-    }
+
+        sf::Vector2f dotScale = object.sprite->getScale();
+        
+        float realDiameter = object.sprite->getGlobalBounds().size.x; 
+        float totalDistance = std::hypot(finalXPos - initialXPos, finalYPos - initialYPos);
+        float availableSpace = std::max(0.0f, totalDistance - realDiameter);
+        int dot_quantity = static_cast<int>(std::floor(availableSpace / realDiameter));
+
+        // Calculamos o passo (step). Ex: Se tem 3 pontos, dividimos por 4 espaços.
+        // Isso distribui eles igualmente: 25%, 50%, 75%.
+        float step = 1.0f / static_cast<float>(dot_quantity + 1);
+
+        for (int i = dot_quantity; i >= 1; i--) {
+            float t = step * static_cast<float>(i);
+
+            // 1. Posição Atual
+            sf::Vector2f newPos = getXYTrajectory(
+                static_cast<float>(initialXPos),
+                static_cast<float>(initialYPos),
+                static_cast<float>(finalXPos),
+                static_cast<float>(finalYPos),
+                t
+            );
+
+            // 2. Calcula a posição do próximo passo para determinar a direção
+            sf::Vector2f nextPos = getXYTrajectory(
+                static_cast<float>(initialXPos),
+                static_cast<float>(initialYPos),
+                static_cast<float>(finalXPos),
+                static_cast<float>(finalYPos),
+                t + 0.01 // Olha um 'step' para frente
+            );
+
+            // 3. Calcula o ângulo (atan2 retorna radianos, convertemos para graus)
+            float angle = std::atan2 (nextPos.y - newPos.y, nextPos.x - newPos.x) * 180.0f / 3.14159265f;
+
+            Object newDot("assets/sprites/game/objects/plates/trajectory_dot.png", 
+                        static_cast<int>(newPos.x), 
+                        static_cast<int>(newPos.y), 
+                        82, 117, dotScale.x, dotScale.y);
+
+            // 4. Aplica a rotação
+            sf::Angle newAngle = sf::degrees(angle - 90); // -90 pra deixar ele reto
+
+            newDot.sprite->setRotation(newAngle);
+
+            trajectoryDotArray.push_back(newDot);
+        }
+    } // Fim do construtor
 
     bool DetectHover(sf::RenderWindow& window) {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
@@ -292,6 +345,10 @@ public:
     void render(sf::RenderWindow& window) override {
         if (getState() == NoteState::Active || getState() == NoteState::Judging ||
             getState() == NoteState::Hitting || getState() == NoteState::Missing) {
+
+            for (auto& dot : trajectoryDotArray) {
+                window.draw(*dot.sprite);
+            }
             
             window.draw(*object.sprite);
             window.draw(*aproachCircle.sprite);
@@ -323,4 +380,5 @@ private:
     sf::Color aproachCircleColor;
     sf::Color objColor;
     const std::pair<std::string, std::string> binds;
+    std::vector<Object> trajectoryDotArray;
 };
