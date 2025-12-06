@@ -131,9 +131,14 @@ inline void playHitSound(const int hitnum) {
     }
 }
 
+struct TrajectorDot {
+    Object dotObject;
+    float positionT; // Valor entre 0.0 e 1.0 representando a posição ao longo da trajetória
+};
+
 class Plate : public Note {
 public:
-    Plate(int offset, const std::pair<std::string, std::string>& binds, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int hitNum, int PS, int ACD, float AR = 0.0f, float Vel = 1.0f)
+    Plate(int offset, const std::pair<std::string, std::string>& binds, float trajectory_dot_max_transparency, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int hitNum, int PS, int ACD, float AR = 0.0f, float Vel = 1.0f)
         : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), finalXPos(finalXPos), pixelSize(150 * PS),
           object(std::string("assets/sprites/game/objects/plates/plate_") + std::to_string(plateNumber) + ".png", xPos, yPos, 195, 195, 1.0f, 1.0f),
           aproachCircle("assets/sprites/game/objects/plates/plate_aproach_circle.png", finalXPos, finalYPos, 150, 150, 1.0f, 1.0f),
@@ -146,7 +151,8 @@ public:
           initialYPos(yPos),
           aproachCircleColor(aproachCircle.sprite->getColor()),
           objColor(object.sprite->getColor()),
-          hitNum(hitNum)
+          hitNum(hitNum),
+          trajectory_dot_max_transparency(trajectory_dot_max_transparency)
     {
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
@@ -206,7 +212,7 @@ public:
 
             newDot.sprite->setRotation(newAngle);
 
-            trajectoryDotArray.push_back(newDot);
+            trajectoryDotArray.push_back({ newDot, t });
         }
     } // Fim do construtor
 
@@ -347,7 +353,7 @@ public:
             getState() == NoteState::Hitting || getState() == NoteState::Missing) {
 
             for (auto& dot : trajectoryDotArray) {
-                window.draw(*dot.sprite);
+                window.draw(*dot.dotObject.sprite);
             }
             
             window.draw(*object.sprite);
@@ -362,6 +368,7 @@ private:
     float initialYPos;
     float finalYPos;
     float finalXPos;
+    float trajectory_dot_max_transparency;
     int plateNumber;
     int PS;
     int ACD;
@@ -380,5 +387,5 @@ private:
     sf::Color aproachCircleColor;
     sf::Color objColor;
     const std::pair<std::string, std::string> binds;
-    std::vector<Object> trajectoryDotArray;
+    std::vector<TrajectorDot> trajectoryDotArray;
 };

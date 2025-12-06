@@ -47,6 +47,8 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     auto bindArray = config["settings"]["binds"]["game_click"].get<std::vector<std::string>>();
     std::pair<std::string, std::string> binds = {bindArray[0], bindArray[1]};
 
+    float trajectoryDotMaxTransparency = config["settings"]["trajectory_dot_max_transparency"].get<float>();
+
     for (auto& note : data["notes"]) {
         if (note["type"] == "plate") {
             int offset = note["offset"].get<int>();
@@ -59,6 +61,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
             std::unique_ptr<Plate> newPlate = std::make_unique<Plate>(
                 offset,
                 binds,
+                trajectoryDotMaxTransparency,
                 xPos,
                 window.getSize().y + 100,
                 finalYPos,

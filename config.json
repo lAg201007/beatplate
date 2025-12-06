@@ -4,6 +4,7 @@
             "game_click": ["K", "L"]
         },
         "background_dark_intensity": 100,
+        "trajectory_dot_max_transparency": 0.7,
         "music_offset_ms": 0
     }
 }
