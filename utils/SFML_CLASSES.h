@@ -3,6 +3,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
+#include "../utils/texture_caching.h"
 
 extern uint32_t uniqueIdCounter;
 
@@ -33,26 +34,23 @@ public:
 
 class Object {
 public:
-    std::shared_ptr<sf::Texture> spriteTexture;
+    sf::Texture* spriteTexture;   // agora aponta para uma textura do cache
     std::shared_ptr<sf::Sprite> sprite;
     std::string filePath;
     float blurredStrength = 0.0f;
 
-    Object(std::string imgfile, float startXpos, float startYpos, int originX = 0, int originY = 0, float scaleX = 1, float scaleY = 1) : filePath(imgfile) {
-        spriteTexture = std::make_shared<sf::Texture>();
-
-        if (!spriteTexture->loadFromFile(imgfile)) {
-            std::cerr << "N�o foi poss�vel carregar a imagem: " << imgfile << std::endl;
-        }
+    Object(std::string imgfile, float startXpos, float startYpos,
+           int originX = 0, int originY = 0,
+           float scaleX = 1, float scaleY = 1)
+        : filePath(imgfile) 
+    {
+        spriteTexture = &LoadTexture(imgfile);
 
         sprite = std::make_shared<sf::Sprite>(*spriteTexture);
-
         sprite->setPosition({ startXpos, startYpos });
 
-
-        if (originX && originY) {
-            sprite->setOrigin(sf::Vector2f(static_cast<float>(originX), static_cast<float>(originY)));
-        }
+        if (originX && originY)
+            sprite->setOrigin(sf::Vector2f((float)originX, (float)originY));
 
         sprite->setScale({ scaleX, scaleY });
     }
@@ -61,15 +59,13 @@ public:
         sf::FloatRect bounds = sprite->getGlobalBounds();
 
         sf::RectangleShape debugRect;
-        debugRect.setPosition(bounds.position); 
-        debugRect.setSize(bounds.size);       
-
+        debugRect.setPosition(bounds.position);
+        debugRect.setSize(bounds.size);
         debugRect.setFillColor(sf::Color::Transparent);
         debugRect.setOutlineColor(sf::Color::Red);
         debugRect.setOutlineThickness(1.0f);
-
         window.draw(debugRect);
-    }  
+    }
 };
 
 #endif 
@@ -79,26 +75,23 @@ public:
 
 class ShaderObject {
 public:
-    std::shared_ptr<sf::Texture> spriteTexture;
+    sf::Texture* spriteTexture;
     std::shared_ptr<ShaderSprite> sprite;
     std::string filePath;
     float blurredStrength = 0.0f;
 
-    ShaderObject(std::string imgfile, float startXpos, float startYpos, int originX = 0, int originY = 0, float scaleX = 1, float scaleY = 1) : filePath(imgfile) {
-        spriteTexture = std::make_shared<sf::Texture>();
-
-        if (!spriteTexture->loadFromFile(imgfile)) {
-            std::cerr << "N�o foi poss�vel carregar a imagem: " << imgfile << std::endl;
-        }
+    ShaderObject(std::string imgfile, float startXpos, float startYpos,
+                 int originX = 0, int originY = 0,
+                 float scaleX = 1, float scaleY = 1)
+        : filePath(imgfile)
+    {
+        spriteTexture = &LoadTexture(imgfile);
 
         sprite = std::make_shared<ShaderSprite>(*spriteTexture);
-
         sprite->setPosition({ startXpos, startYpos });
 
-
-        if (originX && originY) {
-            sprite->setOrigin(sf::Vector2f(static_cast<float>(originX), static_cast<float>(originY)));
-        }
+        if (originX && originY)
+            sprite->setOrigin(sf::Vector2f((float)originX, (float)originY));
 
         sprite->setScale({ scaleX, scaleY });
     }
@@ -107,15 +100,13 @@ public:
         sf::FloatRect bounds = sprite->getGlobalBounds();
 
         sf::RectangleShape debugRect;
-        debugRect.setPosition(bounds.position); 
-        debugRect.setSize(bounds.size);       
-
+        debugRect.setPosition(bounds.position);
+        debugRect.setSize(bounds.size);
         debugRect.setFillColor(sf::Color::Transparent);
         debugRect.setOutlineColor(sf::Color::Red);
         debugRect.setOutlineThickness(1.0f);
-
         window.draw(debugRect);
-    }  
+    }
 };
 
 #endif

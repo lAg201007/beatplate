@@ -8,10 +8,10 @@
 #include "../utils/tween_storage.h"
 #include "../state_stack.h"
 #include "../utils/audio_manager.h"
+#include "../utils/texture_caching.h"
 #include "print"
 
 sf::Font SongSlot::Montserrat;
-std::unordered_map<std::string, std::shared_ptr<sf::Texture>> SongList::BackgroundCache;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////// RENDERING AND LOGIC ///////////////////////////////////////////////////////////
@@ -286,24 +286,11 @@ void SongList::RenderList(sf::RenderWindow& window) {
 void SongList::setBackgroundForSelectedSlot() {
     if (!parentSelect->isActive) return;
     std::string bgPath = SelectedSlot->FolderLocation + "/background.png";
-    auto it = BackgroundCache.find(bgPath);
-    if (it != BackgroundCache.end()) {
-        if (isActiveBackground1) {
-            select_slot_background2.spriteTexture = it->second;
-        } else {
-            select_slot_background1.spriteTexture = it->second;
-        }
-    } else {
-        auto tex = std::make_shared<sf::Texture>();
-        if (!tex->loadFromFile(bgPath)) {
-            std::cerr << "Não foi possível carregar a imagem " << bgPath << std::endl;
-        }
-        BackgroundCache[bgPath] = tex;
-        if (isActiveBackground1)
-            select_slot_background2.spriteTexture = tex;
-        else
-            select_slot_background1.spriteTexture = tex;
-    }
+    auto& texture = LoadTexture(bgPath);
+
+    select_slot_background1.spriteTexture = &texture;
+    select_slot_background2.spriteTexture = &texture;
+
     if (isActiveBackground1) {
         select_slot_background2.sprite->setTexture(*select_slot_background2.spriteTexture, true);
         ResizeSpriteToFitWindow(*select_slot_background2.sprite, window);
