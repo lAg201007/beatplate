@@ -134,6 +134,8 @@ inline void playHitSound(const int hitnum) {
 struct TrajectorDot {
     Object dotObject;
     float positionT; // Valor entre 0.0 e 1.0 representando a posição ao longo da trajetória
+    int vanishTime;
+    bool visible = true;
 };
 
 class Plate : public Note {
@@ -212,7 +214,12 @@ public:
 
             newDot.sprite->setRotation(newAngle);
 
-            trajectoryDotArray.push_back({ newDot, t });
+            int totalDuration = ((offset - appearTime) * 2) - 150; // -30 pequeno ajuste
+            int timeToReachDot = static_cast<int>(static_cast<float>(totalDuration) * t);
+
+            int vanishTime = appearTime + timeToReachDot;
+
+            trajectoryDotArray.push_back({ newDot, t, vanishTime});
         }
     } // Fim do construtor
 
@@ -346,6 +353,12 @@ public:
         if (getState() == NoteState::Hitting) {
             updateAlpha(getState(), objColor, object, milliTime, appearTime, hitTime);
         }
+
+        for (auto& dot : trajectoryDotArray) {
+            if (milliTime >= dot.vanishTime) {
+                dot.visible = false;
+            }
+        }
     }
 
     void render(sf::RenderWindow& window) override {
@@ -353,7 +366,9 @@ public:
             getState() == NoteState::Hitting || getState() == NoteState::Missing) {
 
             for (auto& dot : trajectoryDotArray) {
-                window.draw(*dot.dotObject.sprite);
+                if (dot.visible) {
+                    window.draw(*dot.dotObject.sprite);
+                }
             }
             
             window.draw(*object.sprite);
