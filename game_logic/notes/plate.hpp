@@ -14,8 +14,8 @@
 
 // ms
 const int hittingTime = 500;
-const int fullOpacityTrajectoryDotOffset = 300;
-const int trajectoryDotTimingOffset = 300;
+const int fullOpacityTrajectoryDotOffset = 0;
+const int trajectoryDotTimingOffset = 0;
 const float missFadeDuration = 500;
 const float aproachCircleScaleDiminish = 0.15f;
 
@@ -358,36 +358,46 @@ public:
         }
 
         for (auto& dot : trajectoryDotArray) {
-            if (milliTime >= dot.vanishTime) {
-                dot.visible = false;
-                continue;
+            if (getState() == NoteState::Hitting) {
+                int fadeStart = hitTime;
+                float fadeElapsed = static_cast<float>(milliTime - fadeStart);
+                float fadeProgress = std::clamp(fadeElapsed / missFadeDuration, 0.0f, 1.0f);
+                sf::Color newColor = dot.fullOpacityColor;
+                newColor.a = static_cast<uint8_t>(dot.fullOpacityColor.a * (1.0f - fadeProgress));
+                dot.dotObject.sprite->setColor(newColor);
             }
-            
-            // O dot atinge full opacity X ms antes da nota passar por cima (+ offset manual)
-            int fullOpacityStart = dot.vanishTime - fullOpacityTrajectoryDotOffset + trajectoryDotTimingOffset;
-            // O fade in começa quando a nota aparece na tela
-            int fadeInStart = appearTime;
-            
-            float alpha = 0.0f;
-            
-            if (milliTime < fadeInStart) {
-                // Ainda não começou a aparecer
-                alpha = 0.0f;
-            }
-            else if (milliTime >= fadeInStart && milliTime < fullOpacityStart) {
-                // Fase de fade in (transparente -> opaco) - desde appearTime até fullOpacityStart
-                float fadeInProgress = float(milliTime - fadeInStart) / float(fullOpacityStart - fadeInStart);
-                fadeInProgress = std::clamp(fadeInProgress, 0.0f, 1.0f);
-                alpha = fadeInProgress * trajectory_dot_max_transparency; // Multiplica aqui para respeitar o máximo
-            }
-            else if (milliTime >= fullOpacityStart && milliTime < dot.vanishTime) {
-                // Mantém full opacity até a nota passar por cima
-                alpha = trajectory_dot_max_transparency; // Usa o máximo configurado
-            }
+            else {
+                if (milliTime >= dot.vanishTime) {
+                    dot.visible = false;
+                    continue;
+                }
+                
+                // O dot atinge full opacity X ms antes da nota passar por cima (+ offset manual)
+                int fullOpacityStart = dot.vanishTime - fullOpacityTrajectoryDotOffset + trajectoryDotTimingOffset;
+                // O fade in começa quando a nota aparece na tela
+                int fadeInStart = appearTime;
+                
+                float alpha = 0.0f;
+                
+                if (milliTime < fadeInStart) {
+                    // Ainda não começou a aparecer
+                    alpha = 0.0f;
+                }
+                else if (milliTime >= fadeInStart && milliTime < fullOpacityStart) {
+                    // Fase de fade in (transparente -> opaco) - desde appearTime até fullOpacityStart
+                    float fadeInProgress = float(milliTime - fadeInStart) / float(fullOpacityStart - fadeInStart);
+                    fadeInProgress = std::clamp(fadeInProgress, 0.0f, 1.0f);
+                    alpha = fadeInProgress * trajectory_dot_max_transparency; // Multiplica aqui para respeitar o máximo
+                }
+                else if (milliTime >= fullOpacityStart && milliTime < dot.vanishTime) {
+                    // Mantém full opacity até a nota passar por cima
+                    alpha = trajectory_dot_max_transparency; // Usa o máximo configurado
+                }
 
-            sf::Color newColor = dot.fullOpacityColor;
-            newColor.a = static_cast<uint8_t>(255 * alpha); // Não multiplica novamente aqui
-            dot.dotObject.sprite->setColor(newColor);
+                sf::Color newColor = dot.fullOpacityColor;
+                newColor.a = static_cast<uint8_t>(255 * alpha); // Não multiplica novamente aqui
+                dot.dotObject.sprite->setColor(newColor);
+            }
         }
     }
 
