@@ -243,7 +243,10 @@ public:
 
     bool isHovered(sf::RenderWindow& window) {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-        return getBounds().contains(static_cast<sf::Vector2f>(mousePos));
+        sf::FloatRect bounds = getBounds();
+        
+        // Simplesmente checa se o mouse (em coordenadas reais) está dentro dos bounds (já escalados)
+        return bounds.contains(static_cast<sf::Vector2f>(mousePos));
     }
 
     bool DetectButtonClick(sf::RenderWindow &window) {
@@ -261,6 +264,7 @@ public:
 };
 
 #endif
+
 
 // ==================== BUTTON ====================
 #ifndef BUTTON

@@ -92,8 +92,8 @@ inline void updatePlate(int milliTime, int offset, int xPos, int yPos, int final
     newScale.x = aproachCircleScale.x * scaleFactor;
     newScale.y = aproachCircleScale.y * scaleFactor;
 
-    sf::Angle newAngle = getRotationAngle(progress, initialYPos, finalYPos, initialXPos, finalXPos, (float)window.getSize().x, (float)window.getSize().y, 1);
-    sf::Angle newAproachCircleAngle = getRotationAngle(progress, initialYPos, finalYPos, initialXPos, finalXPos, (float)window.getSize().x, (float)window.getSize().y, 4);
+    sf::Angle newAngle = getRotationAngle(progress, initialYPos, finalYPos, initialXPos, finalXPos, ScaleManager::GetBaseWidth(), ScaleManager::GetBaseHeight(), 1);
+    sf::Angle newAproachCircleAngle = getRotationAngle(progress, initialYPos, finalYPos, initialXPos, finalXPos, ScaleManager::GetBaseWidth(), ScaleManager::GetBaseHeight(), 4);   
 
     aproachCircle.sprite->setScale(newScale);
     aproachCircle.sprite->setRotation(newAproachCircleAngle);
@@ -225,11 +225,28 @@ public:
             trajectoryDotArray.push_back({ newDot, newDot.sprite->getColor(), t, 0, vanishTime}); // start transparent
         }
     } // Fim do construtor
-
+    
     bool DetectHover(sf::RenderWindow& window) {
+        // Pega posição do mouse em coordenadas reais da tela
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+        sf::Vector2f mouseFloat(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y));
+        
+        // Pega bounds do sprite (já em coordenadas escaladas/reais)
         sf::FloatRect bounds = object.sprite->getGlobalBounds();
-        return bounds.contains(sf::Vector2f({static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)}));
+        
+        // Centro do sprite (em coordenadas reais/escaladas)
+        sf::Vector2f spriteCenter(
+            bounds.position.x + bounds.size.x / 2.0f,
+            bounds.position.y + bounds.size.y / 2.0f
+        );
+        
+        // Raio (em coordenadas reais/escaladas)
+        float radius = bounds.size.x / 2.0f;
+        
+        // Colisão circular em coordenadas reais
+        float dx = mouseFloat.x - spriteCenter.x;
+        float dy = mouseFloat.y - spriteCenter.y;
+        return (dx * dx + dy * dy) <= (radius * radius);
     }
 
     bool DetectClickWithBind(sf::RenderWindow& window) {
@@ -413,6 +430,22 @@ public:
             
             window.draw(*object.sprite);
             window.draw(*aproachCircle.sprite);
+
+            // Desenha hitbox circular
+            sf::FloatRect bounds = object.sprite->getGlobalBounds();
+            sf::Vector2f center(
+                bounds.position.x + bounds.size.x / 2.0f,
+                bounds.position.y + bounds.size.y / 2.0f
+            );
+            float radius = bounds.size.x / 2.0f;
+
+            sf::CircleShape debugCircle(radius);
+            debugCircle.setOrigin({radius, radius});
+            debugCircle.setPosition(center);
+            debugCircle.setFillColor(sf::Color::Transparent);
+            debugCircle.setOutlineColor(sf::Color::Red);
+            debugCircle.setOutlineThickness(2.0f);
+            window.draw(debugCircle);
         }   
     }
 

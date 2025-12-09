@@ -7,6 +7,7 @@
 #include "../utils/utilities.h"
 #include "../utils/tween_storage.h"
 #include "../utils/audio_manager.h"
+#include "../utils/scale_manager.h"
 #include <filesystem>
 #include <fstream>
 #include "../libs/json.hpp"
@@ -34,7 +35,7 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     textColor(StartGameText.getFillColor())
 {
     start_sound.setVolume(130.f);
-    Title.sprite->setPosition({window.getSize().x / 2.f, window.getSize().y / 2.f});
+    Title.sprite->setPosition({ScaleManager::GetBaseWidth() / 2.f, ScaleManager::GetBaseHeight() / 2.f}); // updating for base res
     TitlePosition = Title.sprite->getPosition();
     whiteMaskShader = ShaderUtils::createWhiteMaskShader(TitleWhiteMaskTween->getValue(), mWindow);
 
@@ -49,7 +50,6 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     StartGameText.setString("Press the Title Button to Play");
     StartGameText.setCharacterSize(20);
     StartGameText.setPosition(TitlePosition + sf::Vector2f({-150,80}));
-
     ResizeSpriteToFitWindow(*background.sprite, window);
 
     taskDelay(3500, [this]() {

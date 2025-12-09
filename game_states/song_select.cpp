@@ -9,6 +9,7 @@
 #include "../state_stack.h"
 #include "../utils/audio_manager.h"
 #include "../utils/texture_caching.h"
+#include "../utils/scale_manager.h"
 #include "print"
 
 sf::Font SongSlot::Montserrat;
@@ -73,7 +74,8 @@ void SongSelect::handleEvent(const sf::Event& event) {
 // Update Event for SongSelect
 void SongSelect::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
-    Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
+    sf::Vector2f unscaledMouse = ScaleManager::UnscalePosition(mouse_pos.x, mouse_pos.y);
+    Cursor.sprite->setPosition(unscaledMouse.x, unscaledMouse.y);
 
     List->listUpdate(dt.asSeconds());
 
@@ -272,8 +274,8 @@ void SongList::RenderList(sf::RenderWindow& window) {
     window.draw(*select_slot_background2.sprite);
 
     for (auto slot : ButtonVector) {
-        if (slot->Position.x > window.getSize().x + 100
-            || slot->Position.y > window.getSize().y + 100
+        if (slot->Position.x > ScaleManager::GetBaseWidth() + 100
+            || slot->Position.y > ScaleManager::GetBaseHeight() + 100
             || slot->Position.x < -100 
             || slot->Position.y < -100) 
         {

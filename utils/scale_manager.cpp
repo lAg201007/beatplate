@@ -6,6 +6,7 @@ float ScaleManager::scaleFactorY = 1.0f;
 const float ScaleManager::BASE_WIDTH = 1280.0f;
 const float ScaleManager::BASE_HEIGHT = 720.0f;
 
+
 void ScaleManager::UpdateScale(float windowWidth, float windowHeight) {
     scaleFactorX = windowWidth / BASE_WIDTH;
     scaleFactorY = windowHeight / BASE_HEIGHT;
@@ -19,10 +20,26 @@ float ScaleManager::GetScaleY() {
     return scaleFactorY; 
 }
 
+float ScaleManager::GetBaseWidth() {
+    return BASE_WIDTH;
+}
+
+float ScaleManager::GetBaseHeight() {
+    return BASE_HEIGHT;
+}
+
 sf::Vector2f ScaleManager::ScalePosition(float x, float y) {
     return sf::Vector2f({x * scaleFactorX, y * scaleFactorY});
 }
 
 sf::Vector2f ScaleManager::ScaleSize(float x, float y) {
     return sf::Vector2f({x * scaleFactorX, y * scaleFactorY});
+}
+
+sf::Vector2f ScaleManager::UnscalePosition(float x, float y) {
+    return sf::Vector2f({x / scaleFactorX, y / scaleFactorY});
+}
+
+sf::Vector2f ScaleManager::GetBaseCenterPosition() {
+    return sf::Vector2f({BASE_WIDTH / 2.0f, BASE_HEIGHT / 2.0f});
 }
