@@ -191,6 +191,8 @@ void SongSlot::SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
     if (MapperLabel.getCharacterSize() != fitTextToWidth(MapperLabel, 300)) {
         MapperLabel.setCharacterSize(fitTextToWidth(MapperLabel, 300));
     }
+
+    //std::println("Position: {}, {},  ArtistLabel Position, {}, {}", Position.x, Position.y, ArtistLabel.getPosition().x, ArtistLabel.getPosition().y);
 }
 
 void SongSlot::setPositionTweened(sf::Vector2f newPos) {
@@ -363,6 +365,8 @@ void SongList::updateSlotPositions() {
             float offsetX = selectedOffsetX * std::exp(-distance * 0.8f);
             
             sf::Vector2f newPos = ListPosition + sf::Vector2f(0.f, offset * button_offset);
+            std::println("newPos: {}, {}", newPos.x, newPos.y);
+            
             ButtonVector[i]->setPositionTweened(newPos);
             ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), offsetX, 0.5f, Tween::easeOutQuad);
             ButtonVector[i]->SelectedOffsetTween.play();

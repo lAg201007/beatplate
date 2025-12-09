@@ -11,6 +11,45 @@
 extern uint32_t uniqueIdCounter;
 
 // ==================== SHADER SPRITE ====================
+#ifndef SCALED_TEXT
+#define SCALED_TEXT
+
+class ScaledText : public sf::Text {
+private:
+    sf::Vector2f basePosition{0, 0};
+    unsigned int baseCharacterSize = 30;
+
+public:
+    using sf::Text::Text;
+
+    void setPosition(float x, float y) {
+        basePosition = {x, y};
+        sf::Vector2f scaledPos = ScaleManager::ScalePosition(x, y);
+        sf::Text::setPosition(scaledPos);
+    }
+
+    void setPosition(const sf::Vector2f& position) {
+        setPosition(position.x, position.y);
+    }
+
+    void setCharacterSize(unsigned int size) {
+        baseCharacterSize = size;
+        unsigned int scaledSize = static_cast<unsigned int>(size * ScaleManager::GetScaleX());
+        sf::Text::setCharacterSize(scaledSize);
+    }
+
+    unsigned int getBaseCharacterSize() const {
+        return baseCharacterSize;
+    }
+
+    void updateScale() {
+        setPosition(basePosition);
+        setCharacterSize(baseCharacterSize);
+    }
+};
+
+#endif
+
 #ifndef SHADER_SPRITE
 #define SHADER_SPRITE
 
