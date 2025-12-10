@@ -8,6 +8,7 @@
 #include "../state_stack.h"
 #include "../utils/audio_manager.h"
 #include "../utils/SFML_CLASSES.h"
+#include "../utils/scale_manager.h"
 #include <fstream>
 #include <print>
 
@@ -43,6 +44,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     configFile >> config;
 
     offset_ms = config["settings"]["music_offset_ms"].get<int>();
+    bool debug_mode = config["settings"]["debug_mode"].get<bool>();
 
     auto bindArray = config["settings"]["binds"]["game_click"].get<std::vector<std::string>>();
     std::pair<std::string, std::string> binds = {bindArray[0], bindArray[1]};
@@ -70,7 +72,8 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
                 hitNum,
                 data["metadata"]["PS"].get<int>(),
                 data["metadata"]["ACD"].get<int>(),
-                data["metadata"]["AR"].get<float>()
+                data["metadata"]["AR"].get<float>(),
+                debug_mode
             );
 
             notes.push_back(std::move(newPlate));
@@ -107,7 +110,7 @@ void Game::handleEvent(const sf::Event& event) {
 
 void Game::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
-    Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
+    Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x) / ScaleManager::GetScaleX(),static_cast<float>(mouse_pos.y) / ScaleManager::GetScaleY()});
     gameClock.update(dt, AudioManager::getInstance());
 
     for (auto& note : notes) {

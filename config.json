@@ -5,6 +5,7 @@
         },
         "background_dark_intensity": 255,
         "trajectory_dot_max_transparency": 1,
-        "music_offset_ms": 0
+        "music_offset_ms": 0,
+        "debug_mode": false
     }
 }

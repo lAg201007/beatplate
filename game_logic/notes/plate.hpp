@@ -157,7 +157,8 @@ public:
           aproachCircleColor(aproachCircle.sprite->getColor()),
           objColor(object.sprite->getColor()),
           hitNum(hitNum),
-          trajectory_dot_max_transparency(trajectory_dot_max_transparency)
+          trajectory_dot_max_transparency(trajectory_dot_max_transparency),
+          debug_mode(debug_mode)
     {
         object.sprite->setScale({
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
@@ -231,21 +232,16 @@ public:
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
         sf::Vector2f mouseFloat(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y));
         
-        // Pega bounds do sprite (já em coordenadas escaladas/reais)
+        sf::Vector2f spriteCenter = object.sprite->getPosition();
         sf::FloatRect bounds = object.sprite->getGlobalBounds();
-        
-        // Centro do sprite (em coordenadas reais/escaladas)
-        sf::Vector2f spriteCenter(
-            bounds.position.x + bounds.size.x / 2.0f,
-            bounds.position.y + bounds.size.y / 2.0f
-        );
-        
+
         // Raio (em coordenadas reais/escaladas)
         float radius = bounds.size.x / 2.0f;
         
         // Colisão circular em coordenadas reais
         float dx = mouseFloat.x - spriteCenter.x;
         float dy = mouseFloat.y - spriteCenter.y;
+
         return (dx * dx + dy * dy) <= (radius * radius);
     }
 
@@ -421,31 +417,76 @@ public:
     void render(sf::RenderWindow& window) override {
         if (getState() == NoteState::Active || getState() == NoteState::Judging ||
             getState() == NoteState::Hitting || getState() == NoteState::Missing) {
-
             for (auto& dot : trajectoryDotArray) {
                 if (dot.visible) {
                     window.draw(*dot.dotObject.sprite);
                 }
-            }
+            }    
             
             window.draw(*object.sprite);
             window.draw(*aproachCircle.sprite);
 
-            // Desenha hitbox circular
-            sf::FloatRect bounds = object.sprite->getGlobalBounds();
-            sf::Vector2f center(
-                bounds.position.x + bounds.size.x / 2.0f,
-                bounds.position.y + bounds.size.y / 2.0f
-            );
-            float radius = bounds.size.x / 2.0f;
-
-            sf::CircleShape debugCircle(radius);
-            debugCircle.setOrigin({radius, radius});
-            debugCircle.setPosition(center);
-            debugCircle.setFillColor(sf::Color::Transparent);
-            debugCircle.setOutlineColor(sf::Color::Red);
-            debugCircle.setOutlineThickness(2.0f);
-            window.draw(debugCircle);
+            if (debug_mode) {
+                sf::FloatRect bounds = object.sprite->getGlobalBounds();
+                sf::Vector2f center(
+                    bounds.position.x + bounds.size.x / 2.0f,
+                    bounds.position.y + bounds.size.y / 2.0f
+                );
+                float radius = bounds.size.x / 2.0f;
+                
+                sf::CircleShape debugCircle(radius);
+                debugCircle.setOrigin({radius, radius});
+                debugCircle.setPosition(center);
+                debugCircle.setFillColor(sf::Color::Transparent);
+                debugCircle.setOutlineColor(sf::Color::Red);
+                if (DetectHover(window)) {
+                    debugCircle.setOutlineColor(sf::Color::Green);
+                }
+                debugCircle.setOutlineThickness(2.0f);
+                window.draw(debugCircle);
+                
+                // DEBUG: Linha entre mouse e objeto
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                sf::Vector2f mouseFloat(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y));
+                sf::Vector2f spritePos = object.sprite->getPosition();
+                
+                sf::Vertex line[] = {
+                    sf::Vertex({mouseFloat, sf::Color::Yellow}),
+                    sf::Vertex({spritePos, sf::Color::Yellow})
+                };
+                window.draw(line, 2, sf::PrimitiveType::Lines);
+                
+                // DEBUG: Texto com informações
+                static sf::Font debugFont;
+                static bool fontLoaded = false;
+                if (!fontLoaded) {
+                    if (debugFont.openFromFile("assets/fonts/Montserrat-SemiBold.ttf")) {
+                        fontLoaded = true;
+                    }
+                }
+                
+                if (fontLoaded) {
+                    sf::Vector2f midPoint = (mouseFloat + spritePos) / 2.0f;
+                    float dx = mouseFloat.x - spritePos.x;
+                    float dy = mouseFloat.y - spritePos.y;
+                    float distance = std::sqrt(dx * dx + dy * dy);
+                    
+                    sf::Text debugText(debugFont);
+                    debugText.setCharacterSize(16);
+                    debugText.setFillColor(sf::Color::White);
+                    debugText.setOutlineColor(sf::Color::Black);
+                    debugText.setOutlineThickness(2.0f);
+                    debugText.setPosition({midPoint.x, midPoint.y - 50});
+                    
+                    std::string info = "Mouse: (" + std::to_string((int)mouseFloat.x) + ", " + std::to_string((int)mouseFloat.y) + ")\n";
+                    info += "Object: (" + std::to_string((int)spritePos.x) + ", " + std::to_string((int)spritePos.y) + ")\n";
+                    info += "Diff: (" + std::to_string((int)dx) + ", " + std::to_string((int)dy) + ")\n";
+                    info += "Dist: " + std::to_string((int)distance) + " | Radius: " + std::to_string((int)radius);
+                    
+                    debugText.setString(info);
+                    window.draw(debugText);
+                }
+            }
         }   
     }
 
@@ -468,6 +509,7 @@ private:
     int pixelSize;
     int hitNum;
     bool PressedLastFrame = false;
+    bool debug_mode = false;
 
     Button object;
     Button aproachCircle;

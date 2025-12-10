@@ -365,7 +365,7 @@ void SongList::updateSlotPositions() {
             float offsetX = selectedOffsetX * std::exp(-distance * 0.8f);
             
             sf::Vector2f newPos = ListPosition + sf::Vector2f(0.f, offset * button_offset);
-            std::println("newPos: {}, {}", newPos.x, newPos.y);
+            //std::println("newPos: {}, {}", newPos.x, newPos.y);
             
             ButtonVector[i]->setPositionTweened(newPos);
             ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), offsetX, 0.5f, Tween::easeOutQuad);
