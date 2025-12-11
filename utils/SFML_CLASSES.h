@@ -171,7 +171,6 @@ public:
     {
         spriteTexture = &LoadTexture(imgfile);
         sprite = std::make_shared<ScaledSprite>(*spriteTexture);
-        
         sprite->setPosition(startXpos, startYpos);
 
         if (originX && originY)

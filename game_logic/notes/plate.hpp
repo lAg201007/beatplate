@@ -27,6 +27,21 @@ extern sf::SoundBuffer bufhit1;
 extern sf::SoundBuffer bufhit2;
 extern sf::SoundBuffer bufhit3;
 
+struct HitResultObject {
+    bool initialized = false;
+    Object object;
+};
+
+struct TrajectorDot {
+    Object dotObject;
+    sf::Color fullOpacityColor;
+    float positionT; // Valor entre 0.0 e 1.0 representando a posição ao longo da trajetória
+    float opacity; 
+    int vanishTime;
+    bool visible = true;
+};
+
+
 inline sf::Sound initSound(sf::Sound& Sound, sf::SoundBuffer& Buffer, std::string path) {
     if (Buffer.loadFromFile(path)) {
         Sound.setBuffer(Buffer);
@@ -56,6 +71,33 @@ inline sf::Vector2f getXYTrajectory(float x0, float y0, float h, float k, float 
 inline float getProgress(int milliTime, int appearTime, int offset, int tooEarlyLateWindow) {
     return static_cast<float>(milliTime - appearTime) / 
            static_cast<float>(offset - tooEarlyLateWindow - appearTime);
+}
+
+inline void changeHitResultTexture(HitResultObject& object, std::string appendString, sf::Vector2f PlatePosition) {
+    sf::Texture* newTexture = &LoadTexture(std::string("assets/sprites/game/effects/") + appendString);
+    object.object.sprite = nullptr;
+    object.object.sprite = std::make_shared<ScaledSprite>(*newTexture);
+    object.object.sprite->setOrigin({object.object.sprite->getGlobalBounds().size.x / 2, object.object.sprite->getGlobalBounds().size.y / 2});
+    object.object.sprite->setPosition(PlatePosition);
+}
+
+inline void addHitResultTexture(HitResultObject& hitResultObject, HitResult& result, sf::Vector2f PlatePosition) {
+    switch (result) {
+        case HitResult::Perfect:
+            changeHitResultTexture(hitResultObject, "PERFECT!.png", PlatePosition);
+            break;
+        case HitResult::PerfectEarly:
+        case HitResult::PerfectLate:
+            changeHitResultTexture(hitResultObject, "GREAT!.png", PlatePosition);
+            break;
+        case HitResult::TooLate:
+        case HitResult::TooEarly:
+            changeHitResultTexture(hitResultObject, "OK!.png", PlatePosition);
+            break;
+        case HitResult::Missed:
+            changeHitResultTexture(hitResultObject, "MISS!.png", PlatePosition);
+            break;
+    }
 }
 
 // TODO: VER SE ELE TÁ ATUALIZANDO QUANDO ESTÁ EM NOTESTATE::HITTING
@@ -132,18 +174,9 @@ inline void playHitSound(const int hitnum) {
     }
 }
 
-struct TrajectorDot {
-    Object dotObject;
-    sf::Color fullOpacityColor;
-    float positionT; // Valor entre 0.0 e 1.0 representando a posição ao longo da trajetória
-    float opacity; 
-    int vanishTime;
-    bool visible = true;
-};
-
 class Plate : public Note {
 public:
-    Plate(int offset, const std::pair<std::string, std::string>& binds, float trajectory_dot_max_transparency, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int hitNum, int PS, int ACD, float AR = 0.0f, float Vel = 1.0f)
+    Plate(int offset, const std::pair<std::string, std::string>& binds, float trajectory_dot_max_transparency, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int hitNum, int PS, int ACD, float AR = 0.0f, bool debug_mode = false)
         : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), finalXPos(finalXPos), pixelSize(150 * PS),
           object(std::string("assets/sprites/game/objects/plates/plate_") + std::to_string(plateNumber) + ".png", xPos, yPos, 195, 195, 1.0f, 1.0f),
           aproachCircle("assets/sprites/game/objects/plates/plate_aproach_circle.png", finalXPos, finalYPos, 150, 150, 1.0f, 1.0f),
@@ -338,7 +371,7 @@ public:
             getState() != NoteState::Hit &&
             getState() != NoteState::Hitting) {
             setState(NoteState::Missing);
-            setHitResult(HitResult::None);
+            setHitResult(HitResult::Missed);
             hitTime = milliTime;
         }
 
@@ -426,7 +459,8 @@ public:
             window.draw(*object.sprite);
             window.draw(*aproachCircle.sprite);
 
-            if (debug_mode) {
+            if (this->debug_mode) {
+                std::println("DEBUG: DRAWING DEBUG LINES, DEBUG_MODE: {}", this->debug_mode);
                 sf::FloatRect bounds = object.sprite->getGlobalBounds();
                 sf::Vector2f center(
                     bounds.position.x + bounds.size.x / 2.0f,
@@ -513,7 +547,7 @@ private:
 
     Button object;
     Button aproachCircle;
-    Object hitResultObject;
+    HitResultObject hitResultObject;
     sf::Vector2f aproachCircleScale;
     sf::Color aproachCircleColor;
     sf::Color objColor;

@@ -22,6 +22,7 @@ enum class HitResult {
     PerfectLate,
     TooEarly,
     TooLate,
+    Missed,
     None
 };
 

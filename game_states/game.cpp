@@ -45,6 +45,7 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
 
     offset_ms = config["settings"]["music_offset_ms"].get<int>();
     bool debug_mode = config["settings"]["debug_mode"].get<bool>();
+    std::println("DEBUG: DEBUG_MODE IS: {}", debug_mode);
 
     auto bindArray = config["settings"]["binds"]["game_click"].get<std::vector<std::string>>();
     std::pair<std::string, std::string> binds = {bindArray[0], bindArray[1]};
