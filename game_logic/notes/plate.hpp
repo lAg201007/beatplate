@@ -513,6 +513,7 @@ private:
 
     Button object;
     Button aproachCircle;
+    Object hitResultObject;
     sf::Vector2f aproachCircleScale;
     sf::Color aproachCircleColor;
     sf::Color objColor;

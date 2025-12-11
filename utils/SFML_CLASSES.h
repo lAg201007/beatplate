@@ -156,6 +156,14 @@ public:
     std::string filePath;
     float blurredStrength = 0.0f;
 
+    Object() : spriteTexture(&LoadTexture("assets/sprites/no_texture.jpg")),
+               filePath("assets/sprites/no_texture.jpg"),
+               sprite(std::make_shared<ScaledSprite>(*spriteTexture)),
+               blurredStrength(0.0f)
+    {
+        sprite->setPosition(0,0);
+    }
+
     Object(std::string imgfile, float startXpos, float startYpos,
            int originX = 0, int originY = 0,
            float scaleX = 1, float scaleY = 1)
