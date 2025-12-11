@@ -79,9 +79,10 @@ inline void changeHitResultTexture(HitResultObject& object, std::string appendSt
     object.object.sprite = std::make_shared<ScaledSprite>(*newTexture);
     object.object.sprite->setOrigin({object.object.sprite->getGlobalBounds().size.x / 2, object.object.sprite->getGlobalBounds().size.y / 2});
     object.object.sprite->setPosition(PlatePosition);
+    object.initialized = true;
 }
 
-inline void addHitResultTexture(HitResultObject& hitResultObject, HitResult& result, sf::Vector2f PlatePosition) {
+inline void addHitResultTexture(HitResultObject& hitResultObject, HitResult result, sf::Vector2f PlatePosition) {
     switch (result) {
         case HitResult::Perfect:
             changeHitResultTexture(hitResultObject, "PERFECT!.png", PlatePosition);
@@ -334,6 +335,7 @@ public:
                 int hitWindow = std::abs(milliTime - offset);
                 if (hitWindow <= perfectHitWindow) {
                     setHitResult(HitResult::Perfect);
+                    addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
                     setState(NoteState::Hitting);
                     hitTime = milliTime;
                     playHitSound(hitNum); // Adicionado para tocar o som
@@ -342,8 +344,10 @@ public:
                 if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
                     if (milliTime < offset) {
                         setHitResult(HitResult::PerfectEarly);
+                        addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
                     } else {
                         setHitResult(HitResult::PerfectLate);
+                        addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
                     }
                     setState(NoteState::Hitting);
                     hitTime = milliTime;
@@ -353,8 +357,10 @@ public:
                 if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
                     if (milliTime < offset) {
                         setHitResult(HitResult::TooEarly);
+                        addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
                     } else {
                         setHitResult(HitResult::TooLate);
+                        addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
                     }
                     setState(NoteState::Hitting);
                     hitTime = milliTime;
@@ -372,6 +378,7 @@ public:
             getState() != NoteState::Hitting) {
             setState(NoteState::Missing);
             setHitResult(HitResult::Missed);
+            addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
             hitTime = milliTime;
         }
 
@@ -455,6 +462,10 @@ public:
                     window.draw(*dot.dotObject.sprite);
                 }
             }    
+            
+            if (hitResultObject.initialized) {
+                window.draw(*hitResultObject.object.sprite);
+            }
             
             window.draw(*object.sprite);
             window.draw(*aproachCircle.sprite);
