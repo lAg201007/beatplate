@@ -34,6 +34,7 @@ private:
     std::string songFolder;
     GameClock gameClock;
     sf::Shader backgroundShader;
+    std::pair<sf::Keyboard::Scan, sf::Keyboard::Scan> binds;
 
     std::vector<std::unique_ptr<Note>> notes;
 

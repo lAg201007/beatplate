@@ -68,9 +68,9 @@ inline sf::Vector2f getXYTrajectory(float x0, float y0, float h, float k, float 
     return sf::Vector2f({x, y});
 }
 
-inline float getProgress(int milliTime, int appearTime, int offset, int tooEarlyLateWindow) {
+inline float getProgress(int milliTime, int appearTime, int offset) {
     return static_cast<float>(milliTime - appearTime) / 
-           static_cast<float>(offset - tooEarlyLateWindow - appearTime);
+           static_cast<float>(offset - appearTime);
 }
 
 inline void changeHitResultTexture(HitResultObject& object, std::string appendString, sf::Vector2f PlatePosition) {
@@ -115,9 +115,9 @@ inline sf::Angle getRotationAngle(float progress, int initialYPos, int finalYPos
 inline void updatePlate(int milliTime, int offset, int xPos, int yPos, int finalXPos, int finalYPos,
                   sf::RenderWindow& window, Object& object, Object& aproachCircle,
                   sf::Vector2f& aproachCircleScale, int appearTime,
-                  int initialXPos, int initialYPos, int tooEarlyLateWindow) {
+                  int initialXPos, int initialYPos) {
 
-    float progress = getProgress(milliTime, appearTime, offset, tooEarlyLateWindow);
+    float progress = getProgress(milliTime, appearTime, offset);
     // half progress because of the parabolic movement
     float p = std::clamp(progress / 2.0f, 0.0f, 1.0f);
 
@@ -161,7 +161,7 @@ inline void updateAlpha(NoteState state, sf::Color& originalColor, Object& obj, 
 }
 
 inline void playHitSound(const int hitnum) {
-    if (hitnum > 3 || hitnum < 1) { return; } // Corrigido erro de sintaxe: faltava ';'
+    if (hitnum > 3 || hitnum < 1) { return; } 
     switch (hitnum) {
         case 1:
             hit1.play();
@@ -175,10 +175,103 @@ inline void playHitSound(const int hitnum) {
     }
 }
 
+inline std::string _debug_read_state(NoteState state) {
+    switch (state) {
+        case NoteState::Waiting:
+            return "WAITING";
+        case NoteState::Active:
+            return "ACTIVE";
+        case NoteState::Judging:
+            return "JUDGING";
+        case NoteState::Hitting:
+            return "HITTING";
+        case NoteState::Hit:
+            return "HIT";
+        case NoteState::Missing:
+            return "MISSING";
+        case NoteState::Missed:
+            return "MISSED";
+    }
+    return "NONE";
+}
+
+inline std::string _debug_read_hitresult(HitResult result) {
+    switch (result) {
+        case HitResult::Perfect:
+            return "PERFECT";
+        case HitResult::PerfectEarly:
+        case HitResult::PerfectLate:
+            return "GREAT";
+        case HitResult::TooEarly:
+        case HitResult::TooLate:
+            return "OK";
+        case HitResult::Missed:
+            return "MISS";
+        case HitResult::None:
+            return "NONE";
+    }
+    return "NONE";
+}
+
+// Nova função de debug preenchida com a lógica de tempo e hit result
+inline std::string _debug_read_runtime_hitresult(
+    int milliTime, 
+    int offset, 
+    int perfectHitWindow, 
+    int earlyLateWindow, 
+    int tooEarlyLateWindow) 
+{
+    if (milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + tooEarlyLateWindow) {
+        int hitWindow = std::abs(milliTime - offset); 
+        
+        if (hitWindow <= perfectHitWindow) {
+            return _debug_read_hitresult(HitResult::Perfect);
+        }
+        if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
+            return _debug_read_hitresult(HitResult::PerfectEarly); 
+        }
+        if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
+            return _debug_read_hitresult(HitResult::TooEarly);
+        }
+    } 
+    if (milliTime > offset + tooEarlyLateWindow) {
+        return _debug_read_hitresult(HitResult::Missed); 
+    }
+
+    return "NONE";
+}
+
+inline HitResult _debug_return_runtime_hitresult(
+    int milliTime, 
+    int offset, 
+    int perfectHitWindow, 
+    int earlyLateWindow, 
+    int tooEarlyLateWindow) 
+{
+    if (milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + tooEarlyLateWindow) {
+        int hitWindow = std::abs(milliTime - offset); 
+        
+        if (hitWindow <= perfectHitWindow) {
+            return HitResult::Perfect;
+        }
+        if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
+            return HitResult::PerfectEarly;
+        }
+        if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
+            return HitResult::TooEarly;
+        }
+    } 
+    if (milliTime > offset + tooEarlyLateWindow) {
+        return HitResult::Missed;
+    }
+
+    return HitResult::None;
+}
+
 class Plate : public Note {
 public:
-    Plate(int offset, const std::pair<std::string, std::string>& binds, float trajectory_dot_max_transparency, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int hitNum, int PS, int ACD, float AR = 0.0f, bool debug_mode = false)
-        : Note(offset, "plate", xPos, AR), binds(binds), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), finalXPos(finalXPos), pixelSize(150 * PS),
+    Plate(int offset, float trajectory_dot_max_transparency, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int hitNum, int PS, int ACD, float AR = 0.0f, bool debug_mode = false)
+        : Note(offset, "plate", xPos, AR), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), finalXPos(finalXPos), pixelSize(150 * PS),
           object(std::string("assets/sprites/game/objects/plates/plate_") + std::to_string(plateNumber) + ".png", xPos, yPos, 195, 195, 1.0f, 1.0f),
           aproachCircle("assets/sprites/game/objects/plates/plate_aproach_circle.png", finalXPos, finalYPos, 150, 150, 1.0f, 1.0f),
           perfectHitWindow(getPerfectWindowMs(ACD)),
@@ -279,103 +372,82 @@ public:
         return (dx * dx + dy * dy) <= (radius * radius);
     }
 
-    bool DetectClickWithBind(sf::RenderWindow& window) {
-        bool bindPressed = false;
+    void click(sf::Time elapsed, sf::RenderWindow& window) {
+        const int milliTime = elapsed.asMilliseconds();
+        const int offset = getOffset();
 
-        // Check first bind
-        if (binds.first.size() == 1 && std::isalpha(binds.first[0])) {
-            sf::Keyboard::Key key = static_cast<sf::Keyboard::Key>(
-                static_cast<int>(sf::Keyboard::Key::A) + (std::toupper(binds.first[0]) - 'A')
-            );
-            if (key != sf::Keyboard::Key::Unknown && sf::Keyboard::isKeyPressed(key)) {
-                bindPressed = true;
+        if (not DetectHover(window)) {
+            return;
+        }
+    
+        if (getState() == NoteState::Judging || milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + tooEarlyLateWindow && 
+            getState() != NoteState::Judging && getState() != NoteState::Hitting && 
+            getState() != NoteState::Hit) {
+
+            setState(NoteState::Judging);
+            int hitWindow = std::abs(milliTime - offset);
+            if (hitWindow <= perfectHitWindow) {
+                setHitResult(HitResult::Perfect);
+                addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+                setState(NoteState::Hitting);
+                hitTime = milliTime;
+                playHitSound(hitNum); 
+                return;
+            }
+            if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
+                if (milliTime < offset) {
+                    setHitResult(HitResult::PerfectEarly);
+                    addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+                } else {
+                    setHitResult(HitResult::PerfectLate);
+                    addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+                }
+                setState(NoteState::Hitting);
+                hitTime = milliTime;
+                playHitSound(hitNum); 
+                return;
+            }
+            if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
+                if (milliTime < offset) {
+                    setHitResult(HitResult::TooEarly);
+                    addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+                } else {
+                    setHitResult(HitResult::TooLate);
+                    addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+                }
+                setState(NoteState::Hitting);
+                hitTime = milliTime;
+                playHitSound(hitNum); 
+                return;
             }
         }
-
-        // Check second bind if first wasn't pressed
-        if (!bindPressed && binds.second.size() == 1 && std::isalpha(binds.second[0])) {
-            sf::Keyboard::Key key = static_cast<sf::Keyboard::Key>(
-                static_cast<int>(sf::Keyboard::Key::A) + (std::toupper(binds.second[0]) - 'A')
-            );
-            if (key != sf::Keyboard::Key::Unknown && sf::Keyboard::isKeyPressed(key)) {
-                bindPressed = true;
-            }
-        }
-
-        bool hovered = DetectHover(window);
-
-        if (hovered && bindPressed && !PressedLastFrame) {
-            PressedLastFrame = true;
-            return true;
-        }
-        
-        PressedLastFrame = bindPressed;
-        return false;
     }
+    
     void update(sf::Time elapsed, sf::RenderWindow& window) override {
         const int milliTime = elapsed.asMilliseconds();
         const int offset = getOffset();
 
-        // Transições de estado baseadas no tempo
+        _debug_milliTime = milliTime;
+
         if (milliTime < appearTime && getState() != NoteState::Waiting) {
             setState(NoteState::Waiting);
         }
         else if (milliTime >= appearTime && milliTime < offset - tooEarlyLateWindow && getState() != NoteState::Active) {
             setState(NoteState::Active);
         }
-        else if (milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + earlyLateWindow && 
-                getState() != NoteState::Judging && getState() != NoteState::Hitting && 
-                getState() != NoteState::Hit) {  // <-- Não entra em Judging se já acertou
+        else if (milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + tooEarlyLateWindow && 
+            getState() != NoteState::Judging && getState() != NoteState::Hitting && 
+            getState() != NoteState::Hit) 
+        { 
             setState(NoteState::Judging);
-        }
-        
-        // Processa clique ANTES de verificar timeout
-        if (getState() == NoteState::Judging) {
-            if (DetectClickWithBind(window)) {
-                int hitWindow = std::abs(milliTime - offset);
-                if (hitWindow <= perfectHitWindow) {
-                    setHitResult(HitResult::Perfect);
-                    addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
-                    setState(NoteState::Hitting);
-                    hitTime = milliTime;
-                    playHitSound(hitNum); // Adicionado para tocar o som
-                    return;
-                }
-                if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
-                    if (milliTime < offset) {
-                        setHitResult(HitResult::PerfectEarly);
-                        addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
-                    } else {
-                        setHitResult(HitResult::PerfectLate);
-                        addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
-                    }
-                    setState(NoteState::Hitting);
-                    hitTime = milliTime;
-                    playHitSound(hitNum); // Adicionado para tocar o som
-                    return;
-                }
-                if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
-                    if (milliTime < offset) {
-                        setHitResult(HitResult::TooEarly);
-                        addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
-                    } else {
-                        setHitResult(HitResult::TooLate);
-                        addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
-                    }
-                    setState(NoteState::Hitting);
-                    hitTime = milliTime;
-                    playHitSound(hitNum); // Adicionado para tocar o som
-                    return;
-                }
-            }
-        }
-
-        // Verifica timeout (SEM ELSE - independente)
-        if (milliTime > offset + earlyLateWindow &&
+        }    
+    
+        if (milliTime > offset + tooEarlyLateWindow && 
             getState() != NoteState::Missing &&
             getState() != NoteState::Missed &&
             getState() != NoteState::Hit &&
             getState() != NoteState::Hitting) {
+            
             setState(NoteState::Missing);
             setHitResult(HitResult::Missed);
             addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
@@ -394,13 +466,13 @@ public:
         if (getState() == NoteState::Active || getState() == NoteState::Judging) {
             updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
                         window, object, aproachCircle, aproachCircleScale,
-                        appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
+                        appearTime, initialXPos, initialYPos);
         }
 
         if (getState() == NoteState::Missing) {
             updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
                         window, object, aproachCircle, aproachCircleScale,
-                        appearTime, initialXPos, initialYPos, tooEarlyLateWindow);
+                        appearTime, initialXPos, initialYPos);
 
             updateAlpha(getState(), aproachCircleColor, aproachCircle, milliTime, appearTime, hitTime);
             updateAlpha(getState(), objColor, object, milliTime, appearTime, hitTime);
@@ -424,31 +496,26 @@ public:
                     dot.visible = false;
                     continue;
                 }
-                
-                // O dot atinge full opacity X ms antes da nota passar por cima (+ offset manual)
+
                 int fullOpacityStart = dot.vanishTime - fullOpacityTrajectoryDotOffset + trajectoryDotTimingOffset;
-                // O fade in começa quando a nota aparece na tela
                 int fadeInStart = appearTime;
                 
                 float alpha = 0.0f;
                 
                 if (milliTime < fadeInStart) {
-                    // Ainda não começou a aparecer
                     alpha = 0.0f;
                 }
                 else if (milliTime >= fadeInStart && milliTime < fullOpacityStart) {
-                    // Fase de fade in (transparente -> opaco) - desde appearTime até fullOpacityStart
                     float fadeInProgress = float(milliTime - fadeInStart) / float(fullOpacityStart - fadeInStart);
                     fadeInProgress = std::clamp(fadeInProgress, 0.0f, 1.0f);
-                    alpha = fadeInProgress * trajectory_dot_max_transparency; // Multiplica aqui para respeitar o máximo
+                    alpha = fadeInProgress * trajectory_dot_max_transparency; 
                 }
                 else if (milliTime >= fullOpacityStart && milliTime < dot.vanishTime) {
-                    // Mantém full opacity até a nota passar por cima
-                    alpha = trajectory_dot_max_transparency; // Usa o máximo configurado
+                    alpha = trajectory_dot_max_transparency; 
                 }
 
                 sf::Color newColor = dot.fullOpacityColor;
-                newColor.a = static_cast<uint8_t>(255 * alpha); // Não multiplica novamente aqui
+                newColor.a = static_cast<uint8_t>(255 * alpha); 
                 dot.dotObject.sprite->setColor(newColor);
             }
         }
@@ -470,8 +537,8 @@ public:
             window.draw(*object.sprite);
             window.draw(*aproachCircle.sprite);
 
-            if (this->debug_mode) {
-                std::println("DEBUG: DRAWING DEBUG LINES, DEBUG_MODE: {}", this->debug_mode);
+            if (this->debug_mode) { 
+                
                 sf::FloatRect bounds = object.sprite->getGlobalBounds();
                 sf::Vector2f center(
                     bounds.position.x + bounds.size.x / 2.0f,
@@ -528,8 +595,31 @@ public:
                     info += "Diff: (" + std::to_string((int)dx) + ", " + std::to_string((int)dy) + ")\n";
                     info += "Dist: " + std::to_string((int)distance) + " | Radius: " + std::to_string((int)radius);
                     
+                    
+                    sf::Text inPlateDebugText(debugFont);
+                    inPlateDebugText.setCharacterSize(16);
+                    inPlateDebugText.setFillColor(sf::Color::White);
+                    inPlateDebugText.setOutlineColor(sf::Color::Black);
+                    inPlateDebugText.setOutlineThickness(2.0f);
+                    sf::Vector2f currentPos = object.sprite->getPosition();
+                    inPlateDebugText.setPosition({currentPos.x, currentPos.y - 50.0f});
+                    
+                    std::string inPlateInfo = "State: (" + _debug_read_state(getState()) + ")\n" // Fechar e reabrir as strings
+                                + "HitResult: (" + _debug_read_hitresult(getHitResult()) + ")\n"
+                                + "Runtime HitResult: (" 
+                                + _debug_read_runtime_hitresult(
+                                    _debug_milliTime,
+                                    getOffset(),
+                                    perfectHitWindow,
+                                    earlyLateWindow,
+                                    tooEarlyLateWindow
+                                ) + ")";
+
+                    inPlateDebugText.setString(inPlateInfo);
                     debugText.setString(info);
                     window.draw(debugText);
+                    window.draw(inPlateDebugText);
+                    
                 }
             }
         }   
@@ -553,8 +643,9 @@ private:
     int hitTime = -1;
     int pixelSize;
     int hitNum;
-    bool PressedLastFrame = false;
     bool debug_mode = false;
+    int _debug_milliTime;
+    std::string _debug_runtime_hitresult;
 
     Button object;
     Button aproachCircle;
@@ -562,6 +653,5 @@ private:
     sf::Vector2f aproachCircleScale;
     sf::Color aproachCircleColor;
     sf::Color objColor;
-    const std::pair<std::string, std::string> binds;
     std::vector<TrajectorDot> trajectoryDotArray;
 };
