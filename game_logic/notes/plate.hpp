@@ -269,6 +269,20 @@ inline HitResult _debug_return_runtime_hitresult(
     return HitResult::None;
 }
 
+// returns center position of an ScaledObject when in a scaled resolution
+inline sf::Vector2f GetScaledCenterForObject(Object& obj) {
+    sf::FloatRect bounds = obj.sprite->getGlobalBounds();
+    
+    sf::Vector2f center(
+        bounds.position.x + bounds.size.x / 2.0f,
+        bounds.position.y + bounds.size.y / 2.0f
+    );
+    
+    sf::Vector2f baseCenter = ScaleManager::UnscalePosition(center.x, center.y);
+
+    return baseCenter;
+}
+
 class Plate : public Note {
 public:
     Plate(int offset, float trajectory_dot_max_transparency, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int hitNum, int PS, int ACD, float AR = 0.0f, std::shared_ptr<bool> debug_mode = std::make_shared<bool>(false))
@@ -379,7 +393,9 @@ public:
         if (not DetectHover(window)) {
             return;
         }
-    
+
+        sf::Vector2f baseCenter = GetScaledCenterForObject(object);
+        
         if (getState() == NoteState::Judging || milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + tooEarlyLateWindow && 
             getState() != NoteState::Judging && getState() != NoteState::Hitting && 
             getState() != NoteState::Hit) {
@@ -388,7 +404,7 @@ public:
             int hitWindow = std::abs(milliTime - offset);
             if (hitWindow <= perfectHitWindow) {
                 setHitResult(HitResult::Perfect);
-                addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+                addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
                 setState(NoteState::Hitting);
                 hitTime = milliTime;
                 playHitSound(hitNum); 
@@ -397,10 +413,10 @@ public:
             if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
                 if (milliTime < offset) {
                     setHitResult(HitResult::PerfectEarly);
-                    addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
                 } else {
                     setHitResult(HitResult::PerfectLate);
-                    addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
                 }
                 setState(NoteState::Hitting);
                 hitTime = milliTime;
@@ -410,10 +426,10 @@ public:
             if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
                 if (milliTime < offset) {
                     setHitResult(HitResult::TooEarly);
-                    addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
                 } else {
                     setHitResult(HitResult::TooLate);
-                    addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
                 }
                 setState(NoteState::Hitting);
                 hitTime = milliTime;
@@ -442,15 +458,17 @@ public:
             setState(NoteState::Judging);
         }    
     
-        if (milliTime > offset + tooEarlyLateWindow && 
+        if (milliTime > offset + tooEarlyLateWindow &&  
             getState() != NoteState::Missing &&
             getState() != NoteState::Missed &&
             getState() != NoteState::Hit &&
             getState() != NoteState::Hitting) {
+
+            sf::Vector2f baseCenter = GetScaledCenterForObject(object);
             
             setState(NoteState::Missing);
             setHitResult(HitResult::Missed);
-            addHitResultTexture(hitResultObject,getHitResult(),object.sprite->getPosition());
+            addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
             hitTime = milliTime;
         }
 
