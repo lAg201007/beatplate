@@ -18,6 +18,7 @@ const int fullOpacityTrajectoryDotOffset = 0;
 const int trajectoryDotTimingOffset = 0;
 const float missFadeDuration = 500;
 const float aproachCircleScaleDiminish = 0.15f;
+const float plateObjectAfterHitMaxScale = 1.005f;
 
 extern sf::Sound hit1;
 extern sf::Sound hit2;
@@ -144,7 +145,7 @@ inline void updatePlate(int milliTime, int offset, int xPos, int yPos, int final
     object.sprite->setRotation(newAngle);
 }
 
-inline void updateAlpha(NoteState state, sf::Color& originalColor, Object& obj, int milliTime, int appearTime, int hitTime) {
+inline void updateAlpha(NoteState state, sf::Color& originalColor, Object& obj, int milliTime, int appearTime, int hitTime, float duration = missFadeDuration) {
     int fadeStart = appearTime;
     if (state == NoteState::Missing && hitTime != -1) {
         fadeStart = hitTime;
@@ -154,7 +155,7 @@ inline void updateAlpha(NoteState state, sf::Color& originalColor, Object& obj, 
         fadeStart = hitTime;
     }
     float fadeElapsed = static_cast<float>(milliTime - fadeStart);
-    float fadeProgress = std::clamp(fadeElapsed / missFadeDuration, 0.0f, 1.0f);
+    float fadeProgress = std::clamp(fadeElapsed / duration, 0.0f, 1.0f);
     sf::Color newColor = originalColor;
     newColor.a = static_cast<uint8_t>(originalColor.a * (1.0f - fadeProgress));
     obj.sprite->setColor(newColor);
@@ -287,10 +288,10 @@ public:
           trajectory_dot_max_transparency(trajectory_dot_max_transparency),
           debug_mode(debug_mode)
     {
-        object.sprite->setScale({
-            static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x,
-            static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.y
-        });
+        ObjectScale.x = static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.x;
+        ObjectScale.y = static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.y;
+
+        object.sprite->setScale(ObjectScale);
 
         radius = static_cast<float>(pixelSize) / 2.7f;
 
@@ -478,7 +479,20 @@ public:
         }
 
         if (getState() == NoteState::Hitting) {
-            updateAlpha(getState(), objColor, object, milliTime, appearTime, hitTime);
+            float casted_hitTime = static_cast<float>(hitTime);
+            float casted_hittingTime = static_cast<float>(hittingTime);
+            float casted_milliTime = static_cast<float>(milliTime);
+
+            float elapsed = casted_milliTime - casted_hitTime;
+            float progress = std::clamp(elapsed / (casted_hittingTime / 2), 0.f, 1.f);
+
+            sf::Vector2f NewScale;
+
+            NewScale.x = ObjectScale.x + (plateObjectAfterHitMaxScale * progress);
+            NewScale.y = ObjectScale.y + (plateObjectAfterHitMaxScale * progress);
+
+            updateAlpha(getState(), objColor, object, milliTime, appearTime, hitTime, casted_hittingTime / 2);
+            object.sprite->setScale(NewScale);
         }
 
         for (auto& dot : trajectoryDotArray) {
@@ -650,6 +664,7 @@ private:
     Button aproachCircle;
     HitResultObject hitResultObject;
     sf::Vector2f aproachCircleScale;
+    sf::Vector2f ObjectScale;
     sf::Color aproachCircleColor;
     sf::Color objColor;
     std::vector<TrajectorDot> trajectoryDotArray;
