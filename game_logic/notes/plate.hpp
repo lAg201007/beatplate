@@ -292,6 +292,8 @@ public:
             static_cast<float>(pixelSize) / object.sprite->getLocalBounds().size.y
         });
 
+        radius = static_cast<float>(pixelSize) / 2.7f;
+
         aproachCircleScale.x = (static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.x);
         aproachCircleScale.y = (static_cast<float>(pixelSize) / aproachCircle.sprite->getLocalBounds().size.y);
 
@@ -362,9 +364,6 @@ public:
         sf::Vector2f spriteCenter = object.sprite->getPosition();
         sf::FloatRect bounds = object.sprite->getGlobalBounds();
 
-        // Raio (em coordenadas reais/escaladas)
-        float radius = bounds.size.x / 2.0f;
-        
         // Colisão circular em coordenadas reais
         float dx = mouseFloat.x - spriteCenter.x;
         float dy = mouseFloat.y - spriteCenter.y;
@@ -544,8 +543,7 @@ public:
                     bounds.position.x + bounds.size.x / 2.0f,
                     bounds.position.y + bounds.size.y / 2.0f
                 );
-                float radius = bounds.size.x / 2.0f;
-                
+        
                 sf::CircleShape debugCircle(radius);
                 debugCircle.setOrigin({radius, radius});
                 debugCircle.setPosition(center);
@@ -633,6 +631,7 @@ private:
     float finalYPos;
     float finalXPos;
     float trajectory_dot_max_transparency;
+    float radius;
     int plateNumber;
     int PS;
     int ACD;
