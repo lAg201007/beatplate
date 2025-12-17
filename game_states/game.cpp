@@ -146,6 +146,8 @@ sf::Keyboard::Scan stringToKeycode(const std::string& keyString) {
     }
 }
 
+std::shared_ptr<bool> debug_mode = std::make_shared<bool>(false);
+
 Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songFolder, Object& background)
     : State(stack, window),
       Cursor("assets/sprites/CursorInGame.png", 400, 300, 67, 67),
@@ -170,8 +172,6 @@ Game::Game(StateStack& stack, sf::RenderWindow& window, const std::string& songF
     configFile >> config;
 
     offset_ms = config["settings"]["music_offset_ms"].get<int>();
-    bool debug_mode = config["settings"]["debug_mode"].get<bool>();
-    std::println("DEBUG: DEBUG_MODE IS: {}", debug_mode);
 
     auto bindArray = config["settings"]["binds"]["game_click"].get<std::vector<std::string>>();
     binds = std::make_pair(stringToKeycode(bindArray[0]), stringToKeycode(bindArray[1]));
@@ -226,9 +226,17 @@ void Game::handleEvent(const sf::Event& event) {
                 }
             }
 
-            // Debug key to rewind time by 5 seconds
             if (keyPressed->scancode == sf::Keyboard::Scancode::R) {
                 gameClock.setTime(gameClock.getTime() - sf::milliseconds(5000), AudioManager::getInstance(), offset_ms);
+            }
+
+            if (keyPressed->scancode == sf::Keyboard::Scancode::D) {
+                if (*debug_mode) {
+                    *debug_mode = false;
+                }
+                else {
+                    *debug_mode = true;
+                }
             }
 
             if (keyPressed->scancode == binds.first || keyPressed->scancode == binds.second) {

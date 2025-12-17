@@ -270,7 +270,7 @@ inline HitResult _debug_return_runtime_hitresult(
 
 class Plate : public Note {
 public:
-    Plate(int offset, float trajectory_dot_max_transparency, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int hitNum, int PS, int ACD, float AR = 0.0f, bool debug_mode = false)
+    Plate(int offset, float trajectory_dot_max_transparency, int xPos, int yPos,int finalYPos, int finalXPos, int plateNumber, int hitNum, int PS, int ACD, float AR = 0.0f, std::shared_ptr<bool> debug_mode = std::make_shared<bool>(false))
         : Note(offset, "plate", xPos, AR), xPos(xPos), yPos(yPos), PS(PS), ACD(ACD), finalYPos(finalYPos), finalXPos(finalXPos), pixelSize(150 * PS),
           object(std::string("assets/sprites/game/objects/plates/plate_") + std::to_string(plateNumber) + ".png", xPos, yPos, 195, 195, 1.0f, 1.0f),
           aproachCircle("assets/sprites/game/objects/plates/plate_aproach_circle.png", finalXPos, finalYPos, 150, 150, 1.0f, 1.0f),
@@ -537,7 +537,7 @@ public:
             window.draw(*object.sprite);
             window.draw(*aproachCircle.sprite);
 
-            if (this->debug_mode) { 
+            if (*this->debug_mode) { 
                 
                 sf::FloatRect bounds = object.sprite->getGlobalBounds();
                 sf::Vector2f center(
@@ -643,7 +643,7 @@ private:
     int hitTime = -1;
     int pixelSize;
     int hitNum;
-    bool debug_mode = false;
+    std::shared_ptr<bool> debug_mode;
     int _debug_milliTime;
     std::string _debug_runtime_hitresult;
 
