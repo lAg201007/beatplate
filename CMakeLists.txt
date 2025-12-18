@@ -58,6 +58,10 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${ALL_SOURCES})
 
 add_executable(beatplate ${ALL_SOURCES})
 
+set_target_properties(beatplate PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
 # Copiar assets para o diretório de build
 add_custom_command(TARGET beatplate POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -66,27 +70,27 @@ add_custom_command(TARGET beatplate POST_BUILD
     COMMENT "Copiando assets para o diretório de build..."
 )
 
-# Copiar game_logic para o diretório de build (se necessário)
-add_custom_command(TARGET beatplate POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/game_logic
-    $<TARGET_FILE_DIR:beatplate>/game_logic
-    COMMENT "Copiando game_logic para o diretório de build..."
+set(RUNTIME_ASSET_DIRS
+    assets
+    shaders
+    game_logic
 )
 
-add_custom_command(TARGET beatplate POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/shaders/frag
-    $<TARGET_FILE_DIR:beatplate>/shaders/frag
-    COMMENT "Copiando frag para o diretório de build..."
-)
+foreach(dir IN LISTS RUNTIME_ASSET_DIRS)
+    add_custom_command(TARGET beatplate POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/${dir}
+        $<TARGET_FILE_DIR:beatplate>/${dir}
+        COMMENT "Copying ${dir} to runtime directory"
+    )
+endforeach()
 
 add_custom_command(TARGET beatplate POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     ${CMAKE_SOURCE_DIR}/config.json
     $<TARGET_FILE_DIR:beatplate>/config.json
-    COMMENT "Copiando config.json para o diretório de build..."
 )
+
 
 target_precompile_headers(beatplate PRIVATE
     <SFML/Graphics.hpp>
