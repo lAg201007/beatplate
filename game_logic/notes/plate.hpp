@@ -74,30 +74,31 @@ inline float getProgress(int milliTime, int appearTime, int offset) {
            static_cast<float>(offset - appearTime);
 }
 
-inline void changeHitResultTexture(HitResultObject& object, std::string appendString, sf::Vector2f PlatePosition) {
+inline void changeHitResultTexture(HitResultObject& object, std::string appendString, sf::Vector2f PlatePosition, sf::Vector2f TargetScale) {
     sf::Texture* newTexture = &LoadTexture(std::string("assets/sprites/game/effects/") + appendString);
     object.object.sprite = nullptr;
     object.object.sprite = std::make_shared<ScaledSprite>(*newTexture);
     object.object.sprite->setOrigin({object.object.sprite->getGlobalBounds().size.x / 2, object.object.sprite->getGlobalBounds().size.y / 2});
     object.object.sprite->setPosition(PlatePosition);
+    object.object.sprite->setScale(TargetScale);
     object.initialized = true;
 }
 
-inline void addHitResultTexture(HitResultObject& hitResultObject, HitResult result, sf::Vector2f PlatePosition) {
+inline void addHitResultTexture(HitResultObject& hitResultObject, HitResult result, sf::Vector2f PlatePosition, sf::Vector2f TargetScale) {
     switch (result) {
         case HitResult::Perfect:
-            changeHitResultTexture(hitResultObject, "PERFECT!.png", PlatePosition);
+            changeHitResultTexture(hitResultObject, "PERFECT!.png", PlatePosition, TargetScale);
             break;
         case HitResult::PerfectEarly:
         case HitResult::PerfectLate:
-            changeHitResultTexture(hitResultObject, "GREAT!.png", PlatePosition);
+            changeHitResultTexture(hitResultObject, "GREAT!.png", PlatePosition, TargetScale);
             break;
         case HitResult::TooLate:
         case HitResult::TooEarly:
-            changeHitResultTexture(hitResultObject, "OK!.png", PlatePosition);
+            changeHitResultTexture(hitResultObject, "OK!.png", PlatePosition, TargetScale);
             break;
         case HitResult::Missed:
-            changeHitResultTexture(hitResultObject, "MISS!.png", PlatePosition);
+            changeHitResultTexture(hitResultObject, "MISS!.png", PlatePosition, TargetScale);
             break;
     }
 }
@@ -147,11 +148,10 @@ inline void updatePlate(int milliTime, int offset, int xPos, int yPos, int final
 
 inline void updateAlpha(NoteState state, sf::Color& originalColor, Object& obj, int milliTime, int appearTime, int hitTime, float duration = missFadeDuration) {
     int fadeStart = appearTime;
-    if (state == NoteState::Missing && hitTime != -1) {
+    if (state == NoteState::Missing && hitTime != -1 || state == NoteState::Missed) {
         fadeStart = hitTime;
     }
-    // CORREÇÃO 3: 'Note_state' corrigido para 'NoteState' (Case sensitive e nome correto do enum)
-    if (state == NoteState::Hitting) {
+    if (state == NoteState::Hitting || state == NoteState::Hit) {
         fadeStart = hitTime;
     }
     float fadeElapsed = static_cast<float>(milliTime - fadeStart);
@@ -394,7 +394,7 @@ public:
             return;
         }
 
-        sf::Vector2f baseCenter = GetScaledCenterForObject(object);
+        sf::Vector2f baseCenter = GetScaledCenterForObject(aproachCircle);
         
         if (getState() == NoteState::Judging || milliTime >= offset - tooEarlyLateWindow && milliTime <= offset + tooEarlyLateWindow && 
             getState() != NoteState::Judging && getState() != NoteState::Hitting && 
@@ -404,7 +404,7 @@ public:
             int hitWindow = std::abs(milliTime - offset);
             if (hitWindow <= perfectHitWindow) {
                 setHitResult(HitResult::Perfect);
-                addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
+                addHitResultTexture(hitResultObject,getHitResult(),baseCenter, ObjectScale);
                 setState(NoteState::Hitting);
                 hitTime = milliTime;
                 playHitSound(hitNum); 
@@ -413,10 +413,10 @@ public:
             if (hitWindow > perfectHitWindow && hitWindow <= earlyLateWindow) {
                 if (milliTime < offset) {
                     setHitResult(HitResult::PerfectEarly);
-                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
+                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter, ObjectScale);
                 } else {
                     setHitResult(HitResult::PerfectLate);
-                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
+                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter, ObjectScale);
                 }
                 setState(NoteState::Hitting);
                 hitTime = milliTime;
@@ -426,10 +426,10 @@ public:
             if (hitWindow > earlyLateWindow && hitWindow <= tooEarlyLateWindow) {
                 if (milliTime < offset) {
                     setHitResult(HitResult::TooEarly);
-                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
+                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter, ObjectScale);
                 } else {
                     setHitResult(HitResult::TooLate);
-                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
+                    addHitResultTexture(hitResultObject,getHitResult(),baseCenter, ObjectScale);
                 }
                 setState(NoteState::Hitting);
                 hitTime = milliTime;
@@ -464,11 +464,11 @@ public:
             getState() != NoteState::Hit &&
             getState() != NoteState::Hitting) {
 
-            sf::Vector2f baseCenter = GetScaledCenterForObject(object);
+            sf::Vector2f baseCenter = GetScaledCenterForObject(aproachCircle);
             
             setState(NoteState::Missing);
             setHitResult(HitResult::Missed);
-            addHitResultTexture(hitResultObject,getHitResult(),baseCenter);
+            addHitResultTexture(hitResultObject,getHitResult(),baseCenter, ObjectScale);
             hitTime = milliTime;
         }
 
@@ -487,16 +487,23 @@ public:
                         appearTime, initialXPos, initialYPos);
         }
 
-        if (getState() == NoteState::Missing) {
+        if (getState() == NoteState::Missing || getState() == NoteState::Missed) {
             updatePlate(milliTime, offset, xPos, yPos, finalXPos, finalYPos,
                         window, object, aproachCircle, aproachCircleScale,
                         appearTime, initialXPos, initialYPos);
+
+            if (hitResultObject.initialized) {
+                if (hitresultColor.r != hitResultObject.object.sprite->getColor().r) {
+                    hitresultColor = hitResultObject.object.sprite->getColor();
+                }
+                updateAlpha(getState(), hitresultColor, hitResultObject.object, milliTime, appearTime, hitTime, hittingTime * 3);
+            }
 
             updateAlpha(getState(), aproachCircleColor, aproachCircle, milliTime, appearTime, hitTime);
             updateAlpha(getState(), objColor, object, milliTime, appearTime, hitTime);
         }
 
-        if (getState() == NoteState::Hitting) {
+        if (getState() == NoteState::Hitting || getState() == NoteState::Hit) {     
             float casted_hitTime = static_cast<float>(hitTime);
             float casted_hittingTime = static_cast<float>(hittingTime);
             float casted_milliTime = static_cast<float>(milliTime);
@@ -509,7 +516,16 @@ public:
             NewScale.x = ObjectScale.x + (plateObjectAfterHitMaxScale * progress);
             NewScale.y = ObjectScale.y + (plateObjectAfterHitMaxScale * progress);
 
+            updateAlpha(getState(), aproachCircleColor, aproachCircle, milliTime, appearTime, hitTime, casted_hittingTime);
             updateAlpha(getState(), objColor, object, milliTime, appearTime, hitTime, casted_hittingTime / 2);
+            
+            if (hitResultObject.initialized) {
+                if (hitresultColor.r != hitResultObject.object.sprite->getColor().r) {
+                    hitresultColor = hitResultObject.object.sprite->getColor();
+                }
+                updateAlpha(getState(), hitresultColor, hitResultObject.object, milliTime, appearTime, hitTime, hittingTime * 3);
+            }
+            
             object.sprite->setScale(NewScale);
         }
 
@@ -553,6 +569,12 @@ public:
     }
 
     void render(sf::RenderWindow& window) override {
+        if (getState() == NoteState::Hit || getState() == NoteState::Missed) {
+            if (hitResultObject.initialized) {
+                window.draw(*hitResultObject.object.sprite);
+            }
+        }
+    
         if (getState() == NoteState::Active || getState() == NoteState::Judging ||
             getState() == NoteState::Hitting || getState() == NoteState::Missing) {
             for (auto& dot : trajectoryDotArray) {
@@ -685,5 +707,6 @@ private:
     sf::Vector2f ObjectScale;
     sf::Color aproachCircleColor;
     sf::Color objColor;
+    sf::Color hitresultColor;
     std::vector<TrajectorDot> trajectoryDotArray;
 };
