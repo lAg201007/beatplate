@@ -12,7 +12,7 @@ public:
     void render() override;
 
 private:
-    int TitleBeatWhiteMultiplier;
+    float TitleBeatWhiteMultiplier;
     float textTransparencyValue;
     static int ActualMusicBpm;
     Object Cursor;

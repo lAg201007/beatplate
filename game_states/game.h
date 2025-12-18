@@ -33,6 +33,8 @@ private:
     sf::Vector2i mouse_pos;
     std::string songFolder;
     GameClock gameClock;
+    sf::Shader backgroundShader;
+    std::pair<sf::Keyboard::Scan, sf::Keyboard::Scan> binds;
 
     std::vector<std::unique_ptr<Note>> notes;
 
@@ -41,5 +43,4 @@ private:
 
     int startTime_ms = 0;
     int endTime_ms = 0;
-    const int targetYPos;
 };

@@ -7,6 +7,7 @@
 #include "../utils/tween_storage.h"
 #include "../utils/utilities.h"
 #include "../utils/audio_manager.h"
+#include "../utils/scale_manager.h"
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -125,10 +126,10 @@ public:
     std::string FolderLocation;
     int Difficulty;
 
-    sf::Text SongNameLabel;
-    sf::Text ArtistLabel;
-    sf::Text MapperLabel;
-    sf::Text DificultyLabel;
+    ScaledText ArtistLabel;
+    ScaledText SongNameLabel;
+    ScaledText MapperLabel;
+    ScaledText DificultyLabel;
     Button SongButton;
 
     sf::Color originalColor = sf::Color::White;

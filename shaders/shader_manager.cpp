@@ -45,10 +45,20 @@ namespace ShaderUtils {
     sf::Shader createWhiteMaskShader(float WhiteMultiplier, sf::RenderWindow& window) {
         sf::Shader shader = ShaderUtils::createShader("shaders/frag/white_flash.frag", std::nullopt, { 
                 {"WhiteMultiplier", WhiteMultiplier},
-                {"texture", sf::Shader::CurrentTexture}
+                {"tex", sf::Shader::CurrentTexture}
             }
         );
 
+        return shader;
+    }
+
+    sf::Shader createDarkOutShader(float DarkMultiplier, sf::RenderWindow& window) {
+        sf::Shader shader = ShaderUtils::createShader("shaders/frag/dark_out.frag", std::nullopt, { 
+                {"DarkMultiplier", DarkMultiplier},
+                {"tex", sf::Shader::CurrentTexture}
+            }
+        );
+        
         return shader;
     }
 
@@ -57,14 +67,14 @@ namespace ShaderUtils {
         sf::RenderTexture rtV = (window.getSize());
         
         sf::Shader shaderH = ShaderUtils::createShader("shaders/frag/blur.frag", std::nullopt, {
-            {"texture", sf::Shader::CurrentTexture},
+            {"tex", sf::Shader::CurrentTexture},
             {"resolution", sf::Vector2f(window.getSize())},
             {"blurStrength", blurStrength},
             {"horizontal", true}
         });
 
         sf::Shader shaderV = ShaderUtils::createShader("shaders/frag/blur.frag", std::nullopt, {
-            {"texture", sf::Shader::CurrentTexture},
+            {"tex", sf::Shader::CurrentTexture},
             {"resolution", sf::Vector2f(window.getSize())},
             {"blurStrength", blurStrength},
             {"horizontal", false}

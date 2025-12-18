@@ -13,6 +13,9 @@
 *.app
 
 *.bin
+*.sh
 
 .vscode/
 build/
+
+Makefile

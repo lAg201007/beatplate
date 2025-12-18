@@ -7,6 +7,7 @@
 #include "../utils/utilities.h"
 #include "../utils/tween_storage.h"
 #include "../utils/audio_manager.h"
+#include "../utils/scale_manager.h"
 #include <filesystem>
 #include <fstream>
 #include "../libs/json.hpp"
@@ -18,7 +19,7 @@ int MainMenu::ActualMusicBpm = 0;
 
 MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window),
-    Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f), 
+    Cursor("assets/sprites/cursor.png", 400, 300, 0, 0), 
     Title("assets/sprites/main_menu/title.png", 0, 0, 640, 360), // x e y serão definidos depois
     background("assets/sprites/main_menu/background.png",0,0),
     start_buffer("assets/sounds/menu/start.wav"),
@@ -26,7 +27,7 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     start_sound(start_buffer),
 
     TitleTween(std::make_unique<Tween>(*Title.sprite,0.5f,Tween::linear)),
-    TitleBeatWhiteMultiplier(50),
+    TitleBeatWhiteMultiplier(50.f),
     TitleWhiteMaskTween(std::make_unique<ValueTween>(TitleBeatWhiteMultiplier,0.f,0.5f)),
     TitleTransparencyTween(*Title.sprite,3.0f,Tween::linear),
     StartTextTransparencyTween(0.0f,1.0f,3.0f),
@@ -34,7 +35,7 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     textColor(StartGameText.getFillColor())
 {
     start_sound.setVolume(130.f);
-    Title.sprite->setPosition({window.getSize().x / 2.f, window.getSize().y / 2.f});
+    Title.sprite->setPosition({ScaleManager::GetBaseWidth() / 2.f, ScaleManager::GetBaseHeight() / 2.f}); // updating for base res
     TitlePosition = Title.sprite->getPosition();
     whiteMaskShader = ShaderUtils::createWhiteMaskShader(TitleWhiteMaskTween->getValue(), mWindow);
 
@@ -49,7 +50,6 @@ MainMenu::MainMenu(StateStack& stack, sf::RenderWindow& window)
     StartGameText.setString("Press the Title Button to Play");
     StartGameText.setCharacterSize(20);
     StartGameText.setPosition(TitlePosition + sf::Vector2f({-150,80}));
-
     ResizeSpriteToFitWindow(*background.sprite, window);
 
     taskDelay(3500, [this]() {

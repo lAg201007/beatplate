@@ -22,6 +22,7 @@ enum class HitResult {
     PerfectLate,
     TooEarly,
     TooLate,
+    Missed,
     None
 };
 
@@ -64,7 +65,8 @@ public:
 
     virtual void update(sf::Time elapsed, sf::RenderWindow& window) {}
     virtual void render(sf::RenderWindow& window) {}
-
+    virtual void click(sf::Time elapsed, sf::RenderWindow& window) {}
+    
     void setState(NoteState newState) {
         state = newState;
     }
@@ -72,6 +74,8 @@ public:
     void setHitResult(HitResult result) {
         hitResult = result;
     }
+
+    
 
     HitResult getHitResult() const {
         return hitResult;

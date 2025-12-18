@@ -1,28 +1,33 @@
 cmake_minimum_required(VERSION 3.16)
 project(beatplate)
-
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(SFML_LIB_DIR "${CMAKE_SOURCE_DIR}/libs/SFML-3.0.0/lib")
+# Detecta o sistema operacional
+if(WIN32)
+    set(SFML_LIB_DIR "${CMAKE_SOURCE_DIR}/libs/SFML-3.0.0/lib")
+    add_definitions(-DSFML_STATIC)
+endif()
 
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
 endif()
 
-add_definitions(-DSFML_STATIC)
-
-# diretorios que vão ser fonte de arquivos que serão incluidos
+# Diretórios que vão ser fonte de arquivos que serão incluídos
 include_directories(
     ${CMAKE_SOURCE_DIR}
     utils
     shaders
     libs
-    libs/SFML-3.0.0/include
     game_states
     game_logic
 )
+
+# Adiciona include do SFML de acordo com o sistema
+if(WIN32)
+    include_directories(libs/SFML-3.0.0/include)
+endif()
 
 file(GLOB_RECURSE CORE_SOURCES
     "main.cpp"
@@ -53,6 +58,36 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${ALL_SOURCES})
 
 add_executable(beatplate ${ALL_SOURCES})
 
+# Copiar assets para o diretório de build
+add_custom_command(TARGET beatplate POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:beatplate>/assets
+    COMMENT "Copiando assets para o diretório de build..."
+)
+
+# Copiar game_logic para o diretório de build (se necessário)
+add_custom_command(TARGET beatplate POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/game_logic
+    $<TARGET_FILE_DIR:beatplate>/game_logic
+    COMMENT "Copiando game_logic para o diretório de build..."
+)
+
+add_custom_command(TARGET beatplate POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/shaders/frag
+    $<TARGET_FILE_DIR:beatplate>/shaders/frag
+    COMMENT "Copiando frag para o diretório de build..."
+)
+
+add_custom_command(TARGET beatplate POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_SOURCE_DIR}/config.json
+    $<TARGET_FILE_DIR:beatplate>/config.json
+    COMMENT "Copiando config.json para o diretório de build..."
+)
+
 target_precompile_headers(beatplate PRIVATE
     <SFML/Graphics.hpp>
     <SFML/Window.hpp>
@@ -63,38 +98,58 @@ target_precompile_headers(beatplate PRIVATE
     <string>
 )
 
-target_link_libraries(beatplate
-    PRIVATE
-
-    optimized "${SFML_LIB_DIR}/sfml-graphics-s.lib"
-    optimized "${SFML_LIB_DIR}/sfml-window-s.lib"
-    optimized "${SFML_LIB_DIR}/sfml-system-s.lib"
-    optimized "${SFML_LIB_DIR}/sfml-audio-s.lib"
-
-    debug "${SFML_LIB_DIR}/sfml-audio-s-d.lib"
-    debug "${SFML_LIB_DIR}/sfml-graphics-s-d.lib"
-    debug "${SFML_LIB_DIR}/sfml-window-s-d.lib"
-    debug "${SFML_LIB_DIR}/sfml-system-s-d.lib"
-
-    "${SFML_LIB_DIR}/flac.lib"
-    "${SFML_LIB_DIR}/vorbisenc.lib"
-    "${SFML_LIB_DIR}/vorbisfile.lib"
-    "${SFML_LIB_DIR}/vorbis.lib"
-    "${SFML_LIB_DIR}/ogg.lib"
-    "${SFML_LIB_DIR}/freetype.lib"
-
-    opengl32
-    winmm
-    gdi32
-)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_link_options(beatplate PRIVATE "-mwindows")
-endif()
-
-if (MSVC)
-    # Suprime o warning LNK4099 no linker
-    set_target_properties(beatplate PROPERTIES
-        LINK_FLAGS "/ignore:4099"
+# Configuração de linkagem específica por plataforma
+if(WIN32)
+    # Windows: usa bibliotecas estáticas do diretório libs
+    target_link_libraries(beatplate
+        PRIVATE
+        optimized "${SFML_LIB_DIR}/sfml-graphics-s.lib"
+        optimized "${SFML_LIB_DIR}/sfml-window-s.lib"
+        optimized "${SFML_LIB_DIR}/sfml-system-s.lib"
+        optimized "${SFML_LIB_DIR}/sfml-audio-s.lib"
+        debug "${SFML_LIB_DIR}/sfml-audio-s-d.lib"
+        debug "${SFML_LIB_DIR}/sfml-graphics-s-d.lib"
+        debug "${SFML_LIB_DIR}/sfml-window-s-d.lib"
+        debug "${SFML_LIB_DIR}/sfml-system-s-d.lib"
+        "${SFML_LIB_DIR}/flac.lib"
+        "${SFML_LIB_DIR}/vorbisenc.lib"
+        "${SFML_LIB_DIR}/vorbisfile.lib"
+        "${SFML_LIB_DIR}/vorbis.lib"
+        "${SFML_LIB_DIR}/ogg.lib"
+        "${SFML_LIB_DIR}/freetype.lib"
+        opengl32
+        winmm
+        gdi32
     )
+    
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        target_link_options(beatplate PRIVATE "-mwindows")
+    endif()
+    
+    if(MSVC)
+        # Suprime o warning LNK4099 no linker
+        set_target_properties(beatplate PROPERTIES
+            LINK_FLAGS "/ignore:4099"
+        )
+    endif()
+else()
+    # Linux (CachyOS): usa find_package para encontrar SFML do sistema
+    find_package(SFML 3.0 REQUIRED COMPONENTS Graphics Window System Audio)
+    
+    target_link_libraries(beatplate
+        PRIVATE
+        SFML::Graphics
+        SFML::Window
+        SFML::System
+        SFML::Audio
+    )
+    
+    # Flags de otimização específicas para CachyOS (opcional)
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        target_compile_options(beatplate PRIVATE
+            -O3
+            -march=native
+            -mtune=native
+        )
+    endif()
 endif()

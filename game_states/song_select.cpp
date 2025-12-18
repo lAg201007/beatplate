@@ -8,10 +8,11 @@
 #include "../utils/tween_storage.h"
 #include "../state_stack.h"
 #include "../utils/audio_manager.h"
+#include "../utils/texture_caching.h"
+#include "../utils/scale_manager.h"
 #include "print"
 
 sf::Font SongSlot::Montserrat;
-std::unordered_map<std::string, std::shared_ptr<sf::Texture>> SongList::BackgroundCache;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////// RENDERING AND LOGIC ///////////////////////////////////////////////////////////
@@ -20,7 +21,7 @@ std::unordered_map<std::string, std::shared_ptr<sf::Texture>> SongList::Backgrou
 // Constructor for SongSlot
 SongSelect::SongSelect(StateStack& stack, sf::RenderWindow& window)
     : State(stack, window),
-      Cursor("assets/sprites/cursor.png", 400, 300, 256, 256, 0.05f, 0.05f),
+      Cursor("assets/sprites/cursor.png", 400, 300, 0, 0), 
       click_buffer("assets/sounds/song_select/click.mp3"),
       back_buffer("assets/sounds/song_select/back.wav"),
       play_buffer("assets/sounds/song_select/play.wav"),
@@ -73,7 +74,8 @@ void SongSelect::handleEvent(const sf::Event& event) {
 // Update Event for SongSelect
 void SongSelect::update(sf::Time dt) {
     mouse_pos = sf::Mouse::getPosition(mWindow);
-    Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
+    sf::Vector2f unscaledMouse = ScaleManager::UnscalePosition(mouse_pos.x, mouse_pos.y);
+    Cursor.sprite->setPosition(unscaledMouse.x, unscaledMouse.y);
 
     List->listUpdate(dt.asSeconds());
 
@@ -189,6 +191,8 @@ void SongSlot::SetButtonAndWidjetsRelativePosition(sf::Vector2f newPos) {
     if (MapperLabel.getCharacterSize() != fitTextToWidth(MapperLabel, 300)) {
         MapperLabel.setCharacterSize(fitTextToWidth(MapperLabel, 300));
     }
+
+    //std::println("Position: {}, {},  ArtistLabel Position, {}, {}", Position.x, Position.y, ArtistLabel.getPosition().x, ArtistLabel.getPosition().y);
 }
 
 void SongSlot::setPositionTweened(sf::Vector2f newPos) {
@@ -272,8 +276,8 @@ void SongList::RenderList(sf::RenderWindow& window) {
     window.draw(*select_slot_background2.sprite);
 
     for (auto slot : ButtonVector) {
-        if (slot->Position.x > window.getSize().x + 100
-            || slot->Position.y > window.getSize().y + 100
+        if (slot->Position.x > ScaleManager::GetBaseWidth() + 100
+            || slot->Position.y > ScaleManager::GetBaseHeight() + 100
             || slot->Position.x < -100 
             || slot->Position.y < -100) 
         {
@@ -286,24 +290,11 @@ void SongList::RenderList(sf::RenderWindow& window) {
 void SongList::setBackgroundForSelectedSlot() {
     if (!parentSelect->isActive) return;
     std::string bgPath = SelectedSlot->FolderLocation + "/background.png";
-    auto it = BackgroundCache.find(bgPath);
-    if (it != BackgroundCache.end()) {
-        if (isActiveBackground1) {
-            select_slot_background2.spriteTexture = it->second;
-        } else {
-            select_slot_background1.spriteTexture = it->second;
-        }
-    } else {
-        auto tex = std::make_shared<sf::Texture>();
-        if (!tex->loadFromFile(bgPath)) {
-            std::cerr << "Não foi possível carregar a imagem " << bgPath << std::endl;
-        }
-        BackgroundCache[bgPath] = tex;
-        if (isActiveBackground1)
-            select_slot_background2.spriteTexture = tex;
-        else
-            select_slot_background1.spriteTexture = tex;
-    }
+    auto& texture = LoadTexture(bgPath);
+
+    select_slot_background1.spriteTexture = &texture;
+    select_slot_background2.spriteTexture = &texture;
+
     if (isActiveBackground1) {
         select_slot_background2.sprite->setTexture(*select_slot_background2.spriteTexture, true);
         ResizeSpriteToFitWindow(*select_slot_background2.sprite, window);
@@ -374,6 +365,8 @@ void SongList::updateSlotPositions() {
             float offsetX = selectedOffsetX * std::exp(-distance * 0.8f);
             
             sf::Vector2f newPos = ListPosition + sf::Vector2f(0.f, offset * button_offset);
+            //std::println("newPos: {}, {}", newPos.x, newPos.y);
+            
             ButtonVector[i]->setPositionTweened(newPos);
             ButtonVector[i]->SelectedOffsetTween = ValueTween(ButtonVector[i]->SelectedOffsetTween.getValue(), offsetX, 0.5f, Tween::easeOutQuad);
             ButtonVector[i]->SelectedOffsetTween.play();

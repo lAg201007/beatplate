@@ -4,7 +4,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
 #include "utils/SFML_CLASSES.h"
-
+#include "utils/scale_manager.h"
 #include "game_states/menu.h"
 #include "state_stack.h"
 
@@ -12,6 +12,8 @@ int main()
 {
     auto window = std::make_shared<sf::RenderWindow>(sf::VideoMode::getDesktopMode(),"beatplate", sf::State::Fullscreen);
     window->setMouseCursorVisible(false);
+
+    ScaleManager::UpdateScale(window->getSize().x, window->getSize().y);
     
     StateStack stack;
 
@@ -41,6 +43,11 @@ int main()
             if (event->is<sf::Event::FocusLost>()) {
                 window->setMouseCursorVisible(true);
                 inFocus = false;
+            }
+
+            if (event->is<sf::Event::Resized>()) {
+                const auto& resizeEvent = event->getIf<sf::Event::Resized>();
+                ScaleManager::UpdateScale(resizeEvent->size.x, resizeEvent->size.y);
             }
         }
 
