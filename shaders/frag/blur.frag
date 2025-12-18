@@ -1,6 +1,6 @@
-#version 330 core
+#version 130
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform vec2 resolution;
 uniform float blurStrength; // funciona como o sigma da Gaussiana
 uniform bool horizontal;
@@ -25,7 +25,7 @@ void main() {
         float weight = gaussian(offset, blurStrength);
 
         vec2 sampleCoord = texCoord + direction * offset * blurStrength;
-        color += texture(texture, sampleCoord) * weight;
+        color += texture(tex, sampleCoord) * weight;
         totalWeight += weight;
     }
 
