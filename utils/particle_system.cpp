@@ -3,7 +3,7 @@
 std::vector<ParticleSlot> GlobalParticleArray;
 std::vector<uint32_t> FreeSlots;
 
-uint32_t alocateParticle(Particle newParticle) {
+uint32_t alocateParticle(Particle& newParticle) {
   if (!FreeSlots.empty()) {
     int id = FreeSlots.back();
     FreeSlots.pop_back();

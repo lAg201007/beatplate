@@ -32,7 +32,7 @@ struct ParticleSlot {
 extern std::vector<ParticleSlot> GlobalParticleArray;
 extern std::vector<uint32_t> FreeSlots;
 
-uint32_t alocateParticle(Particle newParticle);
+uint32_t alocateParticle(Particle& newParticle);
 void dealocateParticle(uint32_t id);
 void drawParticle(uint32_t id, sf::RenderWindow& window);
 
