@@ -16,6 +16,7 @@ struct Particle {
   sf::Vector2f Velocity;
   sf::Vector2f Acceleration;
   float Lifetime;
+  float Elapsed = 0.f;
 };
 
 struct ParticleSlot {
@@ -35,6 +36,7 @@ extern std::vector<uint32_t> FreeSlots;
 uint32_t alocateParticle(Particle& newParticle);
 void dealocateParticle(uint32_t id);
 void drawParticle(uint32_t id, sf::RenderWindow& window);
+void updateParticle(uint32_t id, float dt);
 
 class ParticleEmitter {
 public:
@@ -81,6 +83,14 @@ public:
   void render(sf::RenderWindow& window) {
     for (uint32_t& particleId : particleIds) {
       drawParticle(particleId, window);
+    }
+  }
+
+  void update(sf::Time dt, sf::RenderWindow& window) {
+    float TimeInSeconds = dt.asSeconds();
+
+    for (uint32_t id : particleIds) {
+      updateParticle(id, TimeInSeconds);
     }
   }
   

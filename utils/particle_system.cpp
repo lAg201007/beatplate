@@ -27,3 +27,44 @@ void drawParticle(uint32_t id, sf::RenderWindow& window) {
   if (!GlobalParticleArray[id].alive) {return;}
   window.draw(*GlobalParticleArray[id].particle->object.sprite);
 }
+
+// dt is in seconds
+void updateParticle(uint32_t id, float dt) {
+  ParticleSlot& Slot = GlobalParticleArray[id];
+  std::unique_ptr<Particle>& ParticleInstance = Slot.particle;
+  
+  if (!Slot.alive) {return;}
+
+  ParticleInstance->Elapsed += dt;
+
+  if (ParticleInstance->Elapsed >= ParticleInstance->Lifetime) {
+    dealocateParticle(id);
+    return;
+  }
+
+  // Apply Acceleration
+  ParticleInstance->Velocity.x += ParticleInstance->Acceleration.x;
+  ParticleInstance->Velocity.y += ParticleInstance->Acceleration.y;
+
+  // Apply Velocity
+  ParticleInstance->object.sprite->setPosition(
+    {
+      ParticleInstance->object.sprite->getPosition().x + ParticleInstance->Velocity.x,
+      ParticleInstance->object.sprite->getPosition().y + ParticleInstance->Velocity.y
+    }
+  );
+  
+  // Apply Color
+  std::pair<float, sf::Color> ColorPointA;
+  std::pair<float, sf::Color> ColorPointB;
+
+  for (std::pair<float, sf::Color> ColorPoint : ParticleInstance->ColorArray) {
+    
+  }
+
+  // Apply Rotation
+
+  // Apply Scale
+  
+}
+
