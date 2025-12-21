@@ -1,4 +1,5 @@
 #include "../utils/particle_system.hpp"
+#include <cmath>
 
 std::vector<ParticleSlot> GlobalParticleArray;
 std::vector<uint32_t> FreeSlots;
@@ -16,6 +17,11 @@ uint32_t alocateParticle(Particle& newParticle) {
   ParticleSlot newSlot(std::make_unique<Particle>(newParticle), true);
   GlobalParticleArray.push_back(std::move(newSlot));
   return GlobalParticleArray.size();
+}
+
+uint8_t lerpColor(float ColorA, float ColorB, float t) {
+    uint8_t newColor = static_cast<uint8_t>(std::lerp(ColorA, ColorB, t));
+    return newColor;
 }
 
 void dealocateParticle(uint32_t id) {
@@ -42,6 +48,9 @@ void updateParticle(uint32_t id, float dt) {
     return;
   }
 
+  float NormalizedTime = ParticleInstance->Elapsed / ParticleInstance->Lifetime;
+  NormalizedTime = std::clamp(NormalizedTime, 0.f, 1.f);
+
   // Apply Acceleration
   ParticleInstance->Velocity.x += ParticleInstance->Acceleration.x;
   ParticleInstance->Velocity.y += ParticleInstance->Acceleration.y;
@@ -55,12 +64,29 @@ void updateParticle(uint32_t id, float dt) {
   );
   
   // Apply Color
+
+  // ColorPointA is the point just before the Elapsed time, and B is the just after one
   std::pair<float, sf::Color> ColorPointA;
   std::pair<float, sf::Color> ColorPointB;
 
+  // Getting the points
   for (std::pair<float, sf::Color> ColorPoint : ParticleInstance->ColorArray) {
-    
-  }
+    if (ColorPoint.first <= ParticleInstance->Elapsed) {
+      ColorPointA = ColorPoint;
+    }
+    else {
+      ColorPointB = ColorPoint;
+      break;
+    }
+  }  
+
+  uint8_t NewColorR = lerpColor(static_cast<float>(ColorPointA.second.r),static_cast<float>(ColorPointB.second.r), NormalizedTime);
+  uint8_t NewColorG = lerpColor(static_cast<float>(ColorPointA.second.g),static_cast<float>(ColorPointB.second.g), NormalizedTime);
+  uint8_t NewColorB = lerpColor(static_cast<float>(ColorPointA.second.b),static_cast<float>(ColorPointB.second.b), NormalizedTime);
+  uint8_t NewColorA = lerpColor(static_cast<float>(ColorPointA.second.a),static_cast<float>(ColorPointB.second.a), NormalizedTime);
+
+  sf::Color NewColor({NewColorR, NewColorG, NewColorB, NewColorA});
+  ParticleInstance->object.sprite->setColor(NewColor);
 
   // Apply Rotation
 

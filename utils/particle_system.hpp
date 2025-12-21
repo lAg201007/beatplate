@@ -34,6 +34,7 @@ extern std::vector<ParticleSlot> GlobalParticleArray;
 extern std::vector<uint32_t> FreeSlots;
 
 uint32_t alocateParticle(Particle& newParticle);
+uint8_t lerpColor(float ColorA, float ColorB, float t);
 void dealocateParticle(uint32_t id);
 void drawParticle(uint32_t id, sf::RenderWindow& window);
 void updateParticle(uint32_t id, float dt);
