@@ -4,7 +4,7 @@
 std::vector<ParticleSlot> GlobalParticleArray;
 std::vector<uint32_t> FreeSlots;
 
-uint32_t alocateParticle(Particle& newParticle) {
+uint32_t allocateParticle(Particle& newParticle) {
   if (!FreeSlots.empty()) {
     int id = FreeSlots.back();
     FreeSlots.pop_back();
@@ -16,7 +16,7 @@ uint32_t alocateParticle(Particle& newParticle) {
 
   ParticleSlot newSlot(std::make_unique<Particle>(newParticle), true);
   GlobalParticleArray.push_back(std::move(newSlot));
-  return GlobalParticleArray.size();
+  return GlobalParticleArray.size() - 1;
 }
 
 uint8_t lerpColor(float ColorA, float ColorB, float t) {
@@ -24,7 +24,7 @@ uint8_t lerpColor(float ColorA, float ColorB, float t) {
     return newColor;
 }
 
-void dealocateParticle(uint32_t id) {
+void deallocateParticle(uint32_t id) {
   GlobalParticleArray[id].reset();
   FreeSlots.push_back(id);
 }
@@ -44,7 +44,7 @@ void updateParticle(uint32_t id, float dt) {
   ParticleInstance->Elapsed += dt;
 
   if (ParticleInstance->Elapsed >= ParticleInstance->Lifetime) {
-    dealocateParticle(id);
+    deallocateParticle(id);
     return;
   }
 

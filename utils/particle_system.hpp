@@ -33,9 +33,9 @@ struct ParticleSlot {
 extern std::vector<ParticleSlot> GlobalParticleArray;
 extern std::vector<uint32_t> FreeSlots;
 
-uint32_t alocateParticle(Particle& newParticle);
+uint32_t allocateParticle(Particle& newParticle);
 uint8_t lerpColor(float ColorA, float ColorB, float t);
-void dealocateParticle(uint32_t id);
+void deallocateParticle(uint32_t id);
 void drawParticle(uint32_t id, sf::RenderWindow& window);
 void updateParticle(uint32_t id, float dt);
 
@@ -69,14 +69,14 @@ public:
       newParticle.Acceleration = acceleration;
       newParticle.Lifetime = lifetime;
 
-      particleIds.push_back(alocateParticle(newParticle));
+      particleIds.push_back(allocateParticle(newParticle));
     }
   }
 
   ~ParticleEmitter() 
   {
     for (uint32_t& particleId : particleIds) {
-      dealocateParticle(particleId);
+      deallocateParticle(particleId);
     }
     particleIds.clear();
   }
