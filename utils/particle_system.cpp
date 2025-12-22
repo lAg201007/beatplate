@@ -43,6 +43,11 @@ uint8_t lerpColor(float ColorA, float ColorB, float t) {
     return newColor;
 }
 
+sf::Angle lerpRotation(sf::Angle RotationA, sf::Angle RotationB, float t) {
+  sf::Angle NewAngle = sf::degrees(std::clamp(std::lerp(RotationA.asDegrees(), RotationB.asDegrees(), t), 0.f, 360.f));
+  return NewAngle;
+}
+
 void deallocateParticle(uint32_t id) {
   GlobalParticleArray[id].reset();
   FreeSlots.push_back(id);
@@ -99,7 +104,16 @@ void updateParticle(uint32_t id, float dt) {
   ParticleInstance->object.sprite->setColor(NewColor);
 
   // Apply Rotation
+  // Getting the points
+  auto RotationLoopResult = returnNeighborPointsInArray(ParticleInstance->RotationArray, ParticleInstance->Elapsed);
 
+  auto& RotationPointA = RotationLoopResult.first;
+  auto& RotationPointB = RotationLoopResult.second;
+
+  sf::Angle NewAngle = lerpRotation(RotationPointA.second, RotationPointB.second, NormalizedTime);
+
+  ParticleInstance->object.sprite->setRotation(NewAngle);
+  
   // Apply Scale
   
 }

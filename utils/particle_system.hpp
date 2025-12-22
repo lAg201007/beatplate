@@ -38,6 +38,7 @@ std::pair<std::pair<float, T>, std::pair<float, T>> returnNeighborPointsInArray(
 
 uint32_t allocateParticle(Particle& newParticle);
 uint8_t lerpColor(float ColorA, float ColorB, float t);
+sf::Angle lerpRotation(sf::Angle RotationA, sf::Angle RotationB, float t);
 void deallocateParticle(uint32_t id);
 void drawParticle(uint32_t id, sf::RenderWindow& window);
 void updateParticle(uint32_t id, float dt);
