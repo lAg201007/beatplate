@@ -34,7 +34,7 @@ extern std::vector<ParticleSlot> GlobalParticleArray;
 extern std::vector<uint32_t> FreeSlots;
 
 template<typename T>
-T returnNeighborPointsInArray(std::pair<float, T> array);
+std::pair<std::pair<float, T>, std::pair<float, T>> returnNeighborPointsInArray(const std::vector<std::pair<float, T>>& array, float Elapsed);
 
 uint32_t allocateParticle(Particle& newParticle);
 uint8_t lerpColor(float ColorA, float ColorB, float t);
