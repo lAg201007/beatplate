@@ -4,6 +4,25 @@
 std::vector<ParticleSlot> GlobalParticleArray;
 std::vector<uint32_t> FreeSlots;
 
+// Loop through the array and returns the neighbor points in reference to elapsed
+template<typename T>
+std::pair<std::pair<float, T>, std::pair<float, T>> returnNeighborPointsInArray(const std::vector<std::pair<float, T>>& array, float Elapsed) {
+  std::pair<float, T> T1;
+  std::pair<float, T> T2;
+
+  for (std::pair<float, T> Point : array) {
+    if (Point.first <= Elapsed) {
+      T1 = Point;
+    }
+    else {
+      T2 = Point;
+      break;
+    }
+  } 
+
+  return {T1, T2};
+}
+
 uint32_t allocateParticle(Particle& newParticle) {
   if (!FreeSlots.empty()) {
     int id = FreeSlots.back();
@@ -64,22 +83,13 @@ void updateParticle(uint32_t id, float dt) {
   );
   
   // Apply Color
-
-  // ColorPointA is the point just before the Elapsed time, and B is the just after one
-  std::pair<float, sf::Color> ColorPointA;
-  std::pair<float, sf::Color> ColorPointB;
-
   // Getting the points
-  for (std::pair<float, sf::Color> ColorPoint : ParticleInstance->ColorArray) {
-    if (ColorPoint.first <= ParticleInstance->Elapsed) {
-      ColorPointA = ColorPoint;
-    }
-    else {
-      ColorPointB = ColorPoint;
-      break;
-    }
-  }  
-
+  auto ColorLoopResult = returnNeighborPointsInArray(ParticleInstance->ColorArray,ParticleInstance->Elapsed);
+                                
+  // ColorPointA is the point just before the Elapsed time, and B is the just after one
+  auto& ColorPointA = ColorLoopResult.first;
+  auto& ColorPointB = ColorLoopResult.second;
+    
   uint8_t NewColorR = lerpColor(static_cast<float>(ColorPointA.second.r),static_cast<float>(ColorPointB.second.r), NormalizedTime);
   uint8_t NewColorG = lerpColor(static_cast<float>(ColorPointA.second.g),static_cast<float>(ColorPointB.second.g), NormalizedTime);
   uint8_t NewColorB = lerpColor(static_cast<float>(ColorPointA.second.b),static_cast<float>(ColorPointB.second.b), NormalizedTime);

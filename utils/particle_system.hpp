@@ -33,6 +33,9 @@ struct ParticleSlot {
 extern std::vector<ParticleSlot> GlobalParticleArray;
 extern std::vector<uint32_t> FreeSlots;
 
+template<typename T>
+T returnNeighborPointsInArray(std::pair<float, T> array);
+
 uint32_t allocateParticle(Particle& newParticle);
 uint8_t lerpColor(float ColorA, float ColorB, float t);
 void deallocateParticle(uint32_t id);
