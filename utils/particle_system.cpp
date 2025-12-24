@@ -80,6 +80,7 @@ void updateParticle(uint32_t id, float dt) {
   ParticleInstance->Velocity.y += ParticleInstance->Acceleration.y;
 
   // Apply Velocity
+  
   ParticleInstance->object.sprite->setPosition(
     {
       ParticleInstance->object.sprite->getPosition().x + ParticleInstance->Velocity.x,
@@ -89,6 +90,7 @@ void updateParticle(uint32_t id, float dt) {
   
   // Apply Color
   // Getting the points
+  
   auto ColorLoopResult = returnNeighborPointsInArray(ParticleInstance->ColorArray,ParticleInstance->Elapsed);
                                 
   // ColorPointA is the point just before the Elapsed time, and B is the just after one
