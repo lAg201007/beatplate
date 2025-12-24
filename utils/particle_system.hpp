@@ -50,11 +50,11 @@ public:
   //std::pair<x,y>
   //scaleArray -> std::pair<lifeTimePoint, scale>
   ParticleEmitter(std::string texturePath,
-                  float lifetime, 
+                  std::pair<float,float> lifetime, 
                   float spread,
-                  int particle_count,
+                  std::pair<int,int> particle_count,
                   sf::Vector2f emitterInitialPos,    
-                  sf::Vector2f initialVelocity,        
+                  std::pair<sf::Vector2f, sf::Vector2f> initialVelocity,        
                   sf::Vector2f acceleration,
                   std::vector<sf::Vector2f> scaleArray,
                   std::vector<std::pair<float, sf::Color>> colorArray,
@@ -62,11 +62,16 @@ public:
 
                   sf::Vector2i objectOrigin = {0,0})
   {
-    for (int i = GlobalParticleArray.size() + 1; i < particle_count;  i++) {
+    int RandomParticleCount = Random::rangeInt(particle_count.first, particle_count.second);
+
+    for (int i = GlobalParticleArray.size() + 1; i < RandomParticleCount;  i++) {
       Object newObject(texturePath, emitterInitialPos.x, emitterInitialPos.y, objectOrigin.x, objectOrigin.y);
 
       float halfSpread = spread * 0.5f;
       float offsetDegrees = Random::rangeFloat(-halfSpread, halfSpread);
+
+      sf::Vector2f RandomVel({Random::rangeFloat(initialVelocity.first.x, initialVelocity.second.x),
+                              Random::rangeFloat(initialVelocity.first.y, initialVelocity.second.y)});
       
       Particle newParticle;
       
@@ -75,9 +80,9 @@ public:
       newParticle.ColorArray = colorArray;
       newParticle.RotationArray = rotationArray;
       newParticle.ScaleArray = scaleArray;
-      newParticle.Velocity = initialVelocity;
+      newParticle.Velocity = RandomVel;
       newParticle.Acceleration = acceleration;
-      newParticle.Lifetime = lifetime;
+      newParticle.Lifetime = Random::rangeFloat(lifetime.first, lifetime.second);
          
       particleIds.push_back(allocateParticle(newParticle));
     }

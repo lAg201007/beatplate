@@ -13,11 +13,11 @@ public:
 
 private:
     std::string texturePath;
-    float lifetime;
+    std::pair<float,float> lifetime;
     float spread;
-    int particle_count;
+    std::pair<int,int> particle_count;
     sf::Vector2f emitterInitialPos;
-    sf::Vector2f initialVelocity;
+    std::pair<sf::Vector2f, sf::Vector2f> initialVelocity;
     sf::Vector2f acceleration;
     std::vector<sf::Vector2f> scaleArray;
     std::vector<std::pair<float, sf::Color>> colorArray;

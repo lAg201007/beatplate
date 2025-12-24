@@ -6,15 +6,15 @@
 ParticleTest::ParticleTest(StateStack& stack, sf::RenderWindow& window) :
   State(stack, window),
   texturePath("assets/sprites/cursor.png"),
-  lifetime(2),
-  particle_count(40),
+  lifetime({1.5,3}),
+  particle_count({20,40}),
   emitterInitialPos({500, 500}),
-  initialVelocity({0.1, -0.1}),
-  acceleration({0, 0}),
+  initialVelocity({45, -45}, {65, -65}),
+  acceleration({20, -20}),
   scaleArray({{1,1}}),
   spread(300),
-  colorArray({ {0.f, {10,230,1,255}}, {2.f, {50, 120, 255, 255}} }),
-  rotationArray({ {0.f, {sf::degrees(0)}  }, {2.f, {sf::degrees(360)}  } }),
+  colorArray({ {0.f, {10,230,1,255}}, {3.f, {50, 120, 255, 255}} }),
+  rotationArray({ {0.f, {sf::degrees(0)}  }, {3.f, {sf::degrees(360)}  } }),
 
   testEmmiter(texturePath, lifetime, spread, particle_count, emitterInitialPos, initialVelocity, acceleration, scaleArray, colorArray, rotationArray)
 {

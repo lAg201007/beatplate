@@ -76,8 +76,8 @@ void updateParticle(uint32_t id, float dt) {
   NormalizedTime = std::clamp(NormalizedTime, 0.f, 1.f);
 
   // Apply Acceleration
-  ParticleInstance->Velocity.x += ParticleInstance->Acceleration.x;
-  ParticleInstance->Velocity.y += ParticleInstance->Acceleration.y;
+  ParticleInstance->Velocity.x += ParticleInstance->Acceleration.x * dt;
+  ParticleInstance->Velocity.y += ParticleInstance->Acceleration.y * dt;
 
   // Apply Velocity
   // Here we apply velocity not in the Global X and Y, but in the relative X and Y of the particle
@@ -89,8 +89,8 @@ void updateParticle(uint32_t id, float dt) {
   
   ParticleInstance->object.sprite->setPosition(
     {
-      ParticleInstance->object.sprite->getPosition().x + ConvertedXVelocity,
-      ParticleInstance->object.sprite->getPosition().y + ConvertedYVelocity
+      ParticleInstance->object.sprite->getPosition().x + ConvertedXVelocity * dt,
+      ParticleInstance->object.sprite->getPosition().y + ConvertedYVelocity * dt
     }
   );
   
