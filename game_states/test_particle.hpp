@@ -14,12 +14,12 @@ public:
 private:
     std::string texturePath;
     float lifetime;
+    float spread;
     int particle_count;
     sf::Vector2f emitterInitialPos;
     sf::Vector2f initialVelocity;
     sf::Vector2f acceleration;
     std::vector<sf::Vector2f> scaleArray;
-    std::pair<sf::Angle, sf::Angle> spread;
     std::vector<std::pair<float, sf::Color>> colorArray;
     std::vector<std::pair<float, sf::Angle>> rotationArray;
 

@@ -80,11 +80,17 @@ void updateParticle(uint32_t id, float dt) {
   ParticleInstance->Velocity.y += ParticleInstance->Acceleration.y;
 
   // Apply Velocity
+  // Here we apply velocity not in the Global X and Y, but in the relative X and Y of the particle
+  // The Relative X and Y is given by the ParticleInstance's Direction Value
+  float DirectionDegrees = ParticleInstance->Direction.asRadians();
+
+  float ConvertedXVelocity = cos(DirectionDegrees) * ParticleInstance->Velocity.x - sin(DirectionDegrees) * ParticleInstance->Velocity.y;
+  float ConvertedYVelocity = sin(DirectionDegrees) * ParticleInstance->Velocity.x + cos(DirectionDegrees) * ParticleInstance->Velocity.y;
   
   ParticleInstance->object.sprite->setPosition(
     {
-      ParticleInstance->object.sprite->getPosition().x + ParticleInstance->Velocity.x,
-      ParticleInstance->object.sprite->getPosition().y + ParticleInstance->Velocity.y
+      ParticleInstance->object.sprite->getPosition().x + ConvertedXVelocity,
+      ParticleInstance->object.sprite->getPosition().y + ConvertedYVelocity
     }
   );
   

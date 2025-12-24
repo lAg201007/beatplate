@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "../utils/SFML_CLASSES.h"
+#include "../utils/rng.hpp"
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -12,9 +13,10 @@ struct Particle {
   std::vector<std::pair<float, sf::Color>> ColorArray;
   std::vector<std::pair<float, sf::Angle>> RotationArray;
   std::vector<sf::Vector2f> ScaleArray;
-  
+
   sf::Vector2f Velocity;
   sf::Vector2f Acceleration;
+  sf::Angle Direction;
   float Lifetime;
   float Elapsed = 0.f;
 };
@@ -49,12 +51,12 @@ public:
   //scaleArray -> std::pair<lifeTimePoint, scale>
   ParticleEmitter(std::string texturePath,
                   float lifetime, 
+                  float spread,
                   int particle_count,
-                  sf::Vector2f emitterInitialPos,
-                  sf::Vector2f initialVelocity,             
+                  sf::Vector2f emitterInitialPos,    
+                  sf::Vector2f initialVelocity,        
                   sf::Vector2f acceleration,
                   std::vector<sf::Vector2f> scaleArray,
-                  std::pair<sf::Angle, sf::Angle> spread,
                   std::vector<std::pair<float, sf::Color>> colorArray,
                   std::vector<std::pair<float, sf::Angle>> rotationArray,
 
@@ -62,9 +64,13 @@ public:
   {
     for (int i = GlobalParticleArray.size() + 1; i < particle_count;  i++) {
       Object newObject(texturePath, emitterInitialPos.x, emitterInitialPos.y, objectOrigin.x, objectOrigin.y);
-        
-      Particle newParticle;
 
+      float halfSpread = spread * 0.5f;
+      float offsetDegrees = Random::rangeFloat(-halfSpread, halfSpread);
+      
+      Particle newParticle;
+      
+      newParticle.Direction = sf::degrees(offsetDegrees);
       newParticle.object = newObject;
       newParticle.ColorArray = colorArray;
       newParticle.RotationArray = rotationArray;
@@ -72,7 +78,7 @@ public:
       newParticle.Velocity = initialVelocity;
       newParticle.Acceleration = acceleration;
       newParticle.Lifetime = lifetime;
-
+         
       particleIds.push_back(allocateParticle(newParticle));
     }
   }
