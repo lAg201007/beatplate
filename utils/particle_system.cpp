@@ -6,12 +6,12 @@ std::vector<uint32_t> FreeSlots;
 
 // Loop through the array and returns the neighbor points in reference to elapsed
 template<typename T>
-std::pair<std::pair<float, T>, std::pair<float, T>> returnNeighborPointsInArray(const std::vector<std::pair<float, T>>& array, float Elapsed) {
+std::pair<std::pair<float, T>, std::pair<float, T>> returnNeighborPointsInArray(const std::vector<std::pair<float, T>>& array, float NormalizedTime) {
   std::pair<float, T> T1;
   std::pair<float, T> T2;
 
   for (std::pair<float, T> Point : array) {
-    if (Point.first <= Elapsed) {
+    if (Point.first <= NormalizedTime) {
       T1 = Point;
     }
     else {
@@ -97,7 +97,7 @@ void updateParticle(uint32_t id, float dt) {
   // Apply Color
   // Getting the points
   
-  auto ColorLoopResult = returnNeighborPointsInArray(ParticleInstance->ColorArray,ParticleInstance->Elapsed);
+  auto ColorLoopResult = returnNeighborPointsInArray(ParticleInstance->ColorArray,NormalizedTime);
                                 
   // ColorPointA is the point just before the Elapsed time, and B is the just after one
   auto& ColorPointA = ColorLoopResult.first;
@@ -113,7 +113,7 @@ void updateParticle(uint32_t id, float dt) {
 
   // Apply Rotation
   // Getting the points
-  auto RotationLoopResult = returnNeighborPointsInArray(ParticleInstance->RotationArray, ParticleInstance->Elapsed);
+  auto RotationLoopResult = returnNeighborPointsInArray(ParticleInstance->RotationArray, NormalizedTime);
 
   auto& RotationPointA = RotationLoopResult.first;
   auto& RotationPointB = RotationLoopResult.second;

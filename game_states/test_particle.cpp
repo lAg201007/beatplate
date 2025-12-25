@@ -13,8 +13,8 @@ ParticleTest::ParticleTest(StateStack& stack, sf::RenderWindow& window) :
   acceleration({20, -20}),
   scaleArray({{1,1}}),
   spread(300),
-  colorArray({ {0.f, {10,230,1,255}}, {3.f, {50, 120, 255, 255}} }),
-  rotationArray({ {0.f, {sf::degrees(0)}  }, {3.f, {sf::degrees(360)}  } }),
+  colorArray({ {0.f, {10,230,1,255}}, {1.f, {50, 120, 255, 255}} }),
+  rotationArray({ {0.f, {sf::degrees(0)}  }, {1.f, {sf::degrees(360)}  } }),
 
   testEmmiter(texturePath, lifetime, spread, particle_count, emitterInitialPos, initialVelocity, acceleration, scaleArray, colorArray, rotationArray)
 {

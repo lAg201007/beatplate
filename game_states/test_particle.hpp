@@ -17,9 +17,9 @@ private:
     float spread;
     std::pair<int,int> particle_count;
     sf::Vector2f emitterInitialPos;
-    std::pair<sf::Vector2f, sf::Vector2f> initialVelocity;
-    sf::Vector2f acceleration;
-    std::vector<sf::Vector2f> scaleArray;
+    std::pair<sf::Vector2f, sf::Vector2f> initialVelocity; //TODO: fazer a parte float dos arrays serem normalizadas
+    sf::Vector2f acceleration; // 0 sendo inicio do lifetime da particula, 1 sendo a morte dela
+    std::vector<sf::Vector2f> scaleArray;// pra deixar as os arrays certos pra todos os tempos randomizados
     std::vector<std::pair<float, sf::Color>> colorArray;
     std::vector<std::pair<float, sf::Angle>> rotationArray;
 
