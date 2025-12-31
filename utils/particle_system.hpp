@@ -20,10 +20,21 @@ struct Particle {
   float Lifetime;
   float Elapsed = 0.f;
 
+  void reset() {
+    object = Object();
+    ColorArray = {{0,sf::Color::White}};
+    RotationArray = {{0, sf::degrees(0)}};
+    ScaleArray = {{0, {0,0}}};
+
+    Velocity = {0,0};
+    Acceleration = {0,0};
+    Direction = sf::degrees(0);
+    Elapsed = 0;
+  }
 };
 
 struct ParticleSlot {
-  std::unique_ptr<Particle> particle;
+  Particle particle;
   bool alive = false;
 
   void reset() {
@@ -39,7 +50,7 @@ extern std::vector<uint32_t> FreeSlots;
 template<typename T>
 std::pair<std::pair<float, T>, std::pair<float, T>> returnNeighborPointsInArray(const std::vector<std::pair<float, T>>& array, float Elapsed);
 
-uint32_t allocateParticle(Particle&& newParticle);
+uint32_t allocateParticle(Particle& newParticle);
 void deallocateParticle(uint32_t id);
 
 uint8_t lerpColor(float ColorA, float ColorB, float t);
@@ -113,13 +124,14 @@ public:
       newParticle.Acceleration = m_acceleration;
       newParticle.Lifetime = Random::rangeFloat(m_lifetime.first, m_lifetime.second);
       
-      m_particleIds.push_back(allocateParticle(std::move(newParticle)));
+      m_particleIds.push_back(allocateParticle(newParticle));
     }
   }
 
   void move(sf::Vector2f position) {
     m_emitterInitialPos = position;
   }
+  
 private:
     std::string m_texturePath;
     std::pair<float,float> m_lifetime; 

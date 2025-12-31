@@ -23,18 +23,18 @@ std::pair<std::pair<float, T>, std::pair<float, T>> returnNeighborPointsInArray(
   return {T1, T2};
 }
 
-uint32_t allocateParticle(Particle&& newParticle) {
+uint32_t allocateParticle(Particle& newParticle) {
     if (!FreeSlots.empty()) {
         uint32_t id = FreeSlots.back();
         FreeSlots.pop_back();
         
-        GlobalParticleArray[id].particle = std::make_unique<Particle>(std::move(newParticle));
+        GlobalParticleArray[id].particle = std::move(newParticle);
         GlobalParticleArray[id].alive = true;
 
         return id;
     }
 
-    ParticleSlot newSlot(std::make_unique<Particle>(std::move(newParticle)), true);
+    ParticleSlot newSlot(std::move(newParticle), true);
     GlobalParticleArray.push_back(std::move(newSlot));
     return GlobalParticleArray.size() - 1;
 }
@@ -62,50 +62,50 @@ sf::Vector2f lerpScale(sf::Vector2f ScaleA, sf::Vector2f ScaleB, float t) {
 
 void drawParticle(uint32_t id, sf::RenderWindow& window) {
   if (!GlobalParticleArray[id].alive) {return;}
-  window.draw(*GlobalParticleArray[id].particle->object.sprite);
+  window.draw(*GlobalParticleArray[id].particle.object.sprite);
 }
 
 // dt is in seconds
 void updateParticle(uint32_t id, float dt) {
   ParticleSlot& Slot = GlobalParticleArray[id];
-  std::unique_ptr<Particle>& ParticleInstance = Slot.particle;
+  Particle& ParticleInstance = Slot.particle;
 
   if (!Slot.alive) {return;}
 
 
-  ParticleInstance->Elapsed += dt;
+  ParticleInstance.Elapsed += dt;
 
-  if (ParticleInstance->Elapsed >= ParticleInstance->Lifetime) {
+  if (ParticleInstance.Elapsed >= ParticleInstance.Lifetime) {
     deallocateParticle(id);
     return;
   }
 
-  float NormalizedTime = ParticleInstance->Elapsed / ParticleInstance->Lifetime;
+  float NormalizedTime = ParticleInstance.Elapsed / ParticleInstance.Lifetime;
   NormalizedTime = std::clamp(NormalizedTime, 0.f, 1.f);
 
   // Apply Acceleration
-  ParticleInstance->Velocity.x += ParticleInstance->Acceleration.x * dt;
-  ParticleInstance->Velocity.y += ParticleInstance->Acceleration.y * dt;
+  ParticleInstance.Velocity.x += ParticleInstance.Acceleration.x * dt;
+  ParticleInstance.Velocity.y += ParticleInstance.Acceleration.y * dt;
 
   // Apply Velocity
   // Here we apply velocity not in the Global X and Y, but in the relative X and Y of the particle
   // The Relative X and Y is given by the ParticleInstance's Direction Value
-  float DirectionDegrees = ParticleInstance->Direction.asRadians();
+  float DirectionDegrees = ParticleInstance.Direction.asRadians();
 
-  float ConvertedXVelocity = cos(DirectionDegrees) * ParticleInstance->Velocity.x - sin(DirectionDegrees) * ParticleInstance->Velocity.y;
-  float ConvertedYVelocity = sin(DirectionDegrees) * ParticleInstance->Velocity.x + cos(DirectionDegrees) * ParticleInstance->Velocity.y;
+  float ConvertedXVelocity = cos(DirectionDegrees) * ParticleInstance.Velocity.x - sin(DirectionDegrees) * ParticleInstance.Velocity.y;
+  float ConvertedYVelocity = sin(DirectionDegrees) * ParticleInstance.Velocity.x + cos(DirectionDegrees) * ParticleInstance.Velocity.y;
   
-  ParticleInstance->object.sprite->setPosition(
+  ParticleInstance.object.sprite->setPosition(
     {
-      ParticleInstance->object.sprite->getPosition().x + ConvertedXVelocity * dt,
-      ParticleInstance->object.sprite->getPosition().y + ConvertedYVelocity * dt
+      ParticleInstance.object.sprite->getPosition().x + ConvertedXVelocity * dt,
+      ParticleInstance.object.sprite->getPosition().y + ConvertedYVelocity * dt
     }
   );
   
   // Apply Color
   // Getting the points
   
-  auto ColorLoopResult = returnNeighborPointsInArray(ParticleInstance->ColorArray,NormalizedTime);
+  auto ColorLoopResult = returnNeighborPointsInArray(ParticleInstance.ColorArray,NormalizedTime);
                                 
   // ColorPointA is the point just before the Elapsed time, and B is the just after one
   auto& ColorPointA = ColorLoopResult.first;
@@ -122,11 +122,11 @@ void updateParticle(uint32_t id, float dt) {
   uint8_t NewColorA = lerpColor(static_cast<float>(ColorPointA.second.a),static_cast<float>(ColorPointB.second.a), col_t_segment);
 
   sf::Color NewColor({NewColorR, NewColorG, NewColorB, NewColorA});
-  ParticleInstance->object.sprite->setColor(NewColor);
+  ParticleInstance.object.sprite->setColor(NewColor);
 
   // Apply Rotation
   // Getting the points
-  auto RotationLoopResult = returnNeighborPointsInArray(ParticleInstance->RotationArray, NormalizedTime);
+  auto RotationLoopResult = returnNeighborPointsInArray(ParticleInstance.RotationArray, NormalizedTime);
 
   auto& RotationPointA = RotationLoopResult.first;
   auto& RotationPointB = RotationLoopResult.second;
@@ -138,10 +138,10 @@ void updateParticle(uint32_t id, float dt) {
 
   sf::Angle NewAngle = lerpRotation(RotationPointA.second, RotationPointB.second, rot_t_segment);
 
-  ParticleInstance->object.sprite->setRotation(NewAngle);
+  ParticleInstance.object.sprite->setRotation(NewAngle);
   
   // Apply Scale
-  auto ScaleLoopResult = returnNeighborPointsInArray(ParticleInstance->ScaleArray, NormalizedTime);
+  auto ScaleLoopResult = returnNeighborPointsInArray(ParticleInstance.ScaleArray, NormalizedTime);
 
   auto& ScalePointA = ScaleLoopResult.first;
   auto& ScalePointB = ScaleLoopResult.second;
@@ -153,7 +153,7 @@ void updateParticle(uint32_t id, float dt) {
 
   sf::Vector2f newScale = lerpScale(ScalePointA.second, ScalePointB.second, scale_t_segment);
 
-  ParticleInstance->object.sprite->setScale(newScale);
+  ParticleInstance.object.sprite->setScale(newScale);
 }
 
 void updateAllParticles(float dt) {
