@@ -47,11 +47,27 @@ void ParticleTest::update(sf::Time dt) {
   emitter.move({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
   Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
 
-  updateAllParticles(dt.asSeconds());
+  ParticleSystem::updateAllParticles(dt.asSeconds());
 }
 
 void ParticleTest::render() { 
   mWindow.clear(sf::Color::Black);
-  renderAllParticles(mWindow);
+  ParticleSystem::renderAllParticles(mWindow);
   mWindow.draw(*Cursor.sprite);
+
+  if (fontLoaded) {
+    sf::Text debugText(debugFont);
+    debugText.setCharacterSize(16);
+    debugText.setFillColor(sf::Color::White);
+    debugText.setOutlineColor(sf::Color::Black);
+    debugText.setOutlineThickness(1.0f);
+
+    int aliveParticles = ParticleSystem::GlobalParticleArray.size() - ParticleSystem::FreeSlots.size();
+    std::string aliveParticleInfo = "particles: ";
+    aliveParticleInfo += std::to_string(aliveParticles);
+
+    debugText.setString(aliveParticleInfo);
+    debugText.setPosition({10.f, 10.f}); 
+    mWindow.draw(debugText);
+  }
 }

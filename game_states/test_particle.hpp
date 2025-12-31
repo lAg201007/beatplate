@@ -26,6 +26,6 @@ private:
     sf::Font debugFont;
     bool fontLoaded = false;
 
-    ParticleEmitter emitter;
+    ParticleSystem::ParticleEmitter emitter;
     Object Cursor;
 };
