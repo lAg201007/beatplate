@@ -6,21 +6,29 @@ std::vector<uint32_t> FreeSlots;
 
 // Loop through the array and returns the neighbor points in reference to elapsed
 template<typename T>
-std::pair<std::pair<float, T>, std::pair<float, T>> returnNeighborPointsInArray(const std::vector<std::pair<float, T>>& array, float NormalizedTime) {
-  std::pair<float, T> T1;
-  std::pair<float, T> T2;
+std::pair<std::pair<float, T>, std::pair<float, T>> returnNeighborPointsInArray(const std::vector<std::pair<float, T>>& keyframes, float normalizedTime) 
+{
+  using Key = std::pair<float, T>;
 
-  for (std::pair<float, T> Point : array) {
-    if (Point.first <= NormalizedTime) {
-      T1 = Point;
-    }
-    else {
-      T2 = Point;
-      break;
-    }
-  } 
+  auto nextIt = std::upper_bound(
+      keyframes.begin(),
+      keyframes.end(),
+      normalizedTime,
+      [](float time, const Key& keyframe) {
+          return time < keyframe.first;
+      }
+  );
 
-  return {T1, T2};
+  if (nextIt == keyframes.begin()) {
+      return {*nextIt, *nextIt};
+  }
+
+  if (nextIt == keyframes.end()) {
+      return {keyframes.back(), keyframes.back()};
+  }
+
+  auto prevIt = std::prev(nextIt);
+  return {*prevIt, *nextIt};
 }
 
 uint32_t allocateParticle(Particle& newParticle) {
