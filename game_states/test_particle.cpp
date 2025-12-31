@@ -9,7 +9,7 @@ ParticleTest::ParticleTest(StateStack& stack, sf::RenderWindow& window) :
   State(stack, window),
   texturePath("assets/sprites/cursor.png"),
   lifetime({1.5,3}),
-  particle_count({20,40}),
+  particle_count({10,15}),
   emitterInitialPos({500, 500}),
   initialVelocity({45, -45}, {65, -65}),
   acceleration({20, -20}),
@@ -18,7 +18,7 @@ ParticleTest::ParticleTest(StateStack& stack, sf::RenderWindow& window) :
   colorArray({ {0.f, {10,230,1,255}}, {1.f, {50, 120, 255, 0}} }),
   rotationArray({ {0.f, {sf::degrees(0)}  }, {1.f, {sf::degrees(360)}  } }),
 
-  emitter(texturePath, lifetime, spread, particle_count, emitterInitialPos, initialVelocity, acceleration, scaleArray, colorArray, rotationArray),
+  emitter(texturePath, lifetime, spread, particle_count, emitterInitialPos, initialVelocity, acceleration, scaleArray, colorArray, rotationArray, {0,0}, 15, true),
   Cursor("assets/sprites/cursor.png", 400, 300, 0, 0)
 {
   if (debugFont.openFromFile("assets/fonts/Montserrat-SemiBold.ttf")) {
@@ -35,6 +35,15 @@ void ParticleTest::handleEvent(const sf::Event& event) {
         emitter.spawn();
       }
 
+      if (keyPressed->scancode == sf::Keyboard::Scancode::H) {
+        if (emitter.getRateSpawningStatus()) {
+          emitter.disableRateSpawning();
+        }
+        else {
+          emitter.enableRateSpawning();
+        }
+      }
+
       if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
         mStack.popState();
       }
@@ -45,6 +54,7 @@ void ParticleTest::handleEvent(const sf::Event& event) {
 void ParticleTest::update(sf::Time dt) {
   sf::Vector2i mouse_pos = sf::Mouse::getPosition(mWindow);
   emitter.move({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
+  emitter.updateEmitter(dt.asSeconds());
   Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
 
   ParticleSystem::updateAllParticles(dt.asSeconds());

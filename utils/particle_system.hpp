@@ -81,7 +81,9 @@ namespace ParticleSystem {
                                     std::vector<std::pair<float, sf::Vector2f>> scaleArray,
                                     std::vector<std::pair<float, sf::Color>> colorArray,
                                     std::vector<std::pair<float, sf::Angle>> rotationArray,
-                                    sf::Vector2i objectOrigin = {0,0})
+                                    sf::Vector2i objectOrigin = {0,0},
+                                    float rate = 0,
+                                    float rateSpawningEnabled = false)
         : m_texturePath(texturePath),
           m_lifetime(lifetime),
           m_spread(spread),
@@ -92,7 +94,9 @@ namespace ParticleSystem {
           m_scaleArray(std::move(scaleArray)),
           m_colorArray(std::move(colorArray)),
           m_rotationArray(std::move(rotationArray)),
-          m_objectOrigin(objectOrigin)
+          m_objectOrigin(objectOrigin),
+          Rate(rate),
+          RateSpawningEnabled(rateSpawningEnabled)
     { 
     }
 
@@ -135,6 +139,28 @@ namespace ParticleSystem {
     void move(sf::Vector2f position) {
       m_emitterInitialPos = position;
     }
+
+    void enableRateSpawning() {
+      RateSpawningEnabled = true;
+    }
+
+    void disableRateSpawning() {
+      RateSpawningEnabled = false;
+    }
+
+    bool getRateSpawningStatus() {
+      return RateSpawningEnabled;
+    }
+
+    void updateEmitter(float dt) {
+      if (!RateSpawningEnabled) {return;}
+    
+      if (TimeSinceLastRateSpawn > 1.f / Rate) {
+        TimeSinceLastRateSpawn = 0;
+        spawn();
+      }
+      TimeSinceLastRateSpawn += dt;
+    }
     
   private:
       std::string m_texturePath;
@@ -148,6 +174,10 @@ namespace ParticleSystem {
       std::vector<std::pair<float, sf::Color>> m_colorArray;
       std::vector<std::pair<float, sf::Angle>> m_rotationArray;
       sf::Vector2i m_objectOrigin;
+
+      bool RateSpawningEnabled;
+      float Rate;
+      float TimeSinceLastRateSpawn = 0.f;
 
       std::vector<uint32_t> m_particleIds; 
   };
