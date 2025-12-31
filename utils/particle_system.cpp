@@ -23,19 +23,26 @@ std::pair<std::pair<float, T>, std::pair<float, T>> returnNeighborPointsInArray(
   return {T1, T2};
 }
 
-uint32_t allocateParticle(Particle& newParticle) {
-  if (!FreeSlots.empty()) {
-    int id = FreeSlots.back();
-    FreeSlots.pop_back();
+uint32_t allocateParticle(Particle&& newParticle) {
+    if (!FreeSlots.empty()) {
+        uint32_t id = FreeSlots.back();
+        FreeSlots.pop_back();
+        
+        GlobalParticleArray[id].particle = std::make_unique<Particle>(std::move(newParticle));
+        GlobalParticleArray[id].alive = true;
 
-    ParticleSlot newSlot(std::make_unique<Particle>(newParticle),true);
-    GlobalParticleArray[id] = std::move(newSlot);
-    return id;
-  }
+        return id;
+    }
 
-  ParticleSlot newSlot(std::make_unique<Particle>(newParticle), true);
-  GlobalParticleArray.push_back(std::move(newSlot));
-  return GlobalParticleArray.size() - 1;
+    ParticleSlot newSlot(std::make_unique<Particle>(std::move(newParticle)), true);
+    GlobalParticleArray.push_back(std::move(newSlot));
+    return GlobalParticleArray.size() - 1;
+}
+
+void deallocateParticle(uint32_t id) {
+  if (!GlobalParticleArray[id].alive) {return;}
+  GlobalParticleArray[id].reset();
+  FreeSlots.push_back(id);
 }
 
 uint8_t lerpColor(float ColorA, float ColorB, float t) {
@@ -48,11 +55,6 @@ sf::Angle lerpRotation(sf::Angle RotationA, sf::Angle RotationB, float t) {
   return NewAngle;
 }
 
-void deallocateParticle(uint32_t id) {
-  GlobalParticleArray[id].reset();
-  FreeSlots.push_back(id);
-}
-
 void drawParticle(uint32_t id, sf::RenderWindow& window) {
   if (!GlobalParticleArray[id].alive) {return;}
   window.draw(*GlobalParticleArray[id].particle->object.sprite);
@@ -62,8 +64,9 @@ void drawParticle(uint32_t id, sf::RenderWindow& window) {
 void updateParticle(uint32_t id, float dt) {
   ParticleSlot& Slot = GlobalParticleArray[id];
   std::unique_ptr<Particle>& ParticleInstance = Slot.particle;
-  
+
   if (!Slot.alive) {return;}
+
 
   ParticleInstance->Elapsed += dt;
 
@@ -102,11 +105,16 @@ void updateParticle(uint32_t id, float dt) {
   // ColorPointA is the point just before the Elapsed time, and B is the just after one
   auto& ColorPointA = ColorLoopResult.first;
   auto& ColorPointB = ColorLoopResult.second;
+
+  float SegmentDuration = ColorPointB.first - ColorPointA.first;
+  float ElapsedInSegment = NormalizedTime - ColorPointA.first;
+  float col_t_segment = (SegmentDuration > 0.0001f) ? (ElapsedInSegment / SegmentDuration) : 0.f; 
+  col_t_segment = std::clamp(col_t_segment, 0.f, 1.f);
     
-  uint8_t NewColorR = lerpColor(static_cast<float>(ColorPointA.second.r),static_cast<float>(ColorPointB.second.r), NormalizedTime);
-  uint8_t NewColorG = lerpColor(static_cast<float>(ColorPointA.second.g),static_cast<float>(ColorPointB.second.g), NormalizedTime);
-  uint8_t NewColorB = lerpColor(static_cast<float>(ColorPointA.second.b),static_cast<float>(ColorPointB.second.b), NormalizedTime);
-  uint8_t NewColorA = lerpColor(static_cast<float>(ColorPointA.second.a),static_cast<float>(ColorPointB.second.a), NormalizedTime);
+  uint8_t NewColorR = lerpColor(static_cast<float>(ColorPointA.second.r),static_cast<float>(ColorPointB.second.r), col_t_segment);
+  uint8_t NewColorG = lerpColor(static_cast<float>(ColorPointA.second.g),static_cast<float>(ColorPointB.second.g), col_t_segment);
+  uint8_t NewColorB = lerpColor(static_cast<float>(ColorPointA.second.b),static_cast<float>(ColorPointB.second.b), col_t_segment);
+  uint8_t NewColorA = lerpColor(static_cast<float>(ColorPointA.second.a),static_cast<float>(ColorPointB.second.a), col_t_segment);
 
   sf::Color NewColor({NewColorR, NewColorG, NewColorB, NewColorA});
   ParticleInstance->object.sprite->setColor(NewColor);
@@ -118,11 +126,30 @@ void updateParticle(uint32_t id, float dt) {
   auto& RotationPointA = RotationLoopResult.first;
   auto& RotationPointB = RotationLoopResult.second;
 
-  sf::Angle NewAngle = lerpRotation(RotationPointA.second, RotationPointB.second, NormalizedTime);
+  float RotSegmentDuration = RotationPointB.first - RotationPointA.first;
+  float RotElapsedInSegment = NormalizedTime - RotationPointA.first;
+  float rot_t_segment = (RotSegmentDuration > 0.0001f) ? (RotElapsedInSegment / RotSegmentDuration) : 0.f; 
+  rot_t_segment = std::clamp(rot_t_segment, 0.f, 1.f);
+
+  sf::Angle NewAngle = lerpRotation(RotationPointA.second, RotationPointB.second, rot_t_segment);
 
   ParticleInstance->object.sprite->setRotation(NewAngle);
   
   // Apply Scale
   
+}
+
+void updateAllParticles(float dt) {
+  for (int id = 0; id < GlobalParticleArray.size(); id++) {
+    if (!GlobalParticleArray[id].alive) {continue;}
+    updateParticle(id, dt);
+  }
+}
+
+void renderAllParticles(sf::RenderWindow& window) {
+  for (int id = 0; id < GlobalParticleArray.size(); id++) {
+    if (!GlobalParticleArray[id].alive) {continue;}
+    drawParticle(id, window);
+  }
 }
 

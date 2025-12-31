@@ -23,5 +23,8 @@ private:
     std::vector<std::pair<float, sf::Color>> colorArray;
     std::vector<std::pair<float, sf::Angle>> rotationArray;
 
-    ParticleEmitter testEmmiter;
+    sf::Font debugFont;
+    bool fontLoaded = false;
+
+    ParticleEmitter emitter;
 };
