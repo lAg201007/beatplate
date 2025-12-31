@@ -46,13 +46,18 @@ void deallocateParticle(uint32_t id) {
 }
 
 uint8_t lerpColor(float ColorA, float ColorB, float t) {
-    uint8_t newColor = static_cast<uint8_t>(std::lerp(ColorA, ColorB, t));
-    return newColor;
+  uint8_t newColor = static_cast<uint8_t>(std::lerp(ColorA, ColorB, t));
+  return newColor;
 }
 
 sf::Angle lerpRotation(sf::Angle RotationA, sf::Angle RotationB, float t) {
   sf::Angle NewAngle = sf::degrees(std::clamp(std::lerp(RotationA.asDegrees(), RotationB.asDegrees(), t), 0.f, 360.f));
   return NewAngle;
+}
+
+sf::Vector2f lerpScale(sf::Vector2f ScaleA, sf::Vector2f ScaleB, float t) {
+  sf::Vector2f newScale = {std::lerp(ScaleA.x, ScaleB.x, t), std::lerp(ScaleA.y, ScaleB.y, t)};
+  return newScale;
 }
 
 void drawParticle(uint32_t id, sf::RenderWindow& window) {
@@ -136,7 +141,19 @@ void updateParticle(uint32_t id, float dt) {
   ParticleInstance->object.sprite->setRotation(NewAngle);
   
   // Apply Scale
-  
+  auto ScaleLoopResult = returnNeighborPointsInArray(ParticleInstance->ScaleArray, NormalizedTime);
+
+  auto& ScalePointA = ScaleLoopResult.first;
+  auto& ScalePointB = ScaleLoopResult.second;
+
+  float ScaleSegmentDuration = ScalePointB.first - ScalePointA.first;
+  float ScaleElapsedInSegment = NormalizedTime - RotationPointA.first;
+  float scale_t_segment = (ScaleSegmentDuration > 0.0001f) ? (ScaleElapsedInSegment / ScaleSegmentDuration) : 0.f; 
+  scale_t_segment = std::clamp(scale_t_segment, 0.f, 1.f);
+
+  sf::Vector2f newScale = lerpScale(ScalePointA.second, ScalePointB.second, scale_t_segment);
+
+  ParticleInstance->object.sprite->setScale(newScale);
 }
 
 void updateAllParticles(float dt) {

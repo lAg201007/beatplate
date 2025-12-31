@@ -12,7 +12,7 @@ ParticleTest::ParticleTest(StateStack& stack, sf::RenderWindow& window) :
   emitterInitialPos({500, 500}),
   initialVelocity({45, -45}, {65, -65}),
   acceleration({20, -20}),
-  scaleArray({{1,1}}),
+  scaleArray({ {0.f, {1,1}}, {1.f, {2,2}}  }),
   spread(300),
   colorArray({ {0.f, {10,230,1,255}}, {1.f, {50, 120, 255, 0}} }),
   rotationArray({ {0.f, {sf::degrees(0)}  }, {1.f, {sf::degrees(360)}  } }),

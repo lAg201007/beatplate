@@ -12,7 +12,7 @@ struct Particle {
   // the first value of the pair will aways be the time in lifetime that the value in the array will be placed
   std::vector<std::pair<float, sf::Color>> ColorArray;
   std::vector<std::pair<float, sf::Angle>> RotationArray;
-  std::vector<sf::Vector2f> ScaleArray;
+  std::vector<std::pair<float, sf::Vector2f>> ScaleArray;
 
   sf::Vector2f Velocity;
   sf::Vector2f Acceleration;
@@ -44,6 +44,7 @@ void deallocateParticle(uint32_t id);
 
 uint8_t lerpColor(float ColorA, float ColorB, float t);
 sf::Angle lerpRotation(sf::Angle RotationA, sf::Angle RotationB, float t);
+sf::Vector2f lerpScale(sf::Vector2f ScaleA, sf::Vector2f ScaleB, float t);
 
 void drawParticle(uint32_t id, sf::RenderWindow& window);
 void updateParticle(uint32_t id, float dt);
@@ -62,7 +63,7 @@ public:
                                   sf::Vector2f emitterInitialPos,    
                                   std::pair<sf::Vector2f, sf::Vector2f> initialVelocity,        
                                   sf::Vector2f acceleration,
-                                  std::vector<sf::Vector2f> scaleArray,
+                                  std::vector<std::pair<float, sf::Vector2f>> scaleArray,
                                   std::vector<std::pair<float, sf::Color>> colorArray,
                                   std::vector<std::pair<float, sf::Angle>> rotationArray,
                                   sf::Vector2i objectOrigin = {0,0})
@@ -123,7 +124,7 @@ private:
     sf::Vector2f m_emitterInitialPos;    
     std::pair<sf::Vector2f, sf::Vector2f> m_initialVelocity;        
     sf::Vector2f m_acceleration;
-    std::vector<sf::Vector2f> m_scaleArray;
+    std::vector<std::pair<float, sf::Vector2f>> m_scaleArray;
     std::vector<std::pair<float, sf::Color>> m_colorArray;
     std::vector<std::pair<float, sf::Angle>> m_rotationArray;
     sf::Vector2i m_objectOrigin;

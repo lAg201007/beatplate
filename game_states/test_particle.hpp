@@ -19,7 +19,7 @@ private:
     sf::Vector2f emitterInitialPos;
     std::pair<sf::Vector2f, sf::Vector2f> initialVelocity; 
     sf::Vector2f acceleration; 
-    std::vector<sf::Vector2f> scaleArray;
+    std::vector<std::pair<float, sf::Vector2f>> scaleArray;
     std::vector<std::pair<float, sf::Color>> colorArray;
     std::vector<std::pair<float, sf::Angle>> rotationArray;
 
