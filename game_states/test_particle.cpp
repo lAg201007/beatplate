@@ -1,6 +1,7 @@
 #include "../utils/particle_system.hpp"
 #include "test_particle.hpp"
 #include "game_state.h"
+#include "state_stack.h"
 #include "../utils/SFML_CLASSES.h"
 #include <print>
 
@@ -17,7 +18,8 @@ ParticleTest::ParticleTest(StateStack& stack, sf::RenderWindow& window) :
   colorArray({ {0.f, {10,230,1,255}}, {1.f, {50, 120, 255, 0}} }),
   rotationArray({ {0.f, {sf::degrees(0)}  }, {1.f, {sf::degrees(360)}  } }),
 
-  emitter(texturePath, lifetime, spread, particle_count, emitterInitialPos, initialVelocity, acceleration, scaleArray, colorArray, rotationArray)
+  emitter(texturePath, lifetime, spread, particle_count, emitterInitialPos, initialVelocity, acceleration, scaleArray, colorArray, rotationArray),
+  Cursor("assets/sprites/cursor.png", 400, 300, 0, 0)
 {
   if (debugFont.openFromFile("assets/fonts/Montserrat-SemiBold.ttf")) {
     fontLoaded = true;
@@ -32,15 +34,24 @@ void ParticleTest::handleEvent(const sf::Event& event) {
       if (keyPressed->scancode == sf::Keyboard::Scancode::G) {
         emitter.spawn();
       }
+
+      if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
+        mStack.popState();
+      }
     }
   }
 }
 
 void ParticleTest::update(sf::Time dt) {
+  sf::Vector2i mouse_pos = sf::Mouse::getPosition(mWindow);
+  emitter.move({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
+  Cursor.sprite->setPosition({static_cast<float>(mouse_pos.x),static_cast<float>(mouse_pos.y)});
+
   updateAllParticles(dt.asSeconds());
 }
 
 void ParticleTest::render() { 
   mWindow.clear(sf::Color::Black);
   renderAllParticles(mWindow);
+  mWindow.draw(*Cursor.sprite);
 }

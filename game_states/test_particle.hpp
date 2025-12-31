@@ -27,4 +27,5 @@ private:
     bool fontLoaded = false;
 
     ParticleEmitter emitter;
+    Object Cursor;
 };

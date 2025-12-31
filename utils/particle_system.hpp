@@ -116,6 +116,10 @@ public:
       m_particleIds.push_back(allocateParticle(std::move(newParticle)));
     }
   }
+
+  void move(sf::Vector2f position) {
+    m_emitterInitialPos = position;
+  }
 private:
     std::string m_texturePath;
     std::pair<float,float> m_lifetime; 
