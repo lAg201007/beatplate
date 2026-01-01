@@ -8,6 +8,7 @@
 #include "../utils/tween_storage.h"
 #include "../utils/audio_manager.h"
 #include "../utils/scale_manager.h"
+#include "test_particle.hpp"
 #include <filesystem>
 #include <fstream>
 #include "../libs/json.hpp"
@@ -64,6 +65,10 @@ void MainMenu::handleEvent(const sf::Event& event) {
         if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
             if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
                 mWindow.close();
+            }
+
+            if (keyPressed->scancode == sf::Keyboard::Scancode::P) {
+                mStack.pushState(std::make_unique<ParticleTest>(mStack, mWindow));
             }
         }
     }
