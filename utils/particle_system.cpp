@@ -1,4 +1,5 @@
 #include "../utils/particle_system.hpp"
+#include "../utils/scale_manager.h"
 #include <cmath>
 
 namespace ParticleSystem {
@@ -104,12 +105,22 @@ namespace ParticleSystem {
     float ConvertedXVelocity = cos(DirectionDegrees) * ParticleInstance.Velocity.x - sin(DirectionDegrees) * ParticleInstance.Velocity.y;
     float ConvertedYVelocity = sin(DirectionDegrees) * ParticleInstance.Velocity.x + cos(DirectionDegrees) * ParticleInstance.Velocity.y;
     
+    /*
     ParticleInstance.object.sprite->setPosition(
       {
         ParticleInstance.object.sprite->getPosition().x + ConvertedXVelocity * dt,
         ParticleInstance.object.sprite->getPosition().y + ConvertedYVelocity * dt
       }
     );
+    */
+
+    ParticleInstance.object.sprite->setPosition(
+      ScaleManager::UnscalePosition(
+        ParticleInstance.object.sprite->getPosition().x + ConvertedXVelocity * dt,
+        ParticleInstance.object.sprite->getPosition().y + ConvertedYVelocity * dt
+      )
+    );
+
     
     // Apply Color
     // Getting the points
