@@ -5,6 +5,7 @@
         },
         "background_dark_intensity": 225,
         "trajectory_dot_max_transparency": 1,
-        "music_offset_ms": 0
+        "music_offset_ms": 0,
+        "framerate_limit": 1000
     }
 }

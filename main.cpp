@@ -1,8 +1,10 @@
 #include <iostream>
+#include <fstream>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
+#include "../libs/json.hpp"
 #include "utils/SFML_CLASSES.h"
 #include "utils/scale_manager.h"
 #include "game_states/menu.h"
@@ -12,6 +14,14 @@ int main()
 {
     auto window = std::make_shared<sf::RenderWindow>(sf::VideoMode::getDesktopMode(),"beatplate", sf::State::Fullscreen);
     window->setMouseCursorVisible(false);
+
+    // set framerate limit
+    std::ifstream configFile("config.json");
+    nlohmann::json config;
+    configFile >> config;
+
+    // clamping framerate to a max of 1000 fps
+    window->setFramerateLimit(std::clamp(config["settings"]["framerate_limit"].get<int>(), 1, 1000));
 
     ScaleManager::UpdateScale(window->getSize().x, window->getSize().y);
     
